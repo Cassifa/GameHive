@@ -78,9 +78,9 @@ void BaseAi::aiMove(int x,int y){
 //打印游戏结果
 void BaseAi::printGameResult(){
     if(Winner==1){
-        cout<<"你赢了"<<endl;
-    }else if(Winner==2){
         cout<<"Ai赢了"<<endl;
+    }else if(Winner==2){
+        cout<<"你赢了"<<endl;
     }
     else cout<<"平局了"<<endl;
 }
@@ -89,7 +89,7 @@ bool BaseAi::letAiMove(){
     //是Ai先走：1357
     //不是Ai先走：2468
     int t=isAiFirst+nowRound;
-    cout<<isAiFirst<<"  "<<nowRound<<endl;
+    // cout<<isAiFirst<<"  "<<nowRound<<endl;
     if(!(t&1)){
         pii nowAiMove=evalToDo(map);
         aiMove(nowAiMove.first,nowAiMove.second);

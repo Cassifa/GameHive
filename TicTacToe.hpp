@@ -48,11 +48,13 @@ bool TicTacToe::isEnd(){
 bool TicTacToe::isHeWinner(int now){//0-Ai 1-玩家
     int cnt=0;
     //无棋可下，平局
-    for(int i=1;i<=3;i++)
-        for(int j=1;j<=3;j++)
-            if(map[i][j]==0)cnt++;
-    if(cnt)cnt=0;
-    else return true;
+    if(now==3){
+        for(int i=1;i<=3;i++)
+            for(int j=1;j<=3;j++)
+                if(map[i][j]==0)cnt++;
+        if(cnt)cnt=0;
+        else return true;
+    }
     for(int i=1;i<=3;i++){
         for(int j=1;j<=3;j++)
             cnt+=(now==map[i][j]);
@@ -76,11 +78,14 @@ bool TicTacToe::isHeWinner(int now){//0-Ai 1-玩家
             if(i+j==4)cnt+=(now==map[i][j]);
     }
     if(cnt==3)return true;
-    else return false;
+    return false;
 }
 //玩家选择位置
 bool TicTacToe::selectPlace(int x,int y){
-    if(checkPlace(x,y)) playerMove(x,y);
+    if(checkPlace(x,y)){
+        playerMove(x,y);
+        return true;
+    }
     return false;
 }
 //检查这个位置是否合法
@@ -93,6 +98,6 @@ bool TicTacToe::checkPlace(int x,int y){
 pii TicTacToe::evalToDo(vector<vector<int>> nowMap){
     for(int i=1;i<=3;i++)   
         for(int j=1;j<=3;j++)
-            if(map[i][j]==2) return pii({i,j});
+            if(map[i][j]==0) return pii({i,j});
     return pii({1,1});
 }
