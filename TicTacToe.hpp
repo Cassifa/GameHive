@@ -1,4 +1,3 @@
-#include<queue>
 #include<vector>
 #include<algorithm>
 #include"BaseAi.hpp"
@@ -9,7 +8,7 @@ private:
     //检查玩家位置合法性
     bool checkPlace(int x,int y)override;
     //AI决定怎么走⭐
-    pii evalToDo(vector<vector<int>> nowMap)override;
+    int evalToDo(vector<vector<int>> &nowMap,int nowVision)override;
 public:
     //调用构造函数,新建地图
     TicTacToe():BaseAi(3,3){};
@@ -94,10 +93,38 @@ bool TicTacToe::checkPlace(int x,int y){
     if(y>3||y<1)return false;
     return map[x][y]==0;
 }
-//使用决策树决定Ai下棋位置⭐
-pii TicTacToe::evalToDo(vector<vector<int>> nowMap){
-    for(int i=1;i<=3;i++)   
+//使用决策树决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
+int cnt=0;
+int TicTacToe::evalToDo(vector<vector<int>> &nowMap,int nowVision){
+    //估值,是不是当前走的一方赢了
+    if(isEnd()){
+        //当前视角赢了
+        if(isHeWinner(nowVision))return 1e8;
+        //对方赢了
+        else if(isHeWinner(3-nowVision))return -1e8;
+        //平局
+        else return 0;
+    }
+    //初始分数与决策，分数越大越好
+    int nowScore=-1e9;
+    pii nowDecide;
+    vector<pii> useful;
+    // 获取当前局面下所有可能的移动
+    for(int i=1;i<=3;i++)
         for(int j=1;j<=3;j++)
-            if(map[i][j]==0) return pii({i,j});
-    return pii({1,1});
+            if (nowMap[i][j]==0){
+                useful.push_back({i, j});
+            }
+    for(auto t:useful){
+        nowMap[t.first][t.second]=nowVision;
+        int score=evalToDo(nowMap,3-nowVision);
+        if(nowVision==2)score*=-1;
+        if(score>nowScore){
+            nowDecide=t;
+            nowScore=score;
+        }
+        nowMap[t.first][t.second]=0;
+    }
+    finalDecide=nowDecide;
+    return nowScore;
 }

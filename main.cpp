@@ -66,3 +66,9 @@ int main(){
     }
     return 0;
 }
+// int main(){
+//     while(true){
+//         f();
+//     }
+//     return 0;
+// }

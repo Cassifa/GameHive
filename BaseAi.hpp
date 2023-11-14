@@ -1,8 +1,8 @@
 #include <iostream>
 #include<vector>
 #include<algorithm>
-#define pii pair<int,int>
 using namespace std;
+#define pii pair<int,int>
 //只支持双人回合制下棋
 class BaseAi{
 private:
@@ -15,8 +15,11 @@ private:
 protected:
     //地图 0-没走 1-Ai 2-玩家
     vector<vector<int>> map;
+    //当前决策与当前估分
+    pii finalDecide={1,1};
+    int nowScore=-1e9;
     //AI决定怎么走⭐
-    virtual pii evalToDo(vector<vector<int>> nowMap)=0;
+    virtual int evalToDo(vector<vector<int>> &nowMap,int nowVision)=0;
     //Ai移动
     void aiMove(int x,int y);
     //判断他此时有没有赢(Ai/玩家)
@@ -91,8 +94,9 @@ bool BaseAi::letAiMove(){
     int t=isAiFirst+nowRound;
     // cout<<isAiFirst<<"  "<<nowRound<<endl;
     if(!(t&1)){
-        pii nowAiMove=evalToDo(map);
-        aiMove(nowAiMove.first,nowAiMove.second);
+        //Ai进行Min-Max决策
+        evalToDo(map,2);
+        aiMove(finalDecide.first,finalDecide.second);
         return true;
     }
     return false;
