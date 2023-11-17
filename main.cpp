@@ -42,11 +42,13 @@ int main(){
         }
     }
     // baseAi->setIsAiFirst(false);
+    //开始游戏
     baseAi->startGame();
     while (true){
         //判断结束了
         if(baseAi->isEnd()){
             baseAi->printGameResult();
+
             delete baseAi;
             break;
         }

@@ -1,5 +1,4 @@
 #include<vector>
-#include<algorithm>
 #include"BaseAi.hpp"
 #define pii pair<int,int>
 class TicTacToe :public BaseAi{
@@ -24,16 +23,32 @@ public:
 };
 //向玩家展示当前地图
 void TicTacToe::showMap(){
-    for(int i=1;i<=3;i++){
-        for(int j=1;j<=3;j++){
-            char now;
-            if(map[i][j]==0)now='*';
-            else if(map[i][j]==2)now='X';
-            else now='O';
-            cout<<now;
+	int i=0,j=0,row=3,col=3;
+    for (i = 1; i <=3; i++)
+        printf("  %d ",i);
+    printf("\n");
+	//从上面开始到这里将每一列的数字填写完毕！！！
+	for (i=1;i<=row;i++){
+		for (j=1;j<=col;j++)
+			printf(" ---");
+		printf("\n");
+		for (j=1;j<=col;j++){
+            char c=' ';
+            if(map[i][j]==1)c='O';
+            else if(map[i][j]==2)c='X';
+			printf("| %c ", c);
         }
-        cout<<endl;
-    }
+		if (j==col+1)
+			printf("| %d",i);//打印每一行的数字
+		printf("\n");
+	}
+	if (i==row+1){
+		int x=0;
+		for (x=0;x<row;x++)
+			printf(" ---");
+	}
+	printf("\n");
+	
 }
 //检查落子后游戏是不是结束了
 bool TicTacToe::isEnd(){
@@ -94,14 +109,13 @@ bool TicTacToe::checkPlace(int x,int y){
     return map[x][y]==0;
 }
 //使用决策树决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
-int cnt=0;
 int TicTacToe::evalToDo(vector<vector<int>> &nowMap,int nowVision){
     //估值,是不是当前走的一方赢了
     if(isEnd()){
         //当前视角赢了
         if(isHeWinner(nowVision))return 1e8;
         //对方赢了
-        else if(isHeWinner(3-nowVision))return -1e8;
+        else if(isHeWinner(3-nowVision))return -1e7;
         //平局
         else return 0;
     }
@@ -112,9 +126,8 @@ int TicTacToe::evalToDo(vector<vector<int>> &nowMap,int nowVision){
     // 获取当前局面下所有可能的移动
     for(int i=1;i<=3;i++)
         for(int j=1;j<=3;j++)
-            if (nowMap[i][j]==0){
+            if (nowMap[i][j]==0)
                 useful.push_back({i, j});
-            }
     for(auto t:useful){
         nowMap[t.first][t.second]=nowVision;
         int score=evalToDo(nowMap,3-nowVision);

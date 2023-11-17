@@ -1,6 +1,5 @@
 #include <iostream>
 #include<vector>
-#include<algorithm>
 using namespace std;
 #define pii pair<int,int>
 //只支持双人回合制下棋
@@ -10,27 +9,29 @@ private:
     bool isAiFirst;
     //谁赢了
     int Winner=0;
-    //当前是第几轮
+    //当前是第几轮(每走一步是一轮)
     int nowRound=1;
 protected:
     //地图 0-没走 1-Ai 2-玩家
     vector<vector<int>> map;
-    //当前决策与当前估分
+    //当前Ai决策
     pii finalDecide={1,1};
-    int nowScore=-1e9;
-    //AI决定怎么走⭐
-    virtual int evalToDo(vector<vector<int>> &nowMap,int nowVision)=0;
-    //Ai移动
-    void aiMove(int x,int y);
-    //判断他此时有没有赢(Ai/玩家)
-    virtual bool isHeWinner(int nowChecking)=0;
+
     //检查此位置是否合法
     virtual bool checkPlace(int x,int y)=0;
-    void increaseRound();
+    //AI决定怎么走⭐
+    virtual int evalToDo(vector<vector<int>> &nowMap,int nowVision)=0;
+    //判断他此时有没有赢(Ai/玩家)
+    virtual bool isHeWinner(int nowChecking)=0;
+
     //玩家移动
     void playerMove(int x,int y);
+    //Ai移动
+    void aiMove(int x,int y);
     
     void setWinner(int Winner);
+    //轮数自增
+    void increaseRound();
 public:
     BaseAi(int x,int y): map(x + 1, std::vector<int>(y + 1, 0)) {};
     ~BaseAi(){};
@@ -92,7 +93,6 @@ bool BaseAi::letAiMove(){
     //是Ai先走：1357
     //不是Ai先走：2468
     int t=isAiFirst+nowRound;
-    // cout<<isAiFirst<<"  "<<nowRound<<endl;
     if(!(t&1)){
         //Ai进行Min-Max决策
         evalToDo(map,2);
