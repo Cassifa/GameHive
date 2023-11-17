@@ -129,9 +129,8 @@ int TicTacToe::evalToDo(vector<vector<int>> &nowMap,int nowVision){
         nowMap[t.first][t.second]=nowVision;
         //负极大值
         int score=-1*evalToDo(nowMap,3-nowVision);
-        if(score>=nowScore){
-            // //引入随机性
-            // if(score==nowScore&&(rand()&1))continue;
+        //引入随机性
+        if(score>nowScore||((score==nowScore)&&(rand()&1))){
             nowDecide=t;
             nowScore=score;
         }
