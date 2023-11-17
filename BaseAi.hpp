@@ -1,5 +1,6 @@
 #include <iostream>
 #include<vector>
+#include<ctime>
 using namespace std;
 #define pii pair<int,int>
 //只支持双人回合制下棋
@@ -95,7 +96,7 @@ bool BaseAi::letAiMove(){
     int t=isAiFirst+nowRound;
     if(!(t&1)){
         //Ai进行Min-Max决策
-        evalToDo(map,2);
+        evalToDo(map,1);
         aiMove(finalDecide.first,finalDecide.second);
         return true;
     }
