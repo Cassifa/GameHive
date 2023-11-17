@@ -24,30 +24,32 @@ public:
 //向玩家展示当前地图
 void TicTacToe::showMap(){
 	int i=0,j=0,row=3,col=3;
-    for (i = 1; i <=3; i++)
-        printf("  %d ",i);
-    printf("\n");
-	//从上面开始到这里将每一列的数字填写完毕！！！
 	for (i=1;i<=row;i++){
+        cout<<"  ";
 		for (j=1;j<=col;j++)
 			printf(" ---");
 		printf("\n");
 		for (j=1;j<=col;j++){
+            if(j==1)//打印每一行的数字
+                printf("%2d",row-i+1);
             char c=' ';
             if(map[i][j]==1)c='O';
             else if(map[i][j]==2)c='X';
 			printf("| %c ", c);
+            if (j==col)
+                printf("|");
         }
-		if (j==col+1)
-			printf("| %d",i);//打印每一行的数字
-		printf("\n");
+        if(i==row){
+            printf("\n  ");
+                for(int j=0;j<row;j++)
+                printf(" ---");
+        }
+        printf("\n");
 	}
-	if (i==row+1){
-		int x=0;
-		for (x=0;x<row;x++)
-			printf(" ---");
-	}
-	printf("\n");
+    cout<<"  ";
+    for (i =1;i<=row;i++)
+        printf("  %d ",i);
+    printf("\n");
 	
 }
 //检查落子后游戏是不是结束了
@@ -96,6 +98,7 @@ bool TicTacToe::isHeWinner(int now){//0-Ai 1-玩家
 }
 //玩家选择位置
 bool TicTacToe::selectPlace(int x,int y){
+    swap(x,y);x=4-x;
     if(checkPlace(x,y)){
         playerMove(x,y);
         return true;
