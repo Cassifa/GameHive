@@ -1,5 +1,5 @@
 #include<vector>
-#include"BaseAi.hpp"
+#include"../BaseAi.hpp"
 #define pii pair<int,int>
 class TicTacToe :public BaseAi{
 private:

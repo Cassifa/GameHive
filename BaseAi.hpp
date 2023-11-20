@@ -1,5 +1,5 @@
-#ifndef BaseAi
-#define BaseAi
+// #ifndef BaseAi
+// #define BaseAi
 #include <iostream>
 #include<vector>
 #include<ctime>
@@ -113,4 +113,4 @@ int BaseAi::getRound(){
 void BaseAi::increaseRound(){
     this->nowRound++;
 }
-#endif // !BaseAi
+// #endif // !BaseAi

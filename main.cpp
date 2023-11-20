@@ -1,5 +1,5 @@
-#include"TicTacToe.hpp"
-#include "GoBang.hpp"
+// #include"./GoBang/TicTacToe.hpp"
+#include "./GoBang/GoBang.hpp"
 int f(){
     BaseAi *baseAi;
     srand((unsigned)time(NULL)); 

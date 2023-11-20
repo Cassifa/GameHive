@@ -1,0 +1,5 @@
+#配置
+.vscode
+/.vscode
+#可执行文件
+*.exe
