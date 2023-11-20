@@ -1,3 +1,5 @@
+#ifndef BaseAi
+#define BaseAi
 #include <iostream>
 #include<vector>
 #include<ctime>
@@ -95,7 +97,7 @@ bool BaseAi::letAiMove(){
     //不是Ai先走：2468
     int t=isAiFirst+nowRound;
     if(!(t&1)){
-        //Ai进行Min-Max决策
+        //Ai进行Min-Max决策,地图,深度
         evalToDo(map,1);
         aiMove(finalDecide.first,finalDecide.second);
         return true;
@@ -111,3 +113,4 @@ int BaseAi::getRound(){
 void BaseAi::increaseRound(){
     this->nowRound++;
 }
+#endif // !BaseAi

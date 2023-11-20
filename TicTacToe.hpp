@@ -112,7 +112,9 @@ bool TicTacToe::checkPlace(int x,int y){
     return map[x][y]==0;
 }
 //在决策树上负极大值搜索 决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
-int TicTacToe::evalToDo(vector<vector<int>> &nowMap,int nowVision){
+int TicTacToe::evalToDo(vector<vector<int>> &nowMap,int deep){
+    int nowVision=deep&1;
+    if(!nowVision)nowVision=2;
     //自己赢了
     if(isHeWinner(nowVision))return 1e8;
     //对方赢了
@@ -131,7 +133,7 @@ int TicTacToe::evalToDo(vector<vector<int>> &nowMap,int nowVision){
     for(auto t:useful){
         nowMap[t.first][t.second]=nowVision;
         //负极大值
-        int score=-1*evalToDo(nowMap,3-nowVision);
+        int score=-1*evalToDo(nowMap,deep+1);
         //引入随机性
         if(score>nowScore||((score==nowScore)&&(rand()&1))){
             nowDecide=t;

@@ -1,5 +1,5 @@
 #include"TicTacToe.hpp"
-// #include "GoBang.hpp"
+#include "GoBang.hpp"
 int f(){
     BaseAi *baseAi;
     srand((unsigned)time(NULL)); 
@@ -23,7 +23,7 @@ int f(){
     //     }
 
     // }
-    baseAi=new TicTacToe();
+    baseAi=new GoBang();
     wait=true;
     while(wait){
         cout<<"请选择你是先手后手\n1:先手\n2:后手\n";
@@ -60,7 +60,7 @@ int f(){
         if(baseAi->letAiMove())continue;
         wait=true;
         while(wait){
-            cout<<"请选择你要选择的位置(行,列,数组坐标系):\n";
+            cout<<"请选择你要选择的位置(列,行,笛卡尔坐标系):\n";
             int x,y;cin>>x>>y;
             if(baseAi->selectPlace(x,y))
                 wait=false;
