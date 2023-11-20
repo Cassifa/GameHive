@@ -1,28 +1,29 @@
 #include"TicTacToe.hpp"
-// #include "GoBang.hpp"
-int main(){
+#include "GoBang.hpp"
+int f(){
     BaseAi *baseAi;
+    srand((unsigned)time(NULL)); 
     //等待合法输入
     bool wait=true;
-    while(wait){
-        cout<<"请选择你要玩的游戏\n1:井字棋\n2:五子棋\n";
-        int mode;cin>>mode;
-        switch(mode){
-            case 1:
-                baseAi=new TicTacToe();
-                wait=false;
-                break;
-            // case 2:
-            //     baseAi=new GoBang();
-            //     wait=false;
-            //     break;
-            default:
-                cout<<"输入错误\n";
-                break;
-        }
+    // while(wait){
+    //     cout<<"请选择你要玩的游戏\n1:井字棋\n2:五子棋\n";
+    //     int mode;cin>>mode;
+    //     switch(mode){
+    //         case 1:
+    //             baseAi=new TicTacToe();
+    //             wait=false;
+    //             break;
+    //         // case 2:
+    //         //     baseAi=new GoBang();
+    //         //     wait=false;
+    //         //     break;
+    //         default:
+    //             cout<<"输入错误\n";
+    //             break;
+    //     }
 
-    }
-    // baseAi=new TicTacToe();
+    // }
+    baseAi=new GoBang();
     wait=true;
     while(wait){
         cout<<"请选择你是先手后手\n1:先手\n2:后手\n";
@@ -42,11 +43,13 @@ int main(){
         }
     }
     // baseAi->setIsAiFirst(false);
+    //开始游戏
     baseAi->startGame();
     while (true){
         //判断结束了
         if(baseAi->isEnd()){
             baseAi->printGameResult();
+
             delete baseAi;
             break;
         }
@@ -57,7 +60,7 @@ int main(){
         if(baseAi->letAiMove())continue;
         wait=true;
         while(wait){
-            cout<<"请选择你要选择的位置(行,列,数组坐标系):\n";
+            cout<<"请选择你要选择的位置(列,行,笛卡尔坐标系):\n";
             int x,y;cin>>x>>y;
             if(baseAi->selectPlace(x,y))
                 wait=false;
@@ -66,9 +69,9 @@ int main(){
     }
     return 0;
 }
-// int main(){
-//     while(true){
-//         f();
-//     }
-//     return 0;
-// }
+int main(){
+    while(true){
+        f();
+    }
+    return 0;
+}
