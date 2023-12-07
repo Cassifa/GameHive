@@ -1,5 +1,7 @@
+#pragma once
 #include<vector>
 #include"../BaseAi.hpp"
+#include "./eval/eval.hpp"
 #define pii pair<int,int>
 class GoBang :public BaseAi{
 private:
@@ -87,13 +89,9 @@ bool GoBang::checkPlace(int x,int y){
     if(y>15||y<1)return false;
     return map[x][y]==0;
 }
-//在决策树上负极大值搜索 决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
-int GoBang::evalToDo(vector<vector<int>> &nowMap,int nowVision){
-    for(int i=1;i<=15;i++)
-        for(int j=1;j<=15;j++)
-        if(nowMap[i][j]==0){
-            finalDecide={i,j};
-            return 1;
-        }
+//在决策树上Min-Max ɑß搜索剪枝 决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
+int GoBang::evalToDo(vector<vector<int>> &nowMap,int deep){
+    pii ans=evalToGo(nowMap,1);
+    finalDecide=ans;
     return 0;
 }

@@ -1,3 +1,4 @@
+#pragma once
 #include<vector>
 #include"../BaseAi.hpp"
 #define pii pair<int,int>

@@ -1,4 +1,4 @@
-// #include"./GoBang/TicTacToe.hpp"
+#include "./TicTacToe/TicTacToe.hpp"
 #include "./GoBang/GoBang.hpp"
 int f(){
     BaseAi *baseAi;

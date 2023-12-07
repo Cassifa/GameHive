@@ -1,5 +1,4 @@
-// #ifndef BaseAi
-// #define BaseAi
+#pragma once
 #include <iostream>
 #include<vector>
 #include<ctime>
@@ -113,4 +112,3 @@ int BaseAi::getRound(){
 void BaseAi::increaseRound(){
     this->nowRound++;
 }
-// #endif // !BaseAi
