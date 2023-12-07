@@ -91,7 +91,7 @@ bool GoBang::checkPlace(int x,int y){
 }
 //在决策树上Min-Max ɑß搜索剪枝 决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
 int GoBang::evalToDo(vector<vector<int>> &nowMap,int deep){
-    pii ans=evalToGo(nowMap,1);
+    pii ans=evalToGo(nowMap);
     finalDecide=ans;
     return 0;
 }

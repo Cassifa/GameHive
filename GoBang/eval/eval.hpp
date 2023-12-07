@@ -11,7 +11,7 @@ pii evalToGo(vector<vector<int>> &nowMap,int type){
     pii ans;
     if(type==1){
         MinMax now;
-        now.evalToGo(nowMap,1);
+        now.start(nowMap);
         ans=now.finalDecision;
     }
     else if(type==2){
