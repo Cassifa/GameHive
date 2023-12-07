@@ -1,5 +1,8 @@
 #pragma once
 #include<vector>
+#include<map>
+#include<cstring>
+#include<algorithm>
 #define ll long long
 #define dvectr vector<vector<int>>
 #define fi first
@@ -14,6 +17,7 @@ struct MinMax{
     int dx[24]={-1,-1,0,1,1,1,0,-1, -2,-2,-2,-1,0,1,2, 2,2,2,2,1,0,-1,-2,-2}
     int dy[24]={0,1,1,1,0,-1,-1,-1, 0,1,2,2,2,2,2,1,0, -1,-2,-2,-2,-2,-2,-1};
     dvectr nowMap;
+    map<string,int> scoreChart;
     
     void start(dvectr &nowMap);
     //获取当前深度下最优决策 传入深度,父亲局面分数 传入时保证还有空位
@@ -36,11 +40,14 @@ struct MinMax{
     //计算x,y落子带来的增益
     int calculate(int x,int y,int view);
     //计算字符串价值
-    int calculateLine(String s);
+    int calculateLine(String &s);
+    //初始化评分表
+    void initScoreChart();
 };
 
 void MinMax::start(dvectr &nowMap){
     this->nowMap=nowMap;
+    initScoreChart();
     evalToGo(1,0);
 }
 bool MinMax::putable(int a,int b){
@@ -201,6 +208,17 @@ int MinMax::calculate(int x,int y,int view){
     ans+=calculateLine(s);
     return ans;
 }
-int MinMax::calculateLine(String s){
+int MinMax::calculateLine(String &s){
+    int ans=0,size=s.size();
+    for(auto t:scoreChart){
+        int cnt=0,len=t.size();
+        for(int i=0;i<size-len;i++)
+            if(s.substr(i,len)==t.fi)cnt++;
+        //估值=出现次数*价值
+        ans+=cnt*t.se;
+    }
+    return ans;
+}
+void MinMax::initScoreChart(){
 
 }
