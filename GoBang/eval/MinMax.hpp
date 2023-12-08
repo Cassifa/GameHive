@@ -17,6 +17,7 @@ struct MinMax{
     int dx[24]={-1,-1,0,1,1,1,0,-1, -2,-2,-2,-1,0,1,2, 2,2,2,2,1,0,-1,-2,-2}
     int dy[24]={0,1,1,1,0,-1,-1,-1, 0,1,2,2,2,2,2,1,0, -1,-2,-2,-2,-2,-2,-1};
     dvectr nowMap;
+    //估值表 _空 O自己 X对手
     map<string,int> scoreChart;
     
     void start(dvectr &nowMap);
@@ -135,16 +136,22 @@ int MinMax::evalToGo(int deep,int lastScore){
         nowScore=-inf;
         for(auto t:q){
             int x=t.fi,y=t.se;
+            //决定Ai的风格偏好,加起来权重为10
+            int defendBias=4,attackBias=6;
+            
             //此位置原始效益
             int oldScore=calculate(x,y,player);
-            nowMap[x][y]=4-player;
+
             //此位置防御增益
+            nowMap[x][y]=4-player;
             int defend=calculate(x,y,4-player)-oldScore;
-            nowMap[x][y]=player;
+
             //此位置攻击增益
+            nowMap[x][y]=player;
             int attack=calculate(x,y,player)-oldScore;
-            //此局面收益
-            int nowRoundScore=lastScore+defend+attack;
+
+            //此局面收益:上局收益加落子收益,落子收益:攻击收益+防御收益
+            int nowRoundScore=lastScore+attack*attackBias+defend*defendBias;
             if(nowRoundScore>nowScore){
                 nowScore=nowRoundScore;
                 finalDecision=t;
@@ -211,14 +218,57 @@ int MinMax::calculate(int x,int y,int view){
 int MinMax::calculateLine(String &s){
     int ans=0,size=s.size();
     for(auto t:scoreChart){
-        int cnt=0,len=t.size();
-        for(int i=0;i<size-len;i++)
-            if(s.substr(i,len)==t.fi)cnt++;
+        int index=0,cnt=0;
+        //寻找当前评估模式串t.fi在这一串中出现了几次
+        while((index=s.find(t.fi,index))!=-1){
+            cnt++;index+=t.size();
+            if(index>=s.size())break;
+        }
         //估值=出现次数*价值
         ans+=cnt*t.se;
     }
+
     return ans;
 }
 void MinMax::initScoreChart(){
+    //棋局参考文章https://blog.csdn.net/weixin_71872462/article/details/128574864?ops_request_misc=&request_id=&biz_id=102&utm_term=%E4%BA%94%E5%AD%90%E6%A3%8BAi%E5%86%B2%E5%9B%9B&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduweb~default-0-128574864.142^v96^pc_search_result_base1&spm=1018.2226.3001.4187
 
+    //四
+    //活四
+    scoreChart["_OOOO_"]=5000;
+    //冲四
+    scoreChart["O_OOO"]=700;
+    scoreChart["_OOOOX"]=1000;
+    scoreChart["OO_OO"]=700;
+
+    //三
+    //活三(可成活四)
+    scoreChart["_OOO_"]=500;
+    scoreChart["O_OO"]=150;
+    //眠三
+    scoreChart["__OOOX"]=100;
+    scoreChart["_O_OOX"]=80;
+    scoreChart["_OO_OX"]=60;
+    scoreChart["O__OO"]=60;
+    scoreChart["O_O_O"]=60;
+    scoreChart["X_OOO_X"]=60;
+
+    //二
+    //活二
+    scoreChart["__OO__"]=50;
+    scoreChart["_O_O_"]=20;
+    scoreChart["O__O"]=20;
+    //眠二
+    scoreChart["___OOX"]=10;
+    scoreChart["__O_OX"]=10;
+    scoreChart["_O__OX"]=10;
+    scoreChart["O___O"]=10;
+
+    //考虑翻过来的情况
+    map<string,int> st=scoreChart;
+    for(auto t:st){
+        string s=t.fi;
+        reverse(s.begin(),s.end());
+        scoreChart[s]=t.se;
+    }
 }
