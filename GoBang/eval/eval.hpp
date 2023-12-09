@@ -9,14 +9,15 @@ using namespace std;
 //输入地图，需要的决策类型
 pii evalToGo(vector<vector<int>> &nowMap,int type){
     pii ans;
+    //用MinMaxAi
     if(type==1){
-        MinMax now;
-        now.start(nowMap);
-        ans=now.finalDecision;
+        MinMax Ai;
+        Ai.start(nowMap);
+        ans=Ai.finalDecision;
     }
+    //用蒙特卡洛Ai
     else if(type==2){
-        // MonteCarlo now=new MonteCarlo();
-        // delete now;
+        // MonteCarlo Ai;
     }
     return ans;
 }

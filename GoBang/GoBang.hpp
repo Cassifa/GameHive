@@ -63,16 +63,48 @@ bool GoBang::isEnd(){
     return true;
 }
 //检查他是不是赢了
-bool GoBang::isHeWinner(int now){//0-Ai 1-玩家
-    int cnt=0;
-    //无棋可下，平局
-    if(now==3){
-        for(int i=1;i<=3;i++)
-            for(int j=1;j<=3;j++)
-                if(map[i][j]==0)return false;
+bool GoBang::isHeWinner(int view){//0-Ai 1-玩家
+    if(view==3){
+        for(int i=0;i<map.size();i++)
+            for(int j=0;j<map[i].size();j++)
+                if(map[i][j]==0)
+                    return false;
         return true;
     }
-    return false;
+    //检查横向
+    for(int i=1;i<map.size();i++){
+        for(int j=1;j<=11;j++) 
+            if (map[i][j]==view&&map[i][j+1]==view&&map[i][j+2]==view&&
+                map[i][j+3]==view&&map[i][j+4]==view)
+                return true;
+    }
+    //检查纵向
+    for(int i=1;i<=11;i++){
+        for(int j=1;j<map.size();j++)
+            if (map[i][j]==view&&map[i+1][j]==view&&map[i+2][j]==view&&
+                map[i+3][j]==view&&map[i+4][j]==view)
+                return true;
+    }
+    //检查主对角线
+    for(int i=1;i<=11;i++){
+        for(int j=1;j<=11;j++){
+            if(map[i][j]==view&&map[i+1][j+1]==view&&map[i+2][j+2]==view&&
+                map[i+3][j+3]==view&&map[i+4][j+4]==view){
+                return true;
+            }
+        }
+    }
+    //检查副对角线
+    for(int i=1;i<=11;i++){
+        for(int j=5;j<=15;j++){
+            if(map[i][j]==view&&map[i+1][j-1]==view&&map[i+2][j-2]==view&&
+                map[i+3][j-3]==view&&map[i+4][j-4]==view){
+                return true;
+            }
+        }
+    }
+    //未连成五子
+    return false; 
 }
 //玩家选择位置
 bool GoBang::selectPlace(int x,int y){
@@ -91,7 +123,7 @@ bool GoBang::checkPlace(int x,int y){
 }
 //在决策树上Min-Max ɑß搜索剪枝 决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
 int GoBang::evalToDo(vector<vector<int>> &nowMap,int deep){
-    pii ans=evalToGo(nowMap);
+    pii ans=evalToGo(map,1);
     finalDecide=ans;
     return 0;
 }

@@ -63,7 +63,7 @@ public:
 void BaseAi::startGame(){
     cout<<"开始游戏!"<<endl;
     showMap();
-    cout<<"X表示你的棋子,O表示A的棋子,*表示此处未落子"<<endl;
+    cout<<"X表示你的棋子,O表示Ai的棋子"<<endl;
 }
 //设置先后顺序
 void BaseAi::setIsAiFirst(bool choice=false){
@@ -72,13 +72,15 @@ void BaseAi::setIsAiFirst(bool choice=false){
 //玩家移动
 void BaseAi::playerMove(int x,int y){
     map[x][y]=2;
-    cout<<"你在"<<x<<","<<y<<"落子了"<<endl;
+    //展示的棋盘x轴与实际棋盘x轴方向相反，所以应该矫正为map.size()+1-x,但是数组下标0开始所以不+1
+    //再交换x,y次序使之矫正为笛卡尔坐标系
+    cout<<"你在"<<y+1<<","<<map.size()-x<<"落子了"<<endl;
     showMap();increaseRound();
 }
 //Ai移动
 void BaseAi::aiMove(int x,int y){
     map[x][y]=1;
-    cout<<"Ai在"<<x<<","<<y<<"落子了"<<endl;
+    cout<<"Ai在"<<y+1<<","<<map.size()-x<<"落子了"<<endl;
     showMap();increaseRound();
 }
 //打印游戏结果

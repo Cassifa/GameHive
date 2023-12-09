@@ -14,11 +14,12 @@ struct MinMax{
 
     pii finalDecision;
     int player=1;
-    int dx[24]={-1,-1,0,1,1,1,0,-1, -2,-2,-2,-1,0,1,2, 2,2,2,2,1,0,-1,-2,-2}
+    int dx[24]={-1,-1,0,1,1,1,0,-1, -2,-2,-2,-1,0,1,2, 2,2,2,2,1,0,-1,-2,-2};
     int dy[24]={0,1,1,1,0,-1,-1,-1, 0,1,2,2,2,2,2,1,0, -1,-2,-2,-2,-2,-2,-1};
     dvectr nowMap;
     //估值表 _空 O自己 X对手
     map<string,int> scoreChart;
+    int stander=1;
     
     void start(dvectr &nowMap);
     //获取当前深度下最优决策 传入深度,父亲局面分数 传入时保证还有空位
@@ -38,10 +39,12 @@ struct MinMax{
     //这个位置要不要考虑放子(周围二十四格有落子过)
     bool putable(int x,int y);
 
-    //计算x,y落子带来的增益
+    //计算x,y落子对view带来的增益
     int calculate(int x,int y,int view);
     //计算字符串价值
-    int calculateLine(String &s);
+    int calculateLine(string &s);
+    //计算player在x,y落子后收益
+    int calculateRoundScore(int x,int y,int player);
     //初始化评分表
     void initScoreChart();
 };
@@ -49,126 +52,153 @@ struct MinMax{
 void MinMax::start(dvectr &nowMap){
     this->nowMap=nowMap;
     initScoreChart();
+    //以前的局面已经无法改变，只考虑后续操作带来的收益
     evalToGo(1,0);
 }
 bool MinMax::putable(int a,int b){
+    if(a==8&&b==8)
+        cout<<"当前在找 "<<a<<" "<<b<<endl;
     for(int i=0;i<24;i++){
         int x=dx[i]+a,y=dy[i]+b;
-        if(x<0||y<0||x>14||y>14)continue;
+        if(x<1||y<1||x>15||y>15)continue;
         //周围二十四格有落子过
         if(nowMap[x][y])return true;
     }
     return false;
 }
 bool MinMax::isTie(){
-    for (int i = 0; i < nowMap.size(); ++i)
-        for (int j = 0; j < nowMap[i].size(); ++j)
-            if (nowMap[i][j] == 0)
+    for(int i=1;i<nowMap.size();i++)
+        for(int j=1;j<nowMap.size();j++)
+            if(nowMap[i][j]==0)
                 return false;
     return true;
 }
-bool MinMax::isHeWin( int view) {
-    // 检查横向
-    for (int i = 0; i < 15; i++) {
-        for (int j = 0; j < 11; j++) 
-            if (nowMap[i][j] == view && nowMap[i][j + 1] == view && nowMap[i][j + 2] == view &&
-                nowMap[i][j + 3] == view && nowMap[i][j + 4] == view) 
+bool MinMax::isHeWin(int view) {
+    //检查横向
+    for(int i=1;i<nowMap.size();i++){
+        for(int j=1;j<=11;j++) 
+            if (nowMap[i][j]==view&&nowMap[i][j+1]==view&&nowMap[i][j+2]==view&&
+                nowMap[i][j+3]==view&&nowMap[i][j+4]==view)
                 return true;
     }
-    // 检查纵向
-    for (int i = 0; i < 11; i++) {
-        for (int j = 0; j < 15; j++)
-            if (nowMap[i][j] == view && nowMap[i + 1][j] == view && nowMap[i + 2][j] == view &&
-                nowMap[i + 3][j] == view && nowMap[i + 4][j] == view)
+    //检查纵向
+    for(int i=1;i<=11;i++){
+        for(int j=1;j<nowMap.size();j++)
+            if (nowMap[i][j]==view&&nowMap[i+1][j]==view&&nowMap[i+2][j]==view&&
+                nowMap[i+3][j]==view&&nowMap[i+4][j]==view)
                 return true;
     }
-    // 检查主对角线
-    for (int i = 0; i < 11; i++) {
-        for (int j = 0; j < 11; j++) {
-            if (nowMap[i][j] == view && nowMap[i + 1][j + 1] == view && nowMap[i + 2][j + 2] == view &&
-                nowMap[i + 3][j + 3] == view && nowMap[i + 4][j + 4] == view) {
-                return true;
-            }
-        }
-    }
-    // 检查副对角线
-    for (int i = 4; i < 15; i++) {
-        for (int j = 0; j < 11; j++) {
-            if (nowMap[i][j] == view && nowMap[i - 1][j + 1] == view && nowMap[i - 2][j + 2] == view &&
-                nowMap[i - 3][j + 3] == view && nowMap[i - 4][j + 4] == view) {
+    //检查主对角线
+    for(int i=1;i<=11;i++){
+        for(int j=1;j<=11;j++){
+            if(nowMap[i][j]==view&&nowMap[i+1][j+1]==view&&nowMap[i+2][j+2]==view&&
+                nowMap[i+3][j+3]==view&&nowMap[i+4][j+4]==view){
                 return true;
             }
         }
     }
-    return false;  // 未连成五子
+    //检查副对角线
+    for(int i=1;i<=11;i++){
+        for(int j=5;j<=15;j++){
+            if(nowMap[i][j]==view&&nowMap[i+1][j-1]==view&&nowMap[i+2][j-2]==view&&
+                nowMap[i+3][j-3]==view&&nowMap[i+4][j-4]==view){
+                return true;
+            }
+        }
+    }
+    //未连成五子
+    return false; 
 }
 int MinMax::isEnd(){
-    if(isHeWin(nowMap,player)) return inf;
-    else if(isHeWin(nowMap,3-player)) return inf;
-    else if(isTie(nowMap)) return TIE;
+    if(isHeWin(player)) return inf;
+    else if(isHeWin(3-player)) return inf;
+    else if(isTie()) return TIE;
     return 0;
 }
 vector<pii> MinMax::getUsefulSteps(){
     vector<pii> q;
-    for(int i=0;i<nowMap.size();i++)
-        for(int j=0;j<nowMap[i].size();i++)
-            //这一格为空且周围九格有过落子，减少搜索空间
+    for(int i=1;i<nowMap.size();i++)
+        for(int j=1;j<nowMap[i].size();j++)
+            //这一格为空且周围24格有过落子，减少搜索空间
             if(nowMap[i][j]==0&&putable(i,j))q.push_back({i,j});
     //队列为空随机走中间九格之一，且大概率走最中间
     if(q.empty()){
-        int a=rand()%4,b=rand()%4,t=rand()%10;
-        if(t<7)q.push({8,8});
-        else q.push_back({8+dx[a],8+dy[i]});
+        // int a=rand()%4,b=rand()%4,t=rand()%10;
+        // if(t<7)q.push_back({8,8});
+        // else q.push_back({8+dx[a],8+dy[b]});
+        q.push_back({8,8});
     }
     return q;
 }
 int MinMax::evalToGo(int deep,int lastScore){
     //此局面游戏已经结束
-    int end=isEnd(nowMap);
+    int end=isEnd();
     if(end)return end;
     //达到最大深度
     if(deep==5)return lastScore;
-    //是否是自己在挑选局面(Max层)
+    //是否是player自己在挑选局面(Max层)
     bool isMe=deep&1;
     int nowScore;
     vector<pii> q=getUsefulSteps();
+    if(stander==1){
+        stander++;
+        for(auto t:q)
+            cout<<t.fi<<" "<<t.se<<endl;
+    }
+    if(q.empty()){
+        cout<<"JKJJJJJJ!!!!"<<endl;
+    }
     if(isMe){
         nowScore=-inf;
         for(auto t:q){
-            int x=t.fi,y=t.se;
-            //决定Ai的风格偏好,加起来权重为10
-            int defendBias=4,attackBias=6;
-            
-            //此位置原始效益
-            int oldScore=calculate(x,y,player);
-
-            //此位置防御增益
-            nowMap[x][y]=4-player;
-            int defend=calculate(x,y,4-player)-oldScore;
-
-            //此位置攻击增益
-            nowMap[x][y]=player;
-            int attack=calculate(x,y,player)-oldScore;
-
-            //此局面收益:上局收益加落子收益,落子收益:攻击收益+防御收益
-            int nowRoundScore=lastScore+attack*attackBias+defend*defendBias;
-            if(nowRoundScore>nowScore){
-                nowScore=nowRoundScore;
+            //计算在这里落子后局面收益(player视角:下一层局面估值)
+            int nowRoundScore=calculateRoundScore(t.fi,t.se,player)+lastScore;
+            int leadToScore=evalToGo(deep+1,nowRoundScore);
+            if(leadToScore>nowScore){
+                nowScore=leadToScore;
                 finalDecision=t;
             }
         }
     }
     else{
         nowScore=inf;
-
+        for(auto t:q){
+            //计算在这里落子收益
+            int nowRoundScore=calculateRoundScore(t.fi,t.se,player)+lastScore;
+            int leadToScore=evalToGo(deep+1,nowRoundScore);
+            if(leadToScore<nowScore){
+                nowScore=leadToScore;
+                finalDecision=t;
+            }
+        }
     }
     return nowScore;
+}
+int MinMax::calculateRoundScore(int x,int y,int player){
+    //决定Ai的风格偏好,加起来权重为10
+    int defendBias=4,attackBias=6;
+
+    //此位置原始效益
+    int oldScorePlayer=calculate(x,y,player);
+    int oldScoreOpponent=calculate(x,y,3-player);
+
+    //此位置防御增益
+    nowMap[x][y]=3-player;
+    int defend=calculate(x,y,3-player)-oldScoreOpponent;
+
+    //此位置攻击增益
+    nowMap[x][y]=player;
+    int attack=calculate(x,y,player)-oldScorePlayer;
+
+    // 落子收益:攻击收益+防御收益
+    int nowRoundScore=attack*attackBias+defend*defendBias;
+    return nowRoundScore;
 }
 int MinMax::calculate(int x,int y,int view){
     int ans=0;
     string s;
     //按行获取
-    for(int i=0;i<nowMap.size();i++){
+    for(int i=1;i<nowMap.size();i++){
         int t=nowMap[x][i];
         //没填
         if(!t)s+='_';
@@ -181,7 +211,7 @@ int MinMax::calculate(int x,int y,int view){
     ans+=calculateLine(s);
     s="";
     //按列获取
-    for(int i=0;i<nowMap.size();i++){
+    for(int i=1;i<nowMap.size();i++){
         int t=nowMap[i][y];
         if(!t)s+='_';
         else if(t==view)s+='O';
@@ -190,11 +220,10 @@ int MinMax::calculate(int x,int y,int view){
     ans+=calculateLine(s);
     s="";
     //按主对角线获取
-    for(int i=0;i<nowMap.size();i++)
-        for(int j=0;j<nowMap.size();j++){
-            int a=x-i,b=y-j;
-            if(a<0||b<0||a!=b)continue;
-            int t=nowMap[a][b];
+    for(int i=1;i<nowMap.size();i++)
+        for(int j=1;j<nowMap.size();j++){
+            if(x-i!=y-i)continue;
+            int t=nowMap[i][j];
             if(!t)s+='_';
             else if(t==view)s+='O';
             else s+='X';
@@ -203,8 +232,8 @@ int MinMax::calculate(int x,int y,int view){
     ans+=calculateLine(s);
     s="";
     //按照副对角线获取
-    for(int i=0;i<nowMap.size();i++)
-        for(int j=0;j<nowMap.size();j++){
+    for(int i=1;i<nowMap.size();i++)
+        for(int j=1;j<nowMap.size();j++){
             if(i+j!=x+y)continue;
             int t=nowMap[i][y];
             if(!t)s+='_';
@@ -215,13 +244,13 @@ int MinMax::calculate(int x,int y,int view){
     ans+=calculateLine(s);
     return ans;
 }
-int MinMax::calculateLine(String &s){
+int MinMax::calculateLine(string &s){
     int ans=0,size=s.size();
     for(auto t:scoreChart){
         int index=0,cnt=0;
         //寻找当前评估模式串t.fi在这一串中出现了几次
         while((index=s.find(t.fi,index))!=-1){
-            cnt++;index+=t.size();
+            cnt++;index+=t.fi.size();
             if(index>=s.size())break;
         }
         //估值=出现次数*价值

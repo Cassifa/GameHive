@@ -24,6 +24,7 @@ int f(){
 
     // }
     baseAi=new GoBang();
+    // baseAi=new TicTacToe();
     wait=true;
     while(wait){
         cout<<"请选择你是先手后手\n1:先手\n2:后手\n";
@@ -49,7 +50,6 @@ int f(){
         //判断结束了
         if(baseAi->isEnd()){
             baseAi->printGameResult();
-
             delete baseAi;
             break;
         }
