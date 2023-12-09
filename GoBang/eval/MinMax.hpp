@@ -9,7 +9,7 @@
 #define se second
 using namespace std;
 const int inf=1e6;//输了/赢了估值
-const int TIE=-10;//平局估值
+const int TIE=-1;//平局估值
 struct MinMax{
 
     pii finalDecision;
@@ -47,8 +47,19 @@ struct MinMax{
     int calculateRoundScore(int x,int y,int player);
     //初始化评分表
     void initScoreChart();
+    void show(vector<pii> q);
 };
-
+void MinMax::show(vector<pii> q){
+    for(auto t:q)
+        nowMap[t.fi][t.se]=4;
+    for(int i=1;i<=15;i++){
+        for(int j=1;j<=15;j++)
+            cout<<nowMap[i][j]<<" ";
+        cout<<endl;
+    }
+    for(auto t:q)
+        nowMap[t.fi][t.se]=0;
+}
 void MinMax::start(dvectr &nowMap){
     this->nowMap=nowMap;
     initScoreChart();
@@ -56,8 +67,6 @@ void MinMax::start(dvectr &nowMap){
     evalToGo(1,0);
 }
 bool MinMax::putable(int a,int b){
-    if(a==8&&b==8)
-        cout<<"当前在找 "<<a<<" "<<b<<endl;
     for(int i=0;i<24;i++){
         int x=dx[i]+a,y=dy[i]+b;
         if(x<1||y<1||x>15||y>15)continue;
@@ -73,7 +82,7 @@ bool MinMax::isTie(){
                 return false;
     return true;
 }
-bool MinMax::isHeWin(int view) {
+bool MinMax::isHeWin(int view){
     //检查横向
     for(int i=1;i<nowMap.size();i++){
         for(int j=1;j<=11;j++) 
@@ -111,7 +120,7 @@ bool MinMax::isHeWin(int view) {
 }
 int MinMax::isEnd(){
     if(isHeWin(player)) return inf;
-    else if(isHeWin(3-player)) return inf;
+    else if(isHeWin(3-player)) return -inf;
     else if(isTie()) return TIE;
     return 0;
 }
@@ -140,14 +149,12 @@ int MinMax::evalToGo(int deep,int lastScore){
     bool isMe=deep&1;
     int nowScore;
     vector<pii> q=getUsefulSteps();
-    if(stander==1){
-        stander++;
-        for(auto t:q)
-            cout<<t.fi<<" "<<t.se<<endl;
-    }
-    if(q.empty()){
-        cout<<"JKJJJJJJ!!!!"<<endl;
-    }
+    // if(deep<=3){
+    //     cout<<"Deep: "<<deep<<endl;
+        // show(q);
+        // for(auto t:q)
+        //     cout<<t.fi<<" "<<t.se<<endl;
+    // }
     if(isMe){
         nowScore=-inf;
         for(auto t:q){
@@ -158,18 +165,22 @@ int MinMax::evalToGo(int deep,int lastScore){
                 nowScore=leadToScore;
                 finalDecision=t;
             }
+            //恢复现场
+            nowMap[t.fi][t.se]=0;
         }
     }
     else{
         nowScore=inf;
         for(auto t:q){
             //计算在这里落子收益
-            int nowRoundScore=calculateRoundScore(t.fi,t.se,player)+lastScore;
+            int nowRoundScore=calculateRoundScore(t.fi,t.se,3-player)+lastScore;
             int leadToScore=evalToGo(deep+1,nowRoundScore);
             if(leadToScore<nowScore){
                 nowScore=leadToScore;
                 finalDecision=t;
             }
+            //恢复现场
+            nowMap[t.fi][t.se]=0;
         }
     }
     return nowScore;
@@ -245,7 +256,8 @@ int MinMax::calculate(int x,int y,int view){
     return ans;
 }
 int MinMax::calculateLine(string &s){
-    int ans=0,size=s.size();
+    int ans=0;
+    // cout<<s<<endl;
     for(auto t:scoreChart){
         int index=0,cnt=0;
         //寻找当前评估模式串t.fi在这一串中出现了几次
@@ -255,8 +267,11 @@ int MinMax::calculateLine(string &s){
         }
         //估值=出现次数*价值
         ans+=cnt*t.se;
+        if(cnt&&(!stander))cout<<s<<" "<<t.fi<<" "<<t.se<<"    "<<cnt<<endl;
     }
-
+    if(ans){
+        stander=1;
+    }
     return ans;
 }
 void MinMax::initScoreChart(){
