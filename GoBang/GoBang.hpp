@@ -50,7 +50,7 @@ void GoBang::showMap(){
 	}
     cout<<"  ";
     for (i =1;i<=row;i++)
-        printf("  %c ",'A'+i-1);
+        printf(" %2d ",i);
     printf("\n");
 	
 }
