@@ -3,6 +3,7 @@
 #include<map>
 #include<cstring>
 #include<algorithm>
+#include<windows.h>
 #define ll long long
 #define dvectr vector<vector<int>>
 #define fi first
@@ -30,6 +31,7 @@ struct MinMax{
     //判断是否结束,没结束返回0,player输了返回-inf,赢了返回inf
     int isEnd();
     //获取所有有效落子位置,不考虑周围九个格都没落子的点位，减少搜索空间
+    //对周围子多的点优先搜索,便于剪枝
     vector<pii> getUsefulSteps();
     //评估当前局面Ai视角下的局面
     int evalNowSituation(int view);
@@ -54,6 +56,7 @@ struct MinMax{
     char getViewChar(int &place,int &view);
 
     int evalToGo(int deep);
+    int evalToGo(int deep,int alpha, int beta);
 };
 void MinMax::show(vector<pii> q){
     for(auto t:q)
@@ -145,6 +148,8 @@ vector<pii> MinMax::getUsefulSteps(){
     }
     return q;
 }
+//四个搜索函数
+//过程估值
 int MinMax::evalToGo(int deep,int lastScore){
     //此局面游戏已经结束
     int end=isEnd();
@@ -191,6 +196,66 @@ int MinMax::evalToGo(int deep,int lastScore){
     }
     return nowScore;
 }
+//叶子节点估值
+int MinMax::evalToGo(int deep,int alpha, int beta){
+    countCnt++;
+    //此局面游戏已经结束
+    int end=isEnd();
+    if(end){
+        countCnt--;
+        countYe++;
+        return end;
+    }
+    //达到最大深度
+    if(deep==4){
+        countCnt--;
+        countYe++;
+        return evalNowSituation(player);
+    }
+    //是否是player自己在挑选局面(Max层)
+    bool isMe=deep&1;
+    int nowScore;
+    vector<pii> q=getUsefulSteps();
+    if(isMe){
+        nowScore=-inf;
+        for(auto t:q){
+            //计算在这里落子后局面收益(player视角:下一层局面估值)
+            nowMap[t.fi][t.se]=player;
+            int nowRoundScore=evalToGo(deep+1,alpha,beta);
+            alpha=max(alpha,nowRoundScore);
+
+            //alpha剪枝
+            if(nowRoundScore>=beta)break;
+            if(nowRoundScore>nowScore){
+                nowScore=nowRoundScore;
+                finalDecision=t;
+            }
+
+            //恢复现场
+            nowMap[t.fi][t.se]=0;
+        }
+    }
+    else{
+        nowScore=inf;
+        for(auto t:q){
+            //计算在这里落子后局面收益(player视角:下一层局面估值)
+            nowMap[t.fi][t.se]=3-player;
+            int nowRoundScore=evalToGo(deep+1,alpha,beta);
+            beta=min(beta,nowRoundScore);
+
+            //beta剪枝
+            if(nowRoundScore<=alpha)break;
+            if(nowRoundScore<nowScore){
+                nowScore=nowRoundScore;
+                finalDecision=t;
+            }
+            
+            //恢复现场
+            nowMap[t.fi][t.se]=0;
+        }
+    }
+    return nowScore;
+}
 int MinMax::evalToGo(int deep){
     countCnt++;
     //此局面游戏已经结束
@@ -201,7 +266,7 @@ int MinMax::evalToGo(int deep){
         return end;
     }
     //达到最大深度
-    if(deep==5){
+    if(deep==4){
         countCnt--;
         countYe++;
         return evalNowSituation(player);
@@ -337,6 +402,7 @@ char MinMax::getViewChar(int &place,int &view){
     else return 'X';
 }
 int MinMax::evalNowSituation(int view){
+    return 0;
     int ans=0;
     string s="";
     //估值行
