@@ -134,17 +134,42 @@ int MinMax::isEnd(){
     return 0;
 }
 vector<pii> MinMax::getUsefulSteps(){
+    //最终结果
     vector<pii> q;
+    //优先级表
+    dvectr st=nowMap;
+    
+    //获取合法点位并加权
+    for(int i=1;i<nowMap.size();i++)
+        for(int j=1;j<nowMap[i].size();j++){
+            //非法,忽略
+            if(nowMap[i][j])continue;
+            //添加权重
+            for(int i=0;i<24;i++){
+                int x=dx[i]+a,y=dy[i]+b;
+                if(x<1||y<1||x>15||y>15)continue;
+                //内圈8个优先级更高,外圈优先级低一点
+                int power=i<4?2:1;
+                //周围二十四格有落子过
+                st[i][j]+=power;
+            }
+        }
+
+    //记录所有价值表并按价值排序
+    vetcor<pair<int,pii>> temp;
     for(int i=1;i<nowMap.size();i++)
         for(int j=1;j<nowMap[i].size();j++)
-            //这一格为空且周围24格有过落子，减少搜索空间
-            if(nowMap[i][j]==0&&putable(i,j))q.push_back({i,j});
+            if(st[i][j]>0)temp.push_back({st[i][j],{i,j}});
+    sort(temp.begin(),temp.end());
+    reverse(temp.begin(),temp.end());
+    //将有价值的节点作为答案返回
+    for(auto t:temp) q.push_back(t.se);
+    
     //队列为空随机走中间九格之一，且大概率走最中间
     if(q.empty()){
-        // int a=rand()%4,b=rand()%4,t=rand()%10;
-        // if(t<7)q.push_back({8,8});
-        // else q.push_back({8+dx[a],8+dy[b]});
-        q.push_back({8,8});
+        int a=rand()%4,b=rand()%4,t=rand()%10;
+        if(t<8)q.push_back({8,8});
+        else q.push_back({8+dx[a],8+dy[b]});
     }
     return q;
 }
@@ -249,7 +274,7 @@ int MinMax::evalToGo(int deep,int alpha, int beta){
                 nowScore=nowRoundScore;
                 finalDecision=t;
             }
-            
+
             //恢复现场
             nowMap[t.fi][t.se]=0;
         }
