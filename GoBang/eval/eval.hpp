@@ -14,6 +14,8 @@ pii evalToGo(vector<vector<int>> &nowMap,int type){
         MinMax Ai;
         Ai.start(nowMap);
         ans=Ai.finalDecision;
+        cout<<"非叶子节点数"<<" "<<Ai.countCnt<<endl;
+        cout<<"叶子节点数"<<" "<<Ai.countYe<<endl;
     }
     //用蒙特卡洛Ai
     else if(type==2){

@@ -28,7 +28,8 @@ int f(){
     wait=true;
     while(wait){
         cout<<"请选择你是先手后手\n1:先手\n2:后手\n";
-        int mode;cin>>mode;
+        int mode=2;
+        // cin>>mode;
         switch(mode){
             case 1:
                 baseAi->setIsAiFirst(false);

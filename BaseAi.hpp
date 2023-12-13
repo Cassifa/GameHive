@@ -74,13 +74,13 @@ void BaseAi::playerMove(int x,int y){
     map[x][y]=2;
     //展示的棋盘x轴与实际棋盘x轴方向相反，所以应该矫正为map.size()+1-x,但是数组下标0开始所以不+1
     //再交换x,y次序使之矫正为笛卡尔坐标系
-    cout<<"你在"<<y+1<<","<<map.size()-x<<"落子了"<<endl;
+    cout<<"你在"<<y<<","<<map.size()-x<<"落子了"<<endl;
     showMap();increaseRound();
 }
 //Ai移动
 void BaseAi::aiMove(int x,int y){
     map[x][y]=1;
-    cout<<"Ai在"<<y+1<<","<<map.size()-x<<"落子了"<<endl;
+    cout<<"Ai在"<<y<<","<<map.size()-x<<"落子了"<<endl;
     showMap();increaseRound();
 }
 //打印游戏结果

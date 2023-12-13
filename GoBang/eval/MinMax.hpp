@@ -13,13 +13,15 @@ const int TIE=-1;//平局估值
 struct MinMax{
 
     pii finalDecision;
+    ll countCnt=0;
+    ll countYe=0;
     int player=1;
     int dx[24]={-1,-1,0,1,1,1,0,-1, -2,-2,-2,-1,0,1,2, 2,2,2,2,1,0,-1,-2,-2};
     int dy[24]={0,1,1,1,0,-1,-1,-1, 0,1,2,2,2,2,2,1,0, -1,-2,-2,-2,-2,-2,-1};
     dvectr nowMap;
     //估值表 _空 O自己 X对手
     map<string,int> scoreChart;
-    int stander=1;
+    int stander=0;
     
     void start(dvectr &nowMap);
     //获取当前深度下最优决策 传入深度,父亲局面分数 传入时保证还有空位
@@ -30,7 +32,7 @@ struct MinMax{
     //获取所有有效落子位置,不考虑周围九个格都没落子的点位，减少搜索空间
     vector<pii> getUsefulSteps();
     //评估当前局面Ai视角下的局面
-    int evalNowSituation();
+    int evalNowSituation(int view);
 
     //判断是不是平局了
     bool isTie();
@@ -48,6 +50,10 @@ struct MinMax{
     //初始化评分表
     void initScoreChart();
     void show(vector<pii> q);
+    //获取place在view眼里转化为模板串后怎么填
+    char getViewChar(int &place,int &view);
+
+    int evalToGo(int deep);
 };
 void MinMax::show(vector<pii> q){
     for(auto t:q)
@@ -64,7 +70,7 @@ void MinMax::start(dvectr &nowMap){
     this->nowMap=nowMap;
     initScoreChart();
     //以前的局面已经无法改变，只考虑后续操作带来的收益
-    evalToGo(1,0);
+    evalToGo(1);
 }
 bool MinMax::putable(int a,int b){
     for(int i=0;i<24;i++){
@@ -185,6 +191,55 @@ int MinMax::evalToGo(int deep,int lastScore){
     }
     return nowScore;
 }
+int MinMax::evalToGo(int deep){
+    countCnt++;
+    //此局面游戏已经结束
+    int end=isEnd();
+    if(end){
+        countCnt--;
+        countYe++;
+        return end;
+    }
+    //达到最大深度
+    if(deep==5){
+        countCnt--;
+        countYe++;
+        return evalNowSituation(player);
+    }
+    //是否是player自己在挑选局面(Max层)
+    bool isMe=deep&1;
+    int nowScore;
+    vector<pii> q=getUsefulSteps();
+    if(isMe){
+        nowScore=-inf;
+        for(auto t:q){
+            //计算在这里落子后局面收益(player视角:下一层局面估值)
+            nowMap[t.fi][t.se]=player;
+            int nowRoundScore=evalToGo(deep+1);
+            if(nowRoundScore>nowScore){
+                nowScore=nowRoundScore;
+                finalDecision=t;
+            }
+            //恢复现场
+            nowMap[t.fi][t.se]=0;
+        }
+    }
+    else{
+        nowScore=inf;
+        for(auto t:q){
+            //计算在这里落子后局面收益(player视角:下一层局面估值)
+            nowMap[t.fi][t.se]=3-player;
+            int nowRoundScore=evalToGo(deep+1);
+            if(nowRoundScore<nowScore){
+                nowScore=nowRoundScore;
+                finalDecision=t;
+            }
+            //恢复现场
+            nowMap[t.fi][t.se]=0;
+        }
+    }
+    return nowScore;
+}
 int MinMax::calculateRoundScore(int x,int y,int player){
     //决定Ai的风格偏好,加起来权重为10
     int defendBias=4,attackBias=6;
@@ -257,7 +312,6 @@ int MinMax::calculate(int x,int y,int view){
 }
 int MinMax::calculateLine(string &s){
     int ans=0;
-    // cout<<s<<endl;
     for(auto t:scoreChart){
         int index=0,cnt=0;
         //寻找当前评估模式串t.fi在这一串中出现了几次
@@ -267,10 +321,73 @@ int MinMax::calculateLine(string &s){
         }
         //估值=出现次数*价值
         ans+=cnt*t.se;
-        if(cnt&&(!stander))cout<<s<<" "<<t.fi<<" "<<t.se<<"    "<<cnt<<endl;
+        // if(cnt&&(!stander))cout<<s<<" "<<t.fi<<" "<<t.se<<"    "<<cnt<<endl;
     }
-    if(ans){
-        stander=1;
+    // if(ans){
+    //     stander=1;
+    // }
+    return ans;
+}
+char MinMax::getViewChar(int &place,int &view){
+    //没填
+    if(!place)return '_';
+    //当前估分人填了
+    else if(place==view)return 'O';
+    //对方填了
+    else return 'X';
+}
+int MinMax::evalNowSituation(int view){
+    int ans=0;
+    string s="";
+    //估值行
+    for(int i=1;i<nowMap.size();i++){
+        for(auto t:nowMap[i]){
+            s+=getViewChar(t,view);
+        }
+        ans+=calculateLine(s);
+        s="";
+    }
+    //估值列
+    for(int i=1;i<nowMap.size();i++){
+        for(int j=1;j<nowMap.size();j++){
+            s+=getViewChar(nowMap[j][i],view);
+        }
+        ans+=calculateLine(s);
+        s="";
+    }
+    //估值主对角线
+    //左下半棋盘
+    for(int cnt=2;cnt<=16;cnt++){
+        if(cnt<6)continue;
+        int i=1,j=cnt-i;//1,15~15,1
+        while(j){
+            s+=getViewChar(nowMap[i][j],view);
+            i++;j--;
+        }
+        ans+=calculateLine(s);
+        s="";
+    }
+    //右上半棋盘
+    for(int i,j=15,t=2;t<=11;t++,j=15){
+        i=t;
+        while(i<16){
+            s+=getViewChar(nowMap[i][j],view);
+            i++;j--;
+        }
+        ans+=calculateLine(s);
+        s="";
+    }
+    //估值副对角线
+    for(int b=-14;b<=14;b++){//确定b值
+        for(int i=1;i<=15;i++)//枚举x
+            for(int j=1;j<=15;j++){//枚举y
+                if(j==i+b){//y==-x+b则为斜率b下的一个点
+                    s+=getViewChar(nowMap[i][j],view);
+                    break;
+                }
+            }
+        ans+=calculateLine(s);
+        s="";
     }
     return ans;
 }
