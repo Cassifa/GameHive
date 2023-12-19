@@ -3,9 +3,8 @@
 #include<map>
 #include<cstring>
 #include<algorithm>
-#include<windows.h>
 #define ll long long
-#define dvectr vector<vector<int>>
+#define dvectr vector<vector<short>>
 #define fi first
 #define se second
 using namespace std;
@@ -17,8 +16,12 @@ struct MinMax{
     pii finalDecision;
     //节点计数
     ll countCnt=0,countYe=0;
+    //决定Ai的风格偏好,加起来权重为10
+    int defendBias=4,attackBias=6;
     //当前游戏玩家(1为Ai默认身份)
     int player=1;
+    //最大搜索深度
+    int maximumDeep=6;
     //方向向量
     int dx[24]={-1,-1,0,1,1,1,0,-1, -2,-2,-2,-1,0,1,2, 2,2,2,2,1,0,-1,-2,-2};
     int dy[24]={0,1,1,1,0,-1,-1,-1, 0,1,2,2,2,2,2,1,0, -1,-2,-2,-2,-2,-2,-1};
@@ -44,9 +47,9 @@ struct MinMax{
     //对view视角下的局面攻击分数估值
     int evalNowSituation(int view);
     //获取在X,Y落子带来的总收益(带风险偏好)
-    int calculateRoundScore(int x,int y,int player);
+    int evalXYTRoundScore(int x,int y,int player);
     //计算view视角下在X,Y落子获得的攻击分数
-    int calculate(int x,int y,int view);
+    int calculateXY(int x,int y,int view);
 
 
     //计算一条String的攻击估值
@@ -69,8 +72,12 @@ void MinMax::start(dvectr &nowMap){
     this->nowMap=nowMap;
     initScoreChart();
     //以前的局面已经无法改变，只考虑后续操作带来的收益
-    evalToGo(1);
+    // evalToGo(1,0);
+    // evalToGo(1,0,-inf,inf);
+    // evalToGo(2);
+    evalToGo(4,-inf,inf);
 }
+\
 //启发式获取可行落子位置
 vector<pii> MinMax::getUsefulSteps(){
     //最终结果
@@ -96,9 +103,7 @@ vector<pii> MinMax::getUsefulSteps(){
                 st[x][y]+=power;
             }
         }
-    // show(st);
-    // cout<<endl;
-    // show(nowMap);
+
     //记录所有价值表并按价值排序
     vector<pair<int,pii>> temp;
     for(int i=1;i<nowMap.size();i++)
@@ -110,10 +115,9 @@ vector<pii> MinMax::getUsefulSteps(){
     for(auto t:temp) q.push_back(t.se);
     
     //队列为空随机走中间九格之一，且大概率走最中间
-    int kkk=q.empty();
     if(q.empty()){
         int a=rand()%4,b=rand()%4,t=rand()%10;
-        if(t<8)q.push_back({8,8});
+        if(t<80)q.push_back({8,8});
         else q.push_back({8+dx[a],8+dy[b]});
     }
     return q;
@@ -126,7 +130,7 @@ int MinMax::evalToGo(int deep,int lastScore){
     int end=isEnd();
     if(end)return end;
     //达到最大深度
-    if(deep==5)return lastScore;
+    if(deep==6)return lastScore;
     //是否是player自己在挑选局面(Max层)
     bool isMe=deep&1;
     int nowScore;
@@ -141,7 +145,7 @@ int MinMax::evalToGo(int deep,int lastScore){
         nowScore=-inf;
         for(auto t:q){
             //计算在这里落子后局面收益(player视角:下一层局面估值)
-            int nowRoundScore=calculateRoundScore(t.fi,t.se,player)+lastScore;
+            int nowRoundScore=evalXYTRoundScore(t.fi,t.se,player)+lastScore;
             int leadToScore=evalToGo(deep+1,nowRoundScore);
             if(leadToScore>nowScore){
                 nowScore=leadToScore;
@@ -155,7 +159,7 @@ int MinMax::evalToGo(int deep,int lastScore){
         nowScore=inf;
         for(auto t:q){
             //计算在这里落子收益
-            int nowRoundScore=calculateRoundScore(t.fi,t.se,3-player)+lastScore;
+            int nowRoundScore=evalXYTRoundScore(t.fi,t.se,3-player)+lastScore;
             int leadToScore=evalToGo(deep+1,nowRoundScore);
             if(leadToScore<nowScore){
                 nowScore=leadToScore;
@@ -168,7 +172,7 @@ int MinMax::evalToGo(int deep,int lastScore){
     return nowScore;
 }
 
-//两个叶子节点估值
+//两个叶子节点估值⭐
 int MinMax::evalToGo(int deep,int alpha, int beta){
     countCnt++;
     //此局面游戏已经结束
@@ -179,54 +183,50 @@ int MinMax::evalToGo(int deep,int alpha, int beta){
         return end;
     }
     //达到最大深度
-    if(deep==4){
+    if(!deep){
         countCnt--;
         countYe++;
-        return evalNowSituation(player);
+        int a=attackBias*evalNowSituation(player),b=defendBias*evalNowSituation(3-player);
+        int ans=a-b;
+        // show(nowMap);
+        // cout<<endl;
+        return ans;
     }
     //是否是player自己在挑选局面(Max层)
-    bool isMe=deep&1;
-    int nowScore;
-    vector<pii> q=getUsefulSteps();
+    bool isMe=deep+1&1;
+    // int nowScore;
+    vector<pii> q=getUsefulSteps();//更新alpha/beta且没有被剪枝则采纳为最终结果
     if(isMe){
-        nowScore=-inf;
         for(auto t:q){
-            //计算在这里落子后局面收益(player视角:下一层局面估值)
+            //计算在这里落子后局面收益(player视角:下一层局面估值)maxDepperBeta
             nowMap[t.fi][t.se]=player;
-            int nowRoundScore=evalToGo(deep+1,alpha,beta);
-            alpha=max(alpha,nowRoundScore);
-
-            //alpha剪枝
-            if(nowRoundScore>=beta)break;
-            if(nowRoundScore>nowScore){
-                nowScore=nowRoundScore;
+            int nowRoundScore=evalToGo(deep-1,alpha,beta);
+            nowMap[t.fi][t.se]=0;
+            
+            if(nowRoundScore>alpha){
+                if(nowRoundScore>beta)return alpha;
+                alpha=nowRoundScore;
                 finalDecision=t;
             }
-
-            //恢复现场
-            nowMap[t.fi][t.se]=0;
         }
+        return alpha;
     }
     else{
-        nowScore=inf;
+        int nowScore=inf;
         for(auto t:q){
-            //计算在这里落子后局面收益(player视角:下一层局面估值)
+            //计算在这里落子后局面收益(对手视角:下一层局面估值)
             nowMap[t.fi][t.se]=3-player;
-            int nowRoundScore=evalToGo(deep+1,alpha,beta);
-            beta=min(beta,nowRoundScore);
-
-            //beta剪枝
-            if(nowRoundScore<=alpha)break;
-            if(nowRoundScore<nowScore){
-                nowScore=nowRoundScore;
+            int nowRoundScore=evalToGo(deep-1,alpha,beta);
+            nowMap[t.fi][t.se]=0;
+            
+            if(nowRoundScore<beta){
+                if(nowRoundScore<alpha)return beta;
+                beta=nowRoundScore;
                 finalDecision=t;
             }
-
-            //恢复现场
-            nowMap[t.fi][t.se]=0;
         }
+        return beta;
     }
-    return nowScore;
 }
 
 int MinMax::evalToGo(int deep){
@@ -239,13 +239,15 @@ int MinMax::evalToGo(int deep){
         return end;
     }
     //达到最大深度
-    if(deep==4){
+    if(!deep){
         countCnt--;
         countYe++;
-        return evalNowSituation(player)-evalNowSituation(3-player);
+        int a=4*evalNowSituation(player),b=6*evalNowSituation(3-player);
+        int ans=a-b;
+        return ans;
     }
     //是否是player自己在挑选局面(Max层)
-    bool isMe=deep&1;
+    bool isMe=deep+1&1;
     int nowScore;
     vector<pii> q=getUsefulSteps();
     if(isMe){
@@ -253,7 +255,7 @@ int MinMax::evalToGo(int deep){
         for(auto t:q){
             //计算在这里落子后局面收益(player视角:下一层局面估值)
             nowMap[t.fi][t.se]=player;
-            int nowRoundScore=evalToGo(deep+1);
+            int nowRoundScore=evalToGo(deep-1);
             if(nowRoundScore>nowScore){
                 nowScore=nowRoundScore;
                 finalDecision=t;
@@ -267,11 +269,7 @@ int MinMax::evalToGo(int deep){
         for(auto t:q){
             //计算在这里落子后局面收益(player视角:下一层局面估值)
             nowMap[t.fi][t.se]=3-player;
-            int nowRoundScore=evalToGo(deep+1);
-            if(nowRoundScore<nowScore){
-                nowScore=nowRoundScore;
-                finalDecision=t;
-            }
+            int nowRoundScore=evalToGo(deep-1);
             //恢复现场
             nowMap[t.fi][t.se]=0;
         }
@@ -282,6 +280,7 @@ int MinMax::evalToGo(int deep){
 //收益计算函数
 //对view视角下的局面攻击分数估值
 int MinMax::evalNowSituation(int view){
+    // return 0;
     int ans=0;
     string s="";
     //估值行
@@ -352,21 +351,19 @@ int MinMax::evalNowSituation(int view){
 }
 
 //获取在X,Y落子带来的总收益(带风险偏好)
-int MinMax::calculateRoundScore(int x,int y,int player){
-    //决定Ai的风格偏好,加起来权重为10
-    int defendBias=4,attackBias=6;
+int MinMax::evalXYTRoundScore(int x,int y,int player){
 
     //此位置原始效益
-    int oldScorePlayer=calculate(x,y,player);
-    int oldScoreOpponent=calculate(x,y,3-player);
+    int oldScorePlayer=calculateXY(x,y,player);
+    int oldScoreOpponent=calculateXY(x,y,3-player);
 
     //此位置防御增益
     nowMap[x][y]=3-player;
-    int defend=calculate(x,y,3-player)-oldScoreOpponent;
+    int defend=calculateXY(x,y,3-player)-oldScoreOpponent;
 
     //此位置攻击增益
     nowMap[x][y]=player;
-    int attack=calculate(x,y,player)-oldScorePlayer;
+    int attack=calculateXY(x,y,player)-oldScorePlayer;
 
     // 落子收益:攻击收益+防御收益
     int nowRoundScore=attack*attackBias+defend*defendBias;
@@ -374,7 +371,7 @@ int MinMax::calculateRoundScore(int x,int y,int player){
 }
 
 //计算view视角下在X,Y落子获得的攻击分数
-int MinMax::calculate(int x,int y,int view){
+int MinMax::calculateXY(int x,int y,int view){
     int ans=0;
     string s;
     bool can=false;
@@ -399,7 +396,7 @@ int MinMax::calculate(int x,int y,int view){
     if(can)ans+=calculateLine(s);
     s="";
     //按主对角线获取
-    bool can=false;
+    can=false;
     for(int i=1;i<nowMap.size();i++)
         for(int j=1;j<nowMap.size();j++){
             if(x-i!=y-i)continue;
@@ -412,7 +409,7 @@ int MinMax::calculate(int x,int y,int view){
     if(can)ans+=calculateLine(s);
     s="";
     //按照副对角线获取
-    bool can=false;
+    can=false;
     for(int i=1;i<nowMap.size();i++)
         for(int j=1;j<nowMap.size();j++){
             if(i+j!=x+y)continue;
@@ -458,7 +455,7 @@ void MinMax::initScoreChart(){
 
     //三
     //活三(可成活四)
-    scoreChart["_OOO_"]=500;
+    scoreChart["_OOO_"]=800;
     scoreChart["O_OO"]=150;
     //眠三
     scoreChart["__OOOX"]=100;

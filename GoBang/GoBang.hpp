@@ -10,6 +10,10 @@ private:
     bool checkPlace(int x,int y)override;
     //AI决定怎么走⭐
     int evalToDo(vector<vector<int>> &nowMap,int nowVision)override;
+    //两个会用到的Ai
+    MonteCarlo *MonteCarlo;
+    MinMax *minmax;
+    string usingAI;
 public:
     //调用构造函数,新建地图
     GoBang():BaseAi(15,15){};
@@ -23,6 +27,14 @@ public:
     //判断是否结束
     bool isEnd()override;
 };
+void GoBang::startGame(string mode){
+    cout<<"你选择了"<<mode<<"Ai 开始游戏!"<<endl;
+    cout<<"X表示你的棋子,O表示Ai的棋子"<<endl;
+    if(mode=="MonteCarlo")
+        MonteCarlo=new MonteCarlo();
+    else minmax=new MinMax;
+    usingAI=mode;
+}
 //向玩家展示当前地图
 void GoBang::showMap(){
 	int i=0,j=0,row=15,col=15;
@@ -123,7 +135,7 @@ bool GoBang::checkPlace(int x,int y){
 }
 //在决策树上Min-Max ɑß搜索剪枝 决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
 int GoBang::evalToDo(vector<vector<int>> &nowMap,int deep){
-    pii ans=evalToGo(map,1);
+    pii ans=evalToGo(map,MonteCarlo,minmax,usingAI);
     finalDecide=ans;
     return 0;
 }

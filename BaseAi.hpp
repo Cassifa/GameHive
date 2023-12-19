@@ -3,7 +3,7 @@
 #include<vector>
 #include<ctime>
 using namespace std;
-#define pii pair<int,int>
+#define pii pair<short,short>
 //只支持双人回合制下棋
 class BaseAi{
 private:
@@ -40,6 +40,7 @@ public:
 
     //开始游戏
     void startGame();
+    virtual void startGame(string mode){}
 
     //玩家选择位置
     virtual bool selectPlace(int x,int y)=0;
@@ -62,7 +63,6 @@ public:
 //开始游戏并展示地图
 void BaseAi::startGame(){
     cout<<"开始游戏!"<<endl;
-    showMap();
     cout<<"X表示你的棋子,O表示Ai的棋子"<<endl;
 }
 //设置先后顺序

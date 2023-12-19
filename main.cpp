@@ -18,7 +18,7 @@ int f(){
     //         //     wait=false;
     //         //     break;
     //         default:
-    //             cout<<"输入错误\n";
+    //             cout<<"输入错误"<<endl;
     //             break;
     //     }
 
@@ -40,7 +40,7 @@ int f(){
                 wait=false;
                 break;
             default:
-                cout<<"输入错误\n";
+                cout<<"输入错误"<<endl;
                 break;
         }
     }
@@ -65,7 +65,7 @@ int f(){
             int x,y;cin>>x>>y;
             if(baseAi->selectPlace(x,y))
                 wait=false;
-            else cout<<"输入错误!\n";
+            else cout<<"输入错误!"<<endl;
         }
     }
     return 0;
