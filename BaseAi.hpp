@@ -1,28 +1,29 @@
 #pragma once
-#include <iostream>
+#include<iostream>
 #include<vector>
 #include<ctime>
 using namespace std;
 #define pii pair<short,short>
+#define dvectr vector<vector<short>>
 //只支持双人回合制下棋
 class BaseAi{
 private:
-    //Ai是否先手
-    bool isAiFirst;
     //谁赢了
     int Winner=0;
     //当前是第几轮(每走一步是一轮)
     int nowRound=1;
 protected:
+    //Ai是否先手
+    bool isAiFirst;
     //地图 0-没走 1-Ai 2-玩家
-    vector<vector<int>> map;
+    dvectr map;
     //当前Ai决策
     pii finalDecide={1,1};
 
     //检查此位置是否合法
     virtual bool checkPlace(int x,int y)=0;
     //AI决定怎么走⭐
-    virtual int evalToDo(vector<vector<int>> &nowMap,int nowVision)=0;
+    virtual int evalToDo(dvectr &nowMap,int nowVision)=0;
     //判断他此时有没有赢(Ai/玩家)
     virtual bool isHeWinner(int nowChecking)=0;
 
@@ -35,12 +36,11 @@ protected:
     //轮数自增
     void increaseRound();
 public:
-    BaseAi(int x,int y): map(x + 1, std::vector<int>(y + 1, 0)) {};
+    BaseAi(int x,int y): map(x + 1, std::vector<short>(y + 1, 0)) {};
     ~BaseAi(){};
 
     //开始游戏
-    void startGame();
-    virtual void startGame(string mode){}
+    virtual void startGame();
 
     //玩家选择位置
     virtual bool selectPlace(int x,int y)=0;
@@ -58,6 +58,9 @@ public:
     //选择谁先走
     void setIsAiFirst(bool choice);
     int getRound();
+
+    //如果选择的游戏有多个Ai的话设置出战的Ai
+    virtual void choiceAiType(string type){};
     
 };
 //开始游戏并展示地图

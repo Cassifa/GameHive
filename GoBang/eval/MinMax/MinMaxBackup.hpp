@@ -10,8 +10,8 @@
 using namespace std;
 const int inf=1e6;//输了/赢了估值
 const int TIE=-1;//平局估值
-struct MinMax{
-
+class MinMax:public baseGoBangAi{
+private:
     //最终决定
     pii finalDecision;
     //节点计数

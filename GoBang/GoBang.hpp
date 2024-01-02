@@ -1,23 +1,23 @@
 #pragma once
-#include<vector>
 #include"../BaseAi.hpp"
-#include "./eval/eval.hpp"
-#define pii pair<int,int>
+#include "./eval/baseGoBangAi.hpp"
+#include "./eval/MCTS/MonteCarlo.hpp"
+#include "./eval/MinMax/MinMax.hpp"
 class GoBang :public BaseAi{
 private:
     bool isHeWinner(int nowChecking)override;
     //检查玩家位置合法性
     bool checkPlace(int x,int y)override;
     //AI决定怎么走⭐
-    int evalToDo(vector<vector<int>> &nowMap,int nowVision)override;
-    //两个会用到的Ai
-    MonteCarlo *MonteCarlo;
-    MinMax *minmax;
-    string usingAI;
+    int evalToDo(vector<vector<short>> &nowMap,int nowVision)override;
+    //调用不同的Ai
+    baseGoBangAi *usingAi;
 public:
     //调用构造函数,新建地图
     GoBang():BaseAi(15,15){};
-    ~GoBang(){};
+    ~GoBang(){
+        delete usingAi;
+    };
     //玩家选择位置
     bool selectPlace(int x,int y)override;
 
@@ -26,15 +26,10 @@ public:
 
     //判断是否结束
     bool isEnd()override;
+
+    void startGame();
+    void choiceAiType(string s);
 };
-void GoBang::startGame(string mode){
-    cout<<"你选择了"<<mode<<"Ai 开始游戏!"<<endl;
-    cout<<"X表示你的棋子,O表示Ai的棋子"<<endl;
-    if(mode=="MonteCarlo")
-        MonteCarlo=new MonteCarlo();
-    else minmax=new MinMax;
-    usingAI=mode;
-}
 //向玩家展示当前地图
 void GoBang::showMap(){
 	int i=0,j=0,row=15,col=15;
@@ -72,6 +67,7 @@ bool GoBang::isEnd(){
     else if(isHeWinner(2)) this->setWinner(2);
     else if(isHeWinner(3)) this->setWinner(3);
     else return false;
+    usingAi->end();
     return true;
 }
 //检查他是不是赢了
@@ -123,6 +119,8 @@ bool GoBang::selectPlace(int x,int y){
     swap(x,y);x=16-x;
     if(checkPlace(x,y)){
         playerMove(x,y);
+        //选好了向Ai发送移动信息
+        usingAi->sendPlayerMoveMessage(x,y);
         return true;
     }
     return false;
@@ -134,8 +132,25 @@ bool GoBang::checkPlace(int x,int y){
     return map[x][y]==0;
 }
 //在决策树上Min-Max ɑß搜索剪枝 决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
-int GoBang::evalToDo(vector<vector<int>> &nowMap,int deep){
-    pii ans=evalToGo(map,MonteCarlo,minmax,usingAI);
+int GoBang::evalToDo(vector<vector<short>> &nowMap,int deep){
+    //需要Ai移动了,此时一定是玩家刚走过了
+    pii ans=usingAi->evalToGo();
     finalDecide=ans;
     return 0;
+}
+
+void GoBang::startGame(){
+    cout<<"开始游戏!"<<endl;
+    cout<<"X表示你的棋子,O表示Ai的棋子"<<endl;
+    //Ai先手直接走8,8
+    if(isAiFirst){
+        aiMove(8,8);
+        usingAi->setBeginningState(this->map);
+    }
+
+}
+void GoBang::choiceAiType(string type){
+    // if(type=="MinMix")usingAi=new MinMax();
+    // else 
+        usingAi=new MonteCarlo();
 }
