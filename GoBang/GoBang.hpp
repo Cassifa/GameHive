@@ -1,7 +1,7 @@
 #pragma once
 #include"../BaseAi.hpp"
 #include "./eval/baseGoBangAi.hpp"
-#include "./eval/MCTS/MonteCarlo.hpp"
+// #include "./eval/MCTS/MonteCarlo.hpp"
 #include "./eval/MinMax/MinMax.hpp"
 class GoBang :public BaseAi{
 private:
@@ -147,10 +147,12 @@ void GoBang::startGame(){
         aiMove(8,8);
         usingAi->setBeginningState(this->map);
     }
+    //否则初始Ai类的地图为空地图
+    else usingAi->setBeginningState(this->map);
 
 }
 void GoBang::choiceAiType(string type){
     // if(type=="MinMix")usingAi=new MinMax();
-    // else 
-        usingAi=new MonteCarlo();
+    // else usingAi=new MonteCarlo();
+    usingAi=new MinMax();
 }

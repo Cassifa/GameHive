@@ -5,6 +5,7 @@
 #define dvectr vector<vector<short>>
 #define fi first
 #define se second
+#define pii pair<short,short>
 using namespace std;
 //传入地图要求估值/要求结束游戏
 class baseGoBangAi{
@@ -17,13 +18,13 @@ class baseGoBangAi{
         //初始化地图
         virtual void setBeginningState(dvectr map)=0;
         //收到玩家移动消息
-        virtual void sendPlayerMoveMessage(int x,int y);
+        virtual void sendPlayerMoveMessage(int x,int y)=0;
         //获取下一步 保证当前局面一定是玩家刚走(不是棋局刚开始场面无棋子)
         virtual pair<short,short> evalToGo()=0;
         //结束游戏
         virtual void end()=0;
 
 };
-void baseGoBangAi::sendPlayerMoveMessage(int x,int y){
-    playerLastMove={x,y};
-}
+// void baseGoBangAi::sendPlayerMoveMessage(int x,int y){
+//     playerLastMove={x,y};
+// }

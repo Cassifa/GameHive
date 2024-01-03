@@ -174,7 +174,6 @@ void MonteCarlo::sendPlayerMoveMessage(int x,int y){
 void MonteCarlo::end(){
     qmsg.push(END);
 }
-MonteCarlo::MonteCarlo(){}
 MonteCarlo::~MonteCarlo(){
 	this->end();
 	if (pMain != nullptr)
