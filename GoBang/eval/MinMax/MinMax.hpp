@@ -16,7 +16,7 @@ class MinMax:public baseGoBangAi{
         //当前游戏玩家(1为Ai默认身份)
         int player=1;
         //最大搜索深度
-        int maximumDeep=6;
+        int maximumDeep=4;
         //方向向量
         int dx[24]={-1,-1,0,1,1,1,0,-1, -2,-2,-2,-1,0,1,2, 2,2,2,2,1,0,-1,-2,-2};
         int dy[24]={0,1,1,1,0,-1,-1,-1, 0,1,2,2,2,2,2,1,0, -1,-2,-2,-2,-2,-2,-1};
@@ -30,9 +30,9 @@ class MinMax:public baseGoBangAi{
         vector<pii> getUsefulSteps();
 
         //四个搜索函数-是否在过程中估值/是否带搜索剪枝
-        int evalToGo(int deep,int lastScore);
+        // int evalToGo(int deep,int lastScore);
         // int evalToGo(int deep,int lastScore,int alpha, int beta);
-        int evalToGo(int deep);
+        // int evalToGo(int deep);
         int evalToGo(int deep,int alpha, int beta);
         
         

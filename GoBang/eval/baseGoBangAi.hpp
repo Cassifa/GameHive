@@ -28,3 +28,5 @@ class baseGoBangAi{
 // void baseGoBangAi::sendPlayerMoveMessage(int x,int y){
 //     playerLastMove={x,y};
 // }
+
+baseGoBangAi::~baseGoBangAi(){};

@@ -77,6 +77,7 @@ int f(){
     while (true){
         //判断结束了
         if(baseAi->isEnd()){
+
             baseAi->printGameResult();
             delete baseAi;
             break;

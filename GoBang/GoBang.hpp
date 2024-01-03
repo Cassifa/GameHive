@@ -2,7 +2,7 @@
 #include"../BaseAi.hpp"
 #include "./eval/baseGoBangAi.hpp"
 // #include "./eval/MCTS/MonteCarlo.hpp"
-#include "./eval/MinMax/MinMax.hpp"
+#include "./eval/MinMax/MinMax.cpp"
 class GoBang :public BaseAi{
 private:
     bool isHeWinner(int nowChecking)override;
@@ -136,6 +136,7 @@ int GoBang::evalToDo(vector<vector<short>> &nowMap,int deep){
     //需要Ai移动了,此时一定是玩家刚走过了
     pii ans=usingAi->evalToGo();
     finalDecide=ans;
+    // aiMove(finD)
     return 0;
 }
 

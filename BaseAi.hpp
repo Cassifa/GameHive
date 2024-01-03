@@ -36,7 +36,7 @@ protected:
     //轮数自增
     void increaseRound();
 public:
-    BaseAi(int x,int y): map(x + 1, std::vector<short>(y + 1, 0)) {};
+    BaseAi(short x,short y): map(x + 1, std::vector<short>(y + 1, 0)) {};
     ~BaseAi(){};
 
     //开始游戏

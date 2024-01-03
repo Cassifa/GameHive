@@ -10,7 +10,11 @@ void MinMax::sendPlayerMoveMessage(int x,int y){
     nowMap[x][y]=3-player;
 }
 pii MinMax::evalToGo(){
-    return {8,8};
+    //获取估值
+    evalToGo(maximumDeep,-inf,inf);
+    nowMap[finalDecision.fi][finalDecision.se]=player;
+    cout<<"叶子："<<countYe<<" 节点："<<countCnt<<endl;
+    return finalDecision;
 }
 // void MinMax::start(dvectr &nowMap){
 //     this->nowMap=nowMap;
@@ -29,7 +33,7 @@ vector<pii> MinMax::getUsefulSteps(){
     dvectr st=nowMap;
     for(int i=1;i<nowMap.size();i++)
         for(int j=1;j<nowMap[i].size();j++)
-            if(nowMap[i][j])st[i][j]=-inf;
+            if(nowMap[i][j])st[i][j]=-16000;
     
     //获取合法点位并加权
     for(int i=1;i<nowMap.size();i++)
@@ -66,55 +70,6 @@ vector<pii> MinMax::getUsefulSteps(){
     return q;
 }
 
-//四个搜索函数
-//两个过程中估值
-int MinMax::evalToGo(int deep,int lastScore){
-    //此局面游戏已经结束
-    int end=isEnd();
-    if(end)return end;
-    //达到最大深度
-    if(deep==6)return lastScore;
-    //是否是player自己在挑选局面(Max层)
-    bool isMe=deep&1;
-    int nowScore;
-    vector<pii> q=getUsefulSteps();
-    // if(deep<=3){
-    //     cout<<"Deep: "<<deep<<endl;
-        // show(q);
-        // for(auto t:q)
-        //     cout<<t.fi<<" "<<t.se<<endl;
-    // }
-    if(isMe){
-        nowScore=-inf;
-        for(auto t:q){
-            //计算在这里落子后局面收益(player视角:下一层局面估值)
-            int nowRoundScore=evalXYTRoundScore(t.fi,t.se,player)+lastScore;
-            int leadToScore=evalToGo(deep+1,nowRoundScore);
-            if(leadToScore>nowScore){
-                nowScore=leadToScore;
-                finalDecision=t;
-            }
-            //恢复现场
-            nowMap[t.fi][t.se]=0;
-        }
-    }
-    else{
-        nowScore=inf;
-        for(auto t:q){
-            //计算在这里落子收益
-            int nowRoundScore=evalXYTRoundScore(t.fi,t.se,3-player)+lastScore;
-            int leadToScore=evalToGo(deep+1,nowRoundScore);
-            if(leadToScore<nowScore){
-                nowScore=leadToScore;
-                finalDecision=t;
-            }
-            //恢复现场
-            nowMap[t.fi][t.se]=0;
-        }
-    }
-    return nowScore;
-}
-
 //两个叶子节点估值⭐
 int MinMax::evalToGo(int deep,int alpha, int beta){
     countCnt++;
@@ -137,86 +92,42 @@ int MinMax::evalToGo(int deep,int alpha, int beta){
     }
     //是否是player自己在挑选局面(Max层)
     bool isMe=deep+1&1;
-    // int nowScore;
+    int nowScore;
+    pii nowDec;
     vector<pii> q=getUsefulSteps();//更新alpha/beta且没有被剪枝则采纳为最终结果
     if(isMe){
+        nowScore=-inf;
         for(auto t:q){
             //计算在这里落子后局面收益(player视角:下一层局面估值)maxDepperBeta
             nowMap[t.fi][t.se]=player;
             int nowRoundScore=evalToGo(deep-1,alpha,beta);
             nowMap[t.fi][t.se]=0;
-            
-            if(nowRoundScore>alpha){
-                if(nowRoundScore>beta)return alpha;
-                alpha=nowRoundScore;
-                finalDecision=t;
-            }
-        }
-        return alpha;
-    }
-    else{
-        int nowScore=inf;
-        for(auto t:q){
-            //计算在这里落子后局面收益(对手视角:下一层局面估值)
-            nowMap[t.fi][t.se]=3-player;
-            int nowRoundScore=evalToGo(deep-1,alpha,beta);
-            nowMap[t.fi][t.se]=0;
-            
-            if(nowRoundScore<beta){
-                if(nowRoundScore<alpha)return beta;
-                beta=nowRoundScore;
-                finalDecision=t;
-            }
-        }
-        return beta;
-    }
-}
 
-int MinMax::evalToGo(int deep){
-    countCnt++;
-    //此局面游戏已经结束
-    int end=isEnd();
-    if(end){
-        countCnt--;
-        countYe++;
-        return end;
-    }
-    //达到最大深度
-    if(!deep){
-        countCnt--;
-        countYe++;
-        int a=4*evalNowSituation(player),b=6*evalNowSituation(3-player);
-        int ans=a-b;
-        return ans;
-    }
-    //是否是player自己在挑选局面(Max层)
-    bool isMe=deep+1&1;
-    int nowScore;
-    vector<pii> q=getUsefulSteps();
-    if(isMe){
-        nowScore=-inf;
-        for(auto t:q){
-            //计算在这里落子后局面收益(player视角:下一层局面估值)
-            nowMap[t.fi][t.se]=player;
-            int nowRoundScore=evalToGo(deep-1);
             if(nowRoundScore>nowScore){
                 nowScore=nowRoundScore;
-                finalDecision=t;
+                nowDec=t;
+                alpha=max(alpha,nowRoundScore);
             }
-            //恢复现场
-            nowMap[t.fi][t.se]=0;
+            if(alpha>=beta)break;
         }
     }
     else{
         nowScore=inf;
         for(auto t:q){
-            //计算在这里落子后局面收益(player视角:下一层局面估值)
+            //计算在这里落子后局面收益(对手视角:下一层局面估值)
             nowMap[t.fi][t.se]=3-player;
-            int nowRoundScore=evalToGo(deep-1);
-            //恢复现场
+            int nowRoundScore=evalToGo(deep-1,alpha,beta);
             nowMap[t.fi][t.se]=0;
+
+            if(nowRoundScore<nowScore){
+                nowScore=nowRoundScore;
+                nowDec=t;
+                beta=min(beta,nowRoundScore);
+            }
+            if(alpha>=beta)break;
         }
     }
+    finalDecision=nowDec;
     return nowScore;
 }
 
