@@ -10,9 +10,17 @@
 #define END 3
 class MonteCarlo :public baseGoBangAi{
     private:
+        //消息队列 1:玩家移动 2:要求五秒内输出移动 3：结束游戏
+        threadsafe_queue<int> qmsg;
+        //当前进程
+        thread* pMain;
+        //锁进程
+        mutex lock;
         //当前搜索根
         MCTSNode *root=nullptr;
-        pii aiMove;
+        //需要移动 可以移动
+        atomic_bool need_move, ready_move;
+        pii aiMove,playerLastMove;//
         //开始时间
         clock_t start_time;
         
@@ -29,19 +37,21 @@ class MonteCarlo :public baseGoBangAi{
         int simulation(MCTSNode beginNode);
         //反向传播
         void rollout(MCTSNode *beginNode,int score);
+        //执行线程
+        void Run();
         
         //换根-是否必须建立新根 若传入空指针则为删除整棵树
         void changeRoot(pii playerLastMove);
     public:
         MonteCarlo(){};
-        ~MonteCarlo(){};
+        ~MonteCarlo();
 
+        //获取下一步
+        pii evalToGo();
         //初始化地图
         void setBeginningState(dvectr map);
         //收到玩家移动消息
         void sendPlayerMoveMessage(int x,int y);
-        //获取下一步
-        pii evalToGo();
         //结束游戏
         void end();
 };

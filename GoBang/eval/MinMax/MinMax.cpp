@@ -14,6 +14,7 @@ pii MinMax::evalToGo(){
     evalToGo(maximumDeep,-inf,inf);
     nowMap[finalDecision.fi][finalDecision.se]=player;
     cout<<"叶子："<<countYe<<" 节点："<<countCnt<<endl;
+    countYe=0,countCnt=0;
     return finalDecision;
 }
 // void MinMax::start(dvectr &nowMap){

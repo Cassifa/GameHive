@@ -1,5 +1,5 @@
 #pragma once
-#include<vector>
+#include<queue>
 #include<iostream>
 #define ll long long
 #define dvectr vector<vector<short>>
@@ -9,8 +9,6 @@
 using namespace std;
 //传入地图要求估值/要求结束游戏
 class baseGoBangAi{
-    protected:
-        pair<short,short> playerLastMove;
     public:
         baseGoBangAi(){};
         // 注意：若析构函数不为虚函数，则子类的析构函数不会被调用！！
@@ -25,8 +23,4 @@ class baseGoBangAi{
         virtual void end()=0;
 
 };
-// void baseGoBangAi::sendPlayerMoveMessage(int x,int y){
-//     playerLastMove={x,y};
-// }
-
 baseGoBangAi::~baseGoBangAi(){};

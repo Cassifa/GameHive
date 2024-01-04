@@ -9,7 +9,7 @@
 #include <condition_variable>
 #include <initializer_list>
 #include <atomic>
-
+#include<iostream>
 /*
 * 线程安全队列
 * T为队列元素类型
@@ -54,6 +54,7 @@ private:
     void push_unsafe(const value_type & new_value)
     {
         data_queue.push(std::move(new_value));
+        cout<<new_value<<endl;
         safe_size++;
     }
 
@@ -64,8 +65,6 @@ private:
     }
 
 public:
-
-    
     /*
     * 将元素加入队列
     * */
@@ -89,6 +88,8 @@ public:
     * 从队列中弹出一个元素,如果队列为空返回false
     * */
     bool try_pop(value_type& value) {
+        cout<<((this->safe_size))<<endl;
+        cout<<data_queue.size()<<endl;
         if (this->safe_size == 0)
             return false;
         std::lock_guard <std::mutex> lk(mut);

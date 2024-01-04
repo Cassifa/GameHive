@@ -60,7 +60,7 @@ struct MCTSNode{
         nowSon->isAi=!this->isAi;
         //设置地图状态
         dvectr temp=map;
-        temp[x][y]=2-(this->isAi);
+        temp[x][y]=1+(this->isAi);
         nowSon->map=temp;
         //加入作为子节点
         sons.push_back(nowSon);
@@ -77,7 +77,7 @@ struct MCTSNode{
                         int x=dx[now]+i,y=dy[now]+j;
                         if(x<1||y<1||x>15||y>15)continue;
                         if(map[x][y]){
-                            ans.push_back({x,y});
+                            ans.push_back({i,j});
                             break;
                         }
                     }
@@ -86,6 +86,7 @@ struct MCTSNode{
         }
         return ans;
     }
+    vector<pii> getLimtedUsefulSteps(){};
 
     //判断这个局面view赢了没
     bool isHeWin(int view){
@@ -147,6 +148,7 @@ struct MCTSNode{
             for(int j=1;j<=map[i].size();j++)
                 if(father->map[i][j]==0)
                     return{i,j};
+        return {8,8};
     }
 
     //删除此节点

@@ -1,7 +1,7 @@
 #pragma once
 #include"../BaseAi.hpp"
 #include "./eval/baseGoBangAi.hpp"
-// #include "./eval/MCTS/MonteCarlo.hpp"
+#include "./eval/MCTS/MonteCarlo.cpp"
 #include "./eval/MinMax/MinMax.cpp"
 class GoBang :public BaseAi{
 private:
@@ -153,7 +153,6 @@ void GoBang::startGame(){
 
 }
 void GoBang::choiceAiType(string type){
-    // if(type=="MinMix")usingAi=new MinMax();
-    // else usingAi=new MonteCarlo();
-    usingAi=new MinMax();
+    if(type=="MinMix")usingAi=new MinMax();
+    else usingAi=new MonteCarlo();
 }

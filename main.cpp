@@ -71,7 +71,7 @@ int f(){
     // baseAi=new TicTacToe();
     baseAi=new GoBang();
     baseAi->setIsAiFirst(true);
-    baseAi->choiceAiType("MinMax");
+    baseAi->choiceAiType("MonteCarlo");
     //开始游戏
     baseAi->startGame();
     while (true){
