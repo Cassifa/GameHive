@@ -149,10 +149,13 @@ void GoBang::startGame(){
         usingAi->setBeginningState(this->map);
     }
     //否则初始Ai类的地图为空地图
-    else usingAi->setBeginningState(this->map);
+    else {
+        showMap();
+        usingAi->setBeginningState(this->map);
+    }
 
 }
 void GoBang::choiceAiType(string type){
-    if(type=="MinMix")usingAi=new MinMax();
+    if(type=="MinMax")usingAi=new MinMax();
     else usingAi=new MonteCarlo();
 }

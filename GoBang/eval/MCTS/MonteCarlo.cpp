@@ -1,5 +1,6 @@
 #pragma once
 #include "MonteCarlo.hpp"
+#include <fstream>
 //初始化地图
 void MonteCarlo::setBeginningState(dvectr map){
     //初始化根节点
@@ -8,9 +9,13 @@ void MonteCarlo::setBeginningState(dvectr map){
     root->isAi=true;
     root->father=nullptr;
     root->getSons();
+    root->fatherDecision={-1,-1};
 	srand((unsigned)time(0));
+    // save();
+    // if(map[8][8]) init();
 }
-//收到玩家移动消息,加入消息队列
+
+//收到玩家移动消息,改根
 void MonteCarlo::sendPlayerMoveMessage(int x,int y){
     changeRoot({x,y});
 }
@@ -27,7 +32,7 @@ pii MonteCarlo::evalToGo(){
     while (true){
         // clock()-start_time<9500
         clock_t t=clock();
-        if(t-start_time>50000)break;
+        if(t-start_time>10000)break;
         search_times++;
         //选择:得到一个叶子节点
         MCTSNode *nowNode=this->selection();
@@ -95,14 +100,14 @@ void MonteCarlo::changeRoot(pii movePlace){
         oldRoot->sons.clear();
         delete oldRoot;
     }
-    cout<<"换根到了:\n";
-    dvectr tt=root->map;
-    for(int i=1;i<=tt.size();i++){
-        for(auto t:tt[i])
-            if(!t)cout<<"  ";
-            else cout<<t<<" ";
-        cout<<endl;
-    }
+    // cout<<"换根到了:\n";
+    // dvectr tt=root->map;
+    // for(int i=1;i<=tt.size();i++){
+    //     for(auto t:tt[i])
+    //         if(!t)cout<<"  ";
+    //         else cout<<t<<" ";
+    //     cout<<endl;
+    // }
     cout<<"孩子数量："<<root->sons.size()<<endl;
     cout<<"次数与分值："<<root->n<<" "<<root->win<<endl;
 }
@@ -154,3 +159,60 @@ void MonteCarlo::rollout(MCTSNode *beginNode,int score){
     beginNode->n++;
     beginNode->win+=score;
 }
+
+
+// void MonteCarlo::dfsInit(MCTSNode *nowNode,ofstream &ofs){}
+// void MonteCarlo::init(){
+//     //(1)创建流对象
+//     ofstream ofs;
+//     //(2)指定打开方式
+//     ofs.open("./GoBang/eval/MCTS/AiFirst.txt", ios::out);
+//     this->dfsInit(root,ofs);
+//     ofs.close();
+// }
+
+// //预打表
+// void MonteCarlo::save(){
+//     ll t=0,n=1e5;
+//     //构建n次蒙特卡洛
+//     while(t++<n){
+//         //选择:得到一个叶子节点
+//         MCTSNode *nowNode=this->selection();
+//         //没有模拟过那么模拟
+//         if(nowNode->n==0){
+//             //获取模拟得分
+//             int score=this->simulation(*nowNode);
+//             rollout(nowNode,score);
+//         }
+//         //模拟过那么拓展
+//         else{
+//             //拓展节点
+//             nowNode->getSons();
+//             //节点分数
+//             int score=0;
+//             //已经无棋可下,说明棋盘满了;否则将第一个节点作为下次搜的节点并直接模拟
+//             if(nowNode->sons.size()!=0){
+//                 nowNode=nowNode->sons[0];
+//                 score=simulation(*nowNode);
+//             }
+//             rollout(nowNode,score);
+//         }
+//     }
+
+//     //(1)创建流对象
+//     ofstream ofs;
+//     //(2)指定打开方式
+//     ofs.open("./GoBang/eval/MCTS/AiFirst.txt", ios::out);
+//     this->dfsSave(root,ofs);
+//     ofs.close();
+// }
+
+// void MonteCarlo::dfsSave(MCTSNode *nowNode,ofstream &ofs){
+//     ofs<<"n "<<nowNode->n<<" ";
+//     ofs<<"w "<<nowNode->win<<" ";
+//     ofs<<"f "<<nowNode->fatherDecision.fi<<" "<<nowNode->fatherDecision.se<<" ";
+//     ofs<<"s "<<" ";
+//     for(auto t:nowNode->sons)
+//         dfsSave(t,ofs);
+//     ofs<<"t"<<" ";
+// }

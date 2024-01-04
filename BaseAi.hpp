@@ -67,6 +67,7 @@ public:
 void BaseAi::startGame(){
     cout<<"开始游戏!"<<endl;
     cout<<"X表示你的棋子,O表示Ai的棋子"<<endl;
+    showMap();
 }
 //设置先后顺序
 void BaseAi::setIsAiFirst(bool choice=false){

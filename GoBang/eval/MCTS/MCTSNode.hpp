@@ -16,6 +16,8 @@ struct MCTSNode{
     ll n=0;
     //Ai赢的次数
     ll win=0;
+    //父节点走了那一步到这里
+    pii fatherDecision;
     //是否Ai视角
     bool isAi;
     //父节点
@@ -86,7 +88,7 @@ struct MCTSNode{
         }
         return ans;
     }
-    vector<pii> getLimtedUsefulSteps(){};
+    // vector<pii> getLimtedUsefulSteps(){};
 
     //判断这个局面view赢了没
     bool isHeWin(int view){

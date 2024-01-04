@@ -32,6 +32,11 @@ class MonteCarlo :public baseGoBangAi{
         
         //换根-是否必须建立新根 若传入空指针则为删除整棵树
         void changeRoot(pii playerLastMove);
+
+        // void save();
+        // void dfsSave(MCTSNode *nowNode,ofstream &ofs);
+        // void init();
+        // void dfsInit(MCTSNode *nowNode,ofstream &ofs);
     public:
         MonteCarlo(){};
         ~MonteCarlo(){};
