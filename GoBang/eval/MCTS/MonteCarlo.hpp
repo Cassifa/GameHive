@@ -1,7 +1,6 @@
 #pragma once
 #include "../baseGoBangAi.hpp"
 #include "MCTSNode.hpp"
-#include "safe_queue.h"
 #include <thread>
 #include <mutex>
 #include <atomic>

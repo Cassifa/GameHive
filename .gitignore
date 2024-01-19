@@ -8,7 +8,13 @@
 1.cpp
 *.png
 /build
+SonCount.txt
 
 #测试文件
 test.cpp
 TEST/*
+
+#暂时不加入
+.drawio
+*.jpg
+.bpm

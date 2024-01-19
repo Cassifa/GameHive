@@ -86,10 +86,7 @@ int MinMax::evalToGo(int deep,int alpha, int beta){
         countCnt--;
         countYe++;
         int a=attackBias*evalNowSituation(player),b=defendBias*evalNowSituation(3-player);
-        int ans=a-b;
-        // show(nowMap);
-        // cout<<endl;
-        return ans;
+        return a-b;
     }
     //是否是player自己在挑选局面(Max层)
     bool isMe=deep+1&1;

@@ -27,7 +27,6 @@ struct MCTSNode{
     //子节点
     vector<MCTSNode*> sons;
     
-    
     //获取自己的UCB
     double getUCB(){
         if(n==0) return 1e100;
