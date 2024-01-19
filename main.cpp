@@ -1,33 +1,37 @@
-// #include"./GoBang/TicTacToe.hpp"
+#include "BaseAi.hpp"
+#include "./TicTacToe/TicTacToe.hpp"
 #include "./GoBang/GoBang.hpp"
-int f(){
+int runFunction(){
     BaseAi *baseAi;
     srand((unsigned)time(NULL)); 
-    //等待合法输入
+    //等待输入游戏类别
     bool wait=true;
-    // while(wait){
-    //     cout<<"请选择你要玩的游戏\n1:井字棋\n2:五子棋\n";
-    //     int mode;cin>>mode;
-    //     switch(mode){
-    //         case 1:
-    //             baseAi=new TicTacToe();
-    //             wait=false;
-    //             break;
-    //         // case 2:
-    //         //     baseAi=new GoBang();
-    //         //     wait=false;
-    //         //     break;
-    //         default:
-    //             cout<<"输入错误\n";
-    //             break;
-    //     }
-
-    // }
-    baseAi=new GoBang();
+    bool coldChoiceType=false;
+    while(wait){
+        cout<<"请选择你要玩的游戏\n1:井字棋\n2:五子棋\n";
+        int mode;cin>>mode;
+        switch(mode){
+            case 1:
+                baseAi=new TicTacToe();
+                wait=false;
+                break;
+            case 2:
+                baseAi=new GoBang();
+                coldChoiceType=true;
+                wait=false;
+                break;
+            default:
+                cout<<"输入错误"<<endl;
+                break;
+        }
+    }
+    
+    //输入先后手
     wait=true;
     while(wait){
         cout<<"请选择你是先手后手\n1:先手\n2:后手\n";
-        int mode;cin>>mode;
+        int mode=2;
+        cin>>mode;
         switch(mode){
             case 1:
                 baseAi->setIsAiFirst(false);
@@ -38,18 +42,40 @@ int f(){
                 wait=false;
                 break;
             default:
-                cout<<"输入错误\n";
+                cout<<"输入错误"<<endl;
                 break;
         }
     }
-    // baseAi->setIsAiFirst(false);
+
+    //设置五子棋Ai类别
+    wait=true;
+    while(wait){
+        if(!coldChoiceType)break;
+        cout<<"请选择想挑战的Ai\n1:MinMax\n2:MonteCarlo\n";
+        int mode=2;
+        cin>>mode;
+        switch(mode){
+            case 1:
+                baseAi->choiceAiType("MinMax");
+                wait=false;
+                break;
+            case 2:
+                baseAi->choiceAiType("MonteCarlo");
+                wait=false;
+                break;
+            default:
+                cout<<"输入错误"<<endl;
+                break;
+        }
+    }
+
     //开始游戏
     baseAi->startGame();
     while (true){
         //判断结束了
         if(baseAi->isEnd()){
-            baseAi->printGameResult();
 
+            baseAi->printGameResult();
             delete baseAi;
             break;
         }
@@ -62,16 +88,19 @@ int f(){
         while(wait){
             cout<<"请选择你要选择的位置(列,行,笛卡尔坐标系):\n";
             int x,y;cin>>x>>y;
+            // if(x==1&&y==1){
+            //     delete baseAi;
+            //     return 0;
+            // }
             if(baseAi->selectPlace(x,y))
                 wait=false;
-            else cout<<"输入错误!\n";
+            else cout<<"输入错误!"<<endl;
         }
     }
     return 0;
 }
 int main(){
-    while(true){
-        f();
-    }
+    // while(true)
+        runFunction();
     return 0;
 }

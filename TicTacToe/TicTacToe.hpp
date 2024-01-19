@@ -1,13 +1,13 @@
+#pragma once
 #include<vector>
 #include"../BaseAi.hpp"
-#define pii pair<int,int>
 class TicTacToe :public BaseAi{
 private:
     bool isHeWinner(int nowChecking)override;
     //检查玩家位置合法性
     bool checkPlace(int x,int y)override;
     //AI决定怎么走⭐
-    int evalToDo(vector<vector<int>> &nowMap,int nowVision)override;
+    int evalToDo(vector<vector<short>> &nowMap,int nowVision)override;
 public:
     //调用构造函数,新建地图
     TicTacToe():BaseAi(3,3){};
@@ -112,7 +112,7 @@ bool TicTacToe::checkPlace(int x,int y){
     return map[x][y]==0;
 }
 //在决策树上负极大值搜索 决定Ai下棋位置,返回当前局面当前视角下能得到的最大分数⭐
-int TicTacToe::evalToDo(vector<vector<int>> &nowMap,int deep){
+int TicTacToe::evalToDo(vector<vector<short>> &nowMap,int deep){
     int nowVision=deep&1;
     if(!nowVision)nowVision=2;
     //自己赢了
