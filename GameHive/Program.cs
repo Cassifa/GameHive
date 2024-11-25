@@ -1,3 +1,4 @@
+using GameHive.MainForm;
 namespace GameHive {
     internal static class Program {
         /// <summary>

@@ -1,4 +1,4 @@
-﻿namespace GameHive {
+﻿namespace GameHive.MainForm {
     partial class Form1 {
         /// <summary>
         ///  Required designer variable.
@@ -27,7 +27,7 @@
             rightPanel = new Panel();
             secondTurn = new RadioButton();
             firstTurn = new RadioButton();
-            start = new Button();
+            statusSwitch = new Button();
             AIType = new ComboBox();
             LogPanel = new Panel();
             LogListBox = new ListBox();
@@ -40,7 +40,7 @@
             LeftPanel.SuspendLayout();
             SuspendLayout();
             // 
-            // menuStrip
+            // menuStrip 条目可被点击，点击后切换到对应游戏
             // 
             menuStrip.ImageScalingSize = new Size(24, 24);
             menuStrip.Location = new Point(0, 0);
@@ -54,7 +54,7 @@
             rightPanel.AccessibleRole = AccessibleRole.PageTabList;
             rightPanel.Controls.Add(secondTurn);
             rightPanel.Controls.Add(firstTurn);
-            rightPanel.Controls.Add(start);
+            rightPanel.Controls.Add(statusSwitch);
             rightPanel.Controls.Add(AIType);
             rightPanel.Controls.Add(LogPanel);
             rightPanel.Controls.Add(ZJUTLogo);
@@ -62,9 +62,8 @@
             rightPanel.Name = "rightPanel";
             rightPanel.Size = new Size(300, 900);
             rightPanel.TabIndex = 1;
-            rightPanel.Paint += rightPanel_Paint;
             // 
-            // secondTurn
+            // secondTurn 选择后切换到后手
             // 
             secondTurn.AutoSize = true;
             secondTurn.Location = new Point(180, 360);
@@ -75,7 +74,7 @@
             secondTurn.Text = "后手";
             secondTurn.UseVisualStyleBackColor = true;
             // 
-            // firstTurn
+            // firstTurn 选择后切换到先手
             // 
             firstTurn.AutoSize = true;
             firstTurn.Location = new Point(69, 360);
@@ -85,19 +84,17 @@
             firstTurn.TabStop = true;
             firstTurn.Text = "先手";
             firstTurn.UseVisualStyleBackColor = true;
-            firstTurn.CheckedChanged += radioButton1_CheckedChanged;
             // 
-            // start
+            // statusSwitch 点击触发开始游戏/终止游戏/清空游戏状态
             // 
-            start.Location = new Point(69, 495);
-            start.Name = "start";
-            start.Size = new Size(182, 46);
-            start.TabIndex = 4;
-            start.Text = "开始";
-            start.UseVisualStyleBackColor = true;
-            start.Click += button1_Click;
+            statusSwitch.Location = new Point(69, 495);
+            statusSwitch.Name = "statusSwitch";
+            statusSwitch.Size = new Size(182, 46);
+            statusSwitch.TabIndex = 4;
+            statusSwitch.Text = "开始";
+            statusSwitch.UseVisualStyleBackColor = true;
             // 
-            // AIType
+            // AIType 选择以切换对战的AI
             // 
             AIType.DropDownStyle = ComboBoxStyle.DropDownList;
             AIType.FormattingEnabled = true;
@@ -114,7 +111,6 @@
             LogPanel.Name = "LogPanel";
             LogPanel.Size = new Size(300, 325);
             LogPanel.TabIndex = 1;
-            LogPanel.Paint += panel1_Paint;
             // 
             // LogListBox
             // 
@@ -125,9 +121,8 @@
             LogListBox.Name = "LogListBox";
             LogListBox.Size = new Size(300, 325);
             LogListBox.TabIndex = 0;
-            LogListBox.SelectedIndexChanged += LogListBox_SelectedIndexChanged;
             // 
-            // ZJUTLogo
+            // ZJUTLogo 双击弹窗
             // 
             ZJUTLogo.BackgroundImage = Properties.Resources.logo;
             ZJUTLogo.BackgroundImageLayout = ImageLayout.Stretch;
@@ -177,16 +172,17 @@
 
         #endregion
 
-        private MenuStrip menuStrip;
         private Panel rightPanel;
         private Panel LogPanel;
-        private PictureBox ZJUTLogo;
         private Panel LeftPanel;
-        private Panel BoardPanel;
-        private ListBox LogListBox;
-        private Button start;
-        private ComboBox AIType;
-        private RadioButton secondTurn;
-        private RadioButton firstTurn;
+        //可交互组件:
+        public MenuStrip menuStrip;
+        public Panel BoardPanel;
+        public PictureBox ZJUTLogo;
+        public RadioButton secondTurn;
+        public RadioButton firstTurn;
+        public ComboBox AIType;
+        public Button statusSwitch;
+        public ListBox LogListBox;
     }
 }

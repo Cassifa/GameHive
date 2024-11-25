@@ -1,43 +1,17 @@
-namespace GameHive {
+using GameHive.Controller;
+using GameHive.MainForm;
+namespace GameHive.MainForm {
     public partial class Form1 : Form {
+        private Controller.Controller controller;
         public Form1() {
             InitializeComponent();
+            controller = new Controller.Controller(this);
         }
 
         private void Form1_Load(object sender, EventArgs e) {
 
         }
-
-        private void listView1_SelectedIndexChanged(object sender, EventArgs e) {
-
-        }
-
-        private void panel1_Paint(object sender, PaintEventArgs e) {
-
-        }
-
-        private void rightPanel_Paint(object sender, PaintEventArgs e) {
-
-        }
-
-        private void LogListBox_SelectedIndexChanged(object sender, EventArgs e) {
-
-        }
-
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e) {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e) {
-
-        }
-
-        private void radioButton1_CheckedChanged(object sender, EventArgs e) {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e) {
-
-        }
     }
 }
+
+
