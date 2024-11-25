@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace GameHive.View {
-    internal class widgetView {
+    //控制历史记录条目
+    internal class LogView {
     }
 }
