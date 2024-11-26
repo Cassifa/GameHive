@@ -7,12 +7,14 @@
 *************************************************************************************/
 namespace GameHive.Constants.RoleTypeEnum {
     public enum Role { 
+        Empty,
         AI,
         Player
     }
     public static class RoleExtensions {
         public static string GetChineseName(this Role game) {
             return game switch {
+                Role.Empty => "空",
                 Role.AI => "AI",
                 Role.Player => "玩家",
                 _ => "未知"
@@ -21,6 +23,7 @@ namespace GameHive.Constants.RoleTypeEnum {
 
         public static string GetEnglishName(this Role game) {
             return game switch {
+                Role.Empty => "Empty",
                 Role.AI => "AI",
                 Role.Player => "Player",
                 _ => "Unknown"

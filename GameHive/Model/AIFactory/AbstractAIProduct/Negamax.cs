@@ -12,6 +12,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
-    internal interface Negamax : AbstractAIStrategy {
+    internal abstract class Negamax : AbstractAIStrategy {
     }
 }

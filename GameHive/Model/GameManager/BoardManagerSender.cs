@@ -19,7 +19,7 @@ namespace GameHive.Model.GameManager {
 
         }
         //AI在x,y下棋
-        private void AIPlayChess(int x int y) {
+        private void AIPlayChess(int x ,int y) {
 
         }
     }

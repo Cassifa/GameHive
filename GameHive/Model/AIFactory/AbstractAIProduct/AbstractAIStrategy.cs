@@ -12,9 +12,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
-    internal interface AbstractAIStrategy {
-        //AI在此落子
-        public Tuple<int,int> PlayChessAt();
+    internal abstract class AbstractAIStrategy {
+        //获取下一步移动
+        public abstract Tuple<int,int> GetNextAIMove(List<List<int>> currentBoard);
 
     }
 }

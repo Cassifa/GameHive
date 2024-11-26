@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 20:35
 *************************************************************************************/
+using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,33 @@ using System.Threading.Tasks;
 
 namespace GameHive.Model.AIFactory {
     internal class GobangFactory : AbstractFactory {
+        GameBoardInfo boardInfo;
+
+        public MinMax GetMinMaxProduct() {
+            throw new NotImplementedException();
+        }
+
+        /*——————————不可用———————————*/
+
+        public MCTS GetMCTSProduct() {
+            throw new NotImplementedException();
+        }
+        public Negamax GetNegamaxProduct() {
+            throw new NotImplementedException();
+        }
+
+        public DRL GetDRLProduct() {
+            throw new NotImplementedException();
+        }
+
         //单例模式
         private static GobangFactory _instance;
-        private GobangFactory() { }
+        private GobangFactory() {
+            List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
+                AIAlgorithmType.AlphaBetaPruning
+            };
+            boardInfo = new GameBoardInfo(15, false, aiTypes);
+        }
         // 公共静态属性，提供实例访问
         public static GobangFactory Instance {
             get {
@@ -31,22 +56,6 @@ namespace GameHive.Model.AIFactory {
                 }
                 return _instance;
             }
-        }
-
-        public MCTS GetMCTSProduct() {
-            throw new NotImplementedException();
-        }
-
-        public MinMax GetMinMaxProduct() {
-            throw new NotImplementedException();
-        }
-
-        private Negamax GetNegamaxProduct() {
-            throw new NotImplementedException();
-        }
-
-        private DRL GetDRLProduct() {
-            throw new NotImplementedException();
         }
     }
 }

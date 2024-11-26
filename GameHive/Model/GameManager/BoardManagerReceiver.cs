@@ -8,26 +8,36 @@
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
         //玩家终止游戏
-        public void EndGame() { }
+        public void EndGame() {
+            gameRunning = false;
+        }
         //玩家开始游戏
-        public void StartGame() { }
+        public void StartGame() {
+            gameRunning = true;
+        }
         //检查此处落子是否有效
-        public void CheckValid(int x, int y) { }
+        public bool CheckValid(int x, int y) {
+            if (x >= board.Count || y >= board[0].Count) return false;
+            return board[x][y] == 0;
+        }
         //用户设置先后手
-        public void SetFirst(Role first) { }
+        public void SetFirst(Role first) {
+            this.first = first;
+        }
         //用户在x,y下棋
-        public void UserPalyChess(int x, int y) { }
+        public void UserPalyChess(int x, int y) {
+            board[x][y] = (int)Role.Player;
+        }
         //切换算法
-        public void SwitchGame(GameType gameType) { }
-        public void SwitchAIType(AIAlgorithmType type) { }
+        public void SwitchGame(GameType gameType) {
+
+        }
+        public void SwitchAIType(AIAlgorithmType type) {
+
+        }
     }
 }
