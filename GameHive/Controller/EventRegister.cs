@@ -1,11 +1,20 @@
-﻿using GameHive.MainForm;
+﻿/*************************************************************************************
+ * 文 件 名:   EventRegister.cs
+ * 描    述:  用于注册所有点击事件到组件上
+ * 版    本：  V1.0
+ * 创 建 者：  Cassifa
+ * 创建时间：  2024/11/25 21:55
+*************************************************************************************/
+using GameHive.MainForm;
+using GameHive.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GameHive.Controller {
+namespace GameHive.Controller
+{
     internal partial class Controller {
         //导航委托
         public EventHandler menuStripHandler;
@@ -18,6 +27,7 @@ namespace GameHive.Controller {
         public EventHandler statusSwitchRegister;
         //历史记录
         public EventHandler LogListBoxRegister;
+        //注册除选择AI外事件
         public void RegisterEvent() {
             //注册配置无关组件
             RegisterZJUTLogo();
@@ -28,11 +38,10 @@ namespace GameHive.Controller {
             RegisterBoardPanel();
             //注册导航并读取配置加入导航栏目
             RegisterMenuStrip(mainForm);
-
             //绑定到 mainForm.Controls的对应组件上
             BindEventHandlersToControls();
         }
-
+        //绑定事件到组件
         private void BindEventHandlersToControls() {
             // 为棋盘相关控件绑定事件
             mainForm.BoardPanel.Click += BoardPanelRegister;
@@ -42,6 +51,9 @@ namespace GameHive.Controller {
             mainForm.secondTurn.CheckedChanged += secondTurnRegister;
             mainForm.statusSwitch.Click += statusSwitchRegister;
             //mainForm.LogListBox.SelectedIndexChanged += LogListBoxRegister;
+        }
+        //注册并绑定切换AI事件，清除原先选项
+        private void RegisterAIType(GameBoardInfo info) { 
         }
     }
 }

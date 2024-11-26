@@ -13,6 +13,7 @@ namespace GameHive.Controller {
 
         private void SecondTurnCheckedChanged(object sender, EventArgs e) {
             //TODO: 通知棋盘管理类切换先后手
+            //通知显示层先后手变化
         }
     }
 }

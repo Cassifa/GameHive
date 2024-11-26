@@ -22,11 +22,10 @@ namespace GameHive.Controller {
             }
 
         }
-
-
         // 菜单项点击事件的具体实现
         private void GameMenuItem_Click(object sender, EventArgs e, GameType gameType) {
-            //TODO: 调用切换到该算法的函数
+            //发送切换游戏的信号
+            switchGameType(gameType);
         }
     }
 }

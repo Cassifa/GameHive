@@ -1,4 +1,13 @@
-﻿namespace GameHive.Constants.AIAlgorithmTypeEnum {
+﻿/*************************************************************************************
+ *
+ * 文 件 名:   AIAlgorithmTypeEnum.cs
+ * 描    述: 用于定义人工智能算法种类，并提供中英文名转化
+ * 版    本：  V1.0
+ * 创 建 者：  Cassifa
+ * 创建时间：  2024/11/25 22:27
+*************************************************************************************/
+
+namespace GameHive.Constants.AIAlgorithmTypeEnum {
     public enum AIAlgorithmType {
         AlphaBetaPruning,
         Negamax,

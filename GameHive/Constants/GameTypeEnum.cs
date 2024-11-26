@@ -1,4 +1,11 @@
-﻿namespace GameHive.Constants.GameTypeEnum {
+﻿/*************************************************************************************
+ * 文 件 名:   GameTypeEnum.cs
+ * 描    述: 用于定义支持的游戏类型，并提供中英文名转化
+ * 版    本：  V1.0
+ * 创 建 者：  Cassifa
+ * 创建时间：  2024/11/25 22:04
+*************************************************************************************/
+namespace GameHive.Constants.GameTypeEnum {
     public enum GameType {
         Gobang,
         Gobang88,
