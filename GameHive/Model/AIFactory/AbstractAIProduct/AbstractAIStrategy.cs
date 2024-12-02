@@ -16,7 +16,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class AbstractAIStrategy {
         //获取下一步移动
         public abstract Tuple<int,int> GetNextAIMove(List<List<Role>> currentBoard);
-        public abstract bool CheckGameOver(List<List<Role>> currentBoard);
+        public abstract Role CheckGameOver(List<List<Role>> currentBoard);
         private GameBoardInfo GameBoardInfo;
 
     }

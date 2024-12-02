@@ -27,12 +27,11 @@ namespace GameHive.Controller {
         //游戏终止
         private void ModelMessageEndGame() {
             //改变 boardManager状态，允许修改参数
-            boardManager.EndGame();
+            boardManager.UserEndGame();
         }
         //用户下棋位置
-        private void ModelMessageUserPlayChess(int x, int y) {
-            boardManager.UserPalyChess(x, y);
-            view.DrowChess(x, y, Role.Player);
+        private bool ModelMessageUserPlayChess(int x, int y) {
+            return boardManager.UserPalyChess(x, y);
         }
     }
 }

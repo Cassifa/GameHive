@@ -7,6 +7,7 @@
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
+using GameHive.Constants.RoleTypeEnum;
 using GameHive.MainForm;
 using GameHive.Model;
 using GameHive.Model.GameManager;
@@ -45,6 +46,8 @@ namespace GameHive.Controller {
             //初始化选择的算法
             SetDefaultAI();
         }
+
+        //切换游戏种类
         private void SwitchGame(GameType gameType) {
             //切换AI并获取 boardInfo信息
             GameBoardInfo boardInfo = ModelMessageSwitchGameType(gameType);
@@ -53,15 +56,9 @@ namespace GameHive.Controller {
             //重新设置默认AI
             SetDefaultAI();
             //使用GameInfo命令View绘制地图,先后手保持不变
-            view.DrowBoard(boardInfo.Column, boardInfo.IsCenter, boardManager.first);
+            view.DrawBoard(boardInfo);
         }
 
-        //玩家点击可用条目触发切换算法
-        private void ChoiceAlgorithm(AIAlgorithmType aIAlgorithmType) {
-            //通知棋盘管理切换算法
-            ModelMessageSwitchAI(aIAlgorithmType);
-
-        }
 
         //设置默认出战AI（GameInfo的第一个）触发点击事件
         private void SetDefaultAI() {
@@ -74,6 +71,22 @@ namespace GameHive.Controller {
             if (defaultIndex >= 0) {
                 mainForm.AIType.SelectedIndex = defaultIndex; // 触发 SelectedIndexChanged 事件
             }
+        }
+
+        private void EndGame(Role role) {
+            //终止游戏
+            ModelMessageEndGame();
+            ViewMessageEndGame(role);
+            //处理组件显示
+            mainForm.statusSwitch.Text = "开始游戏";
+            mainForm.statusSwitch.BackColor = Color.Green;
+            mainForm.firstTurn.Enabled = true;
+            mainForm.secondTurn.Enabled = true;
+            mainForm.AIType.Enabled = true;
+        }
+        private void StartGame() {
+            ModelMessageStartGame();
+            ViewMessageStartGame();
         }
     }
 }

@@ -1,18 +1,12 @@
 ﻿/*************************************************************************************
  * 文 件 名:   EventRegister.cs
- * 描    述: 
+ * 描    述: 注册组件所有事件，延迟注册AI算法条目绑定模块
  * 版    本：  V1.0
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/25 21:55
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
-using GameHive.MainForm;
 using GameHive.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameHive.Controller {
     internal partial class Controller {

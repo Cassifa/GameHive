@@ -7,5 +7,8 @@ using System.Threading.Tasks;
 namespace GameHive.View {
     //控制历史记录条目
     internal partial class View {
+        public void ShowLogo() {
+
+        }
     }
 }

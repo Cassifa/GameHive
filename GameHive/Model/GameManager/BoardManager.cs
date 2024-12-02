@@ -20,7 +20,7 @@ namespace GameHive.Model.GameManager {
         private GameType gameType;
         //当前在使用的AI算法
         private AIAlgorithmType aIAlgorithmType;
-        public bool gameRunning {  get; private set; }
+        public bool gameRunning { get; private set; }
         public Role first { get; set; }
 
         //当前在运行的AI产品实例
@@ -28,15 +28,39 @@ namespace GameHive.Model.GameManager {
         //游戏情况
         public GameBoardInfo BoardInfo { get; private set; }
         //当前棋盘
-        public List<List<Role>> board {  get; private set; }
-        private bool CheckGameOver() { return runningAI.CheckGameOver(board); }
+        public List<List<Role>> board { get; private set; }
+
+        //检查是否结束 返回赢家，如果没人赢返回Role.Empty
+        public Role CheckGameOver() {
+            return runningAI.CheckGameOver(board);
+        }
+
+        //执行下一步
+        public void Move() { 
+            GetNextAIMove();
+        }
+
+
+        //获取AI下一步输出
+        private void GetNextAIMove(){
+            //获取下一步
+            Tuple<int,int> nextMove=runningAI.GetNextAIMove(board);
+            //记录下一步
+            board[nextMove.Item1][nextMove.Item2] = Role.AI;
+            SendAIPlayChess(nextMove.Item1, nextMove.Item2);
+            //检查游戏是否结束
+            Role winner=CheckGameOver();
+            if (winner != Role.Empty) {
+                SendGameOver(winner);
+            }
+        }
 
 
         //单例模式
 #pragma warning disable CS8618 
         private static BoardManager _instance;
 #pragma warning restore CS8618 
-        private BoardManager(Controller.Controller controller) { 
+        private BoardManager(Controller.Controller controller) {
             this.controller = controller;
         }
         private static readonly object _lock = new object();

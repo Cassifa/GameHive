@@ -6,22 +6,17 @@
  * 创建时间：  2024/11/26 20:20
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
         //游戏运行结束，产生赢家
-        private void GameOver(Role winner) {
+        private void SendGameOver(Role winner) {
             //通知控制层游戏结束并公布赢家
             controller.GameOver(winner);
         }
         //AI在x,y下棋
-        private void AIPlayChess(int x ,int y) {
-            controller.ChessPlay(Role.AI,x,y);
+        private void SendAIPlayChess(int x, int y) {
+            controller.ChessPlay(Role.AI, x, y);
         }
     }
 }

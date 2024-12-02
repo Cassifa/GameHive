@@ -18,6 +18,12 @@ namespace GameHive.View {
         public void SetFirst(Role role) {
             first = role;
         }
+        public void StartGame() {
+
+        }
+        public void EndGame(Role role) {
+
+        }
 
         //单例模式
 #pragma warning disable CS8618

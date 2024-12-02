@@ -1,10 +1,5 @@
 ﻿using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameHive.Controller {
     //用于向视图层发送命令
@@ -14,20 +9,28 @@ namespace GameHive.Controller {
             view.AddLog(log);
         }
         //logo弹窗
-        private void ViewMessageLogoShow() { 
-            
+        private void ViewMessageLogoShow() {
+            view.ShowLogo();
         }
-        //在x,y 下棋
-        private void ViewMessagePlayChess(double x,double y,Role role) { 
-
+        //在数组坐标系x,y位置下棋
+        private void ViewMessagePlayChess(double x, double y, Role role) {
+            view.DrawChess(x, y, Role.Player);
         }
         //绘制一张地图x*x 标号是否居中
-        private void ViewMessageDrawMap(GameBoardInfo info) { }
+        private void ViewMessageDrawMap(GameBoardInfo info) {
+            view.DrawBoard(info);
+        }
         //设定先手
-        private void ViewMessageSetFirst(Role first) { }
+        private void ViewMessageSetFirst(Role first) {
+            view.SetFirst(first);
+        }
         //开始游戏
-        private void ViewMessageStartGame() { }
+        private void ViewMessageStartGame() {
+            view.StartGame();
+        }
         //结束游戏
-        private void ViewMessageEndGame() { }
+        private void ViewMessageEndGame(Role role) {
+            view.EndGame(role);
+        }
     }
 }

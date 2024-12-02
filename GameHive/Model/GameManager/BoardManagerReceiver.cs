@@ -19,7 +19,7 @@ namespace GameHive.Model.GameManager {
         private ReversiFactory reversiFactory = null;
         private TicTacToeFactory ticTacToeFactory = null;
         //玩家终止游戏
-        public void EndGame() {
+        public void UserEndGame() {
             gameRunning = false;
         }
         //玩家开始游戏
@@ -37,10 +37,19 @@ namespace GameHive.Model.GameManager {
         public void SetFirst(Role first) {
             this.first = first;
         }
-        //用户在x,y下棋
-        public void UserPalyChess(int x, int y) {
+        //用户在x,y下棋 返回是否结束
+        public bool UserPalyChess(int x, int y) {
             board[x][y] = Role.Player;
+            //处理落子结果
+            Role winner = CheckGameOver();
+            if (winner != Role.Empty) {
+                //处理结束后工作
+                Task.Run(() => SendGameOver(winner));
+                return true;
+            }
+            return false;
         }
+
         //切换算法
         public GameBoardInfo SwitchGame(GameType gameType) {
             this.gameType = gameType;
