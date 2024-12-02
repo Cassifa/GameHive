@@ -15,7 +15,7 @@ namespace GameHive.Controller {
         //logo弹窗
         private void LogoShow() { }
         //在x,y 下棋
-        private void PlayChess() { }
+        private void PlayChess(Role role) { }
         //绘制一张地图x*x 标号是否居中
         private void DrawMap(int Column, bool isCenter) { }
         private void SetFirst(Role first) { }

@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GameHive.Constants.AIAlgorithmTypeEnum;
+﻿using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
+using GameHive.Model;
 namespace GameHive.Controller {
     //用于向Model发送命令，并调用命令发送后相关的函数
     internal partial class Controller {
         //通知切换游戏类型
         private void switchGameType(GameType game) {
             //调用Model切换游戏类别并获取返回的GameInfo
+            GameBoardInfo boardInfo=
             //用GameInfo更新AI列表
             //设置默认AI
             SetDefaultAI();

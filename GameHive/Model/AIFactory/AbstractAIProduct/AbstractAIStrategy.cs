@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:49
 *************************************************************************************/
+using GameHive.Constants.RoleTypeEnum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,9 @@ using System.Threading.Tasks;
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class AbstractAIStrategy {
         //获取下一步移动
-        public abstract Tuple<int,int> GetNextAIMove(List<List<int>> currentBoard);
+        public abstract Tuple<int,int> GetNextAIMove(List<List<Role>> currentBoard);
+        public abstract bool CheckGameOver(List<List<Role>> currentBoard);
+        private GameBoardInfo GameBoardInfo;
 
     }
 }

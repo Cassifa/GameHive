@@ -8,18 +8,14 @@
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
-using GameHive.Model.AIFactory;
 using GameHive.Model.AIFactory.AbstractAIProduct;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GameHive.Controller;
+using Microsoft.VisualBasic.Devices;
 
 namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
-
-
+        //控制层实例
+        private Controller.Controller controller;
         //当前在玩的游戏
         private GameType gameType;
         //当前在使用的AI算法
@@ -32,25 +28,27 @@ namespace GameHive.Model.GameManager {
         //游戏情况
         public GameBoardInfo BoardInfo { get; private set; }
         //当前棋盘
-        private List<List<int>> board;
+        private List<List<Role>> board;
+        private bool CheckGameOver() { return runningAI.CheckGameOver(board); }
 
 
         //单例模式
 #pragma warning disable CS8618 
         private static BoardManager _instance;
 #pragma warning restore CS8618 
-        private BoardManager() { }
-        public static BoardManager Instance {
-            get {
-                if (_instance == null) {
-                    lock (typeof(BoardManager)) {
-                        if (_instance == null) {
-                            _instance = new BoardManager();
-                        }
+        private BoardManager(Controller.Controller controller) { 
+            this.controller = controller;
+        }
+        private static readonly object _lock = new object();
+        public static BoardManager Instance(Controller.Controller controller) {
+            if (_instance == null) {
+                lock (_lock) {
+                    if (_instance == null) {
+                        _instance = new BoardManager(controller);
                     }
                 }
-                return _instance;
             }
+            return _instance;
         }
 
     }

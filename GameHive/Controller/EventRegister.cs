@@ -1,6 +1,6 @@
 ﻿/*************************************************************************************
  * 文 件 名:   EventRegister.cs
- * 描    述:  用于注册所有点击事件到组件上
+ * 描    述: 
  * 版    本：  V1.0
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/25 21:55
@@ -54,6 +54,7 @@ namespace GameHive.Controller
         }
         //注册并绑定切换AI事件，清除原先选项
         private void RegisterAIType(GameBoardInfo info) { 
+
         }
     }
 }

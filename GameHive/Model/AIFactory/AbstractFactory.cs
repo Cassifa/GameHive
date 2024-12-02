@@ -13,5 +13,6 @@ namespace GameHive.Model.AIFactory {
         public MCTS GetMCTSProduct();
         public MinMax GetMinMaxProduct();
         public Negamax GetNegamaxProduct();
+        public GameBoardInfo GetBoardInfoProduct();
     }
 }

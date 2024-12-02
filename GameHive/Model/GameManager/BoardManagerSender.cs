@@ -16,11 +16,12 @@ namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
         //游戏运行结束，产生赢家
         private void GameOver(Role winner) {
-
+            //通知控制层游戏结束并公布赢家
+            controller.GameOver(winner);
         }
         //AI在x,y下棋
         private void AIPlayChess(int x ,int y) {
-
+            controller.ChessPlay(Role.AI,x,y);
         }
     }
 }
