@@ -13,13 +13,18 @@ namespace GameHive.Model {
             this.AllAIType = allAIType;
             this.Column = column;
             this.IsCenter = isCenter;
+            CaclateCenter();
         }
         //行列数
-        private int Column { get; set; }
+        public int Column { get; set; }
         //标号是否居中
-        private bool IsCenter { get; set; }
+        public bool IsCenter { get; set; }
+        //可落子半径
+        public double R {  get; set; }
+        //每个棋子可落子中心点
+        public List<List<Tuple<double,double>>> ChessCenter { get; set; }
         //可用的AI列表
-        private List<AIAlgorithmType> AllAIType { get; set; }
-
+        public List<AIAlgorithmType> AllAIType { get; set; }
+        private void CaclateCenter() { }
     }
 }

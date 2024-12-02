@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace GameHive.View {
     //控制历史记录条目
-    internal class LogView {
+    internal partial class View {
     }
 }

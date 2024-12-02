@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameHive.View {
     //控制校徽的动画
-    internal class LogoView {
+    internal partial class View {
+        public void AddLog(String logContext) { }
     }
 }

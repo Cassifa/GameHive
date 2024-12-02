@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 
 namespace GameHive.View {
     //控制棋盘上所有动画
-    internal class BoardView {
+    internal partial class View {
+        //本剧已经落子数
         private int currentCnt = 0;
+        //单位长度
         private double unitLenth;
+        private Role first;
         //绘制一个棋盘
         public void DrowBoard(int Column, bool isCenter,Role first) {
             currentCnt = 0;

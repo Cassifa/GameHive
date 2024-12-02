@@ -20,15 +20,15 @@ namespace GameHive.Model.GameManager {
         private GameType gameType;
         //当前在使用的AI算法
         private AIAlgorithmType aIAlgorithmType;
-        private bool gameRunning;
-        private Role first;
+        public bool gameRunning {  get; private set; }
+        public Role first { get; set; }
 
         //当前在运行的AI产品实例
         private AbstractAIStrategy runningAI;
         //游戏情况
         public GameBoardInfo BoardInfo { get; private set; }
         //当前棋盘
-        private List<List<Role>> board;
+        public List<List<Role>> board {  get; private set; }
         private bool CheckGameOver() { return runningAI.CheckGameOver(board); }
 
 

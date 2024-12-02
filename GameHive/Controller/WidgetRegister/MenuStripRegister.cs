@@ -16,16 +16,19 @@ namespace GameHive.Controller {
                     Tag = gameType // 将枚举值存储到 Tag 属性
                 };
                 // 为菜单项添加点击事件
-                menuItem.Click += (sender, e) => GameMenuItem_Click(sender, e, gameType);
+                menuItem.Click += (sender, e) => GameMenuItem_Click(gameType);
 
                 menuStrip.Items.Add(menuItem);
             }
 
         }
         // 菜单项点击事件的具体实现
-        private void GameMenuItem_Click(object sender, EventArgs e, GameType gameType) {
-            //发送切换游戏的信号
-            switchGameType(gameType);
+        private void GameMenuItem_Click(GameType gameType) {
+            //如果已经开始游戏则不可切换
+            if (boardManager.gameRunning) return;
+
+            //执行切换游戏行为
+            SwitchGame(gameType);
         }
     }
 }

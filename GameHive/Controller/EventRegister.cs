@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/25 21:55
 *************************************************************************************/
+using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.MainForm;
 using GameHive.Model;
 using System;
@@ -13,8 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GameHive.Controller
-{
+namespace GameHive.Controller {
     internal partial class Controller {
         //导航委托
         public EventHandler menuStripHandler;
@@ -53,7 +53,22 @@ namespace GameHive.Controller
             //mainForm.LogListBox.SelectedIndexChanged += LogListBoxRegister;
         }
         //注册并绑定切换AI事件，清除原先选项
-        private void RegisterAIType(GameBoardInfo info) { 
+        private void RegisterAIType(GameBoardInfo info) {
+            //清空原有选择
+            mainForm.AIType.Items.Clear();
+            //加入所有可用AI
+            foreach (var aiType in info.AllAIType) {
+                mainForm.AIType.Items.Add(aiType.GetChineseName());
+            }
+            //绑定点击事件
+            mainForm.AIType.SelectedIndexChanged += (sender, e) => {
+                // 获取当前选中项的中文名称
+                var selectedName = mainForm.AIType.SelectedItem.ToString();
+                // 根据中文名称查找对应的枚举值
+                var selectedAI = info.AllAIType.FirstOrDefault(aiType => aiType.GetChineseName() == selectedName);
+                // 切换到选中的 AI 类型
+                ModelMessageSwitchAI(selectedAI);
+            };
 
         }
     }

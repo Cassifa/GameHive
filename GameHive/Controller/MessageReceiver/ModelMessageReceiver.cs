@@ -9,10 +9,12 @@ namespace GameHive.Controller {
     internal partial class Controller {
         //在x,y落子
         public void ChessPlay(Role role, int x, int y) {
-            //发出下棋信息
+            //像 View 发出下棋信息
+            view.DrowChess(x, y,role);
         }
         public void GameOver(Role role) {
-            //发出游戏结束信息
+            //像 View 转发游戏结束信息
+            view.GameOver(role);
         }
     }
 }
