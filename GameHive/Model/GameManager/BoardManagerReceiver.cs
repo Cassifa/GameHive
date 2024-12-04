@@ -33,21 +33,17 @@ namespace GameHive.Model.GameManager {
             if (x >= board.Count || y >= board[0].Count) return false;
             return board[x][y] == Role.Empty;
         }
+        //要求AI移动
+        public void AskAIMove() {
+            LetAIMove();
+        }
         //用户设置先后手
         public void SetFirst(Role first) {
             this.first = first;
         }
         //用户在x,y下棋 返回是否结束
         public bool UserPalyChess(int x, int y) {
-            board[x][y] = Role.Player;
-            //处理落子结果
-            Role winner = CheckGameOver();
-            if (winner != Role.Empty) {
-                //处理结束后工作
-                Task.Run(() => SendGameOver(winner));
-                return true;
-            }
-            return false;
+            return PlayChess(Role.Player, x, y);
         }
 
         //切换算法
@@ -62,9 +58,11 @@ namespace GameHive.Model.GameManager {
                 GameType.TicTacToe => ticTacToeFactory ??= TicTacToeFactory.Instance,
                 _ => throw new NotSupportedException($"Unsupported game type: {gameType}")
             };
+            //更新为新游戏的BoardInfo并返回
             this.BoardInfo = factory.GetBoardInfoProduct();
             return BoardInfo;
         }
+
         public void SwitchAIType(AIAlgorithmType type) {
             this.aIAlgorithmType = type;
             // 根据 AI 类型从工厂获取对应的实例

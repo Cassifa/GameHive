@@ -17,7 +17,7 @@ namespace GameHive.Controller {
         //设定先后手
         private void ModelMessageSetPlayerTurnOrder(Role role) {
             //通知 boardManager
-            boardManager.first = role;
+            boardManager.SetFirst(role);
         }
         //游戏开始
         private void ModelMessageStartGame() {
@@ -29,9 +29,19 @@ namespace GameHive.Controller {
             //改变 boardManager状态，允许修改参数
             boardManager.UserEndGame();
         }
-        //用户下棋位置
+        //用户在此处下棋
         private bool ModelMessageUserPlayChess(int x, int y) {
             return boardManager.UserPalyChess(x, y);
+        }
+
+        //要求AI下棋
+        private void ModelMessageAskAIMove() {
+            boardManager.AskAIMove();
+        }
+
+        //检查是否合法
+        private bool ModelMessageCheckValid(int x,int y) {
+            return boardManager.CheckValid(x,y);
         }
     }
 }

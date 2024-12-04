@@ -13,18 +13,6 @@ namespace GameHive.View {
         private Controller.Controller controller;
         private Form1 mainForm;
 
-        //游戏结束
-        public void GameOver(Role role) { }
-        public void SetFirst(Role role) {
-            first = role;
-        }
-        public void StartGame() {
-
-        }
-        public void EndGame(Role role) {
-
-        }
-
         //单例模式
 #pragma warning disable CS8618
         private static View _instance;

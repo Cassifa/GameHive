@@ -16,7 +16,7 @@ namespace GameHive.Controller {
         private void ViewMessagePlayChess(double x, double y, Role role) {
             view.DrawChess(x, y, Role.Player);
         }
-        //绘制一张地图x*x 标号是否居中
+        //绘制一张地图
         private void ViewMessageDrawMap(GameBoardInfo info) {
             view.DrawBoard(info);
         }

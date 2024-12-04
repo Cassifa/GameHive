@@ -22,26 +22,26 @@ namespace GameHive.Controller {
             double clickY = mouseEvent.Y;
 
             // 遍历中心点，找到是否点击了某合法位置
-            //由于ChessCenter中存了对应xy可相应范围，且范围不会重叠，不用考虑坐标变化
+            //由于ChessCenter中存了对应(x,y)可相应范围，且范围不会重叠，不用考虑坐标变化
             var chessCenters = boardManager.BoardInfo.ChessCenter;
             double r = boardManager.BoardInfo.R; // 可落子的半径
             for (int x = 0; x < chessCenters.Count; x++) {
                 for (int y = 0; y < chessCenters[x].Count; y++) {
+                    //棋盘x,y变化坐标后对应的物理可点击位置中心
                     var center = chessCenters[x][y];
-                    //此处xy在初始化时已经被变化坐标
                     double centerX = center.Item1;
                     double centerY = center.Item2;
                     // 判断是否在合法范围内
                     if (Math.Pow(clickX - centerX, 2) + Math.Pow(clickY - centerY, 2) <= r * r) {
                         //已经被下过棋则忽略
-                        if (boardManager.board[x][y] != Role.Empty) return;
+                        if (!ModelMessageCheckValid(x,y)) return;
                         //给显示层发消息
                         ViewMessagePlayChess(centerX, centerY, Role.Player);
-                        //给模型层发消息
+                        //给模型层发消息,并获取是否结束
                         bool isEnd = ModelMessageUserPlayChess(x, y);
                         if (!isEnd) {
                             //没有结束，令AI计算下一步,异步计算
-                            Task.Run(() => boardManager.Move());
+                            Task.Run(() => ModelMessageAskAIMove());
                         }
                         return;
                     }

@@ -10,10 +10,9 @@ namespace GameHive.Controller {
     internal partial class Controller {
         private void RegisterZJUTLogo() {
             ZJUTLogoRegister += ZJUTLogoDoubleClicked;
-
         }
         private void ZJUTLogoDoubleClicked(object sender, EventArgs e) {
-            //TODO: 调用切换到该算法的函数
+            ViewMessageLogoShow();
         }
     }
 }

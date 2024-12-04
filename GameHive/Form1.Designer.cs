@@ -40,7 +40,7 @@
             LeftPanel.SuspendLayout();
             SuspendLayout();
             // 
-            // menuStrip 条目可被点击，点击后切换到对应游戏
+            // menuStrip
             // 
             menuStrip.ImageScalingSize = new Size(24, 24);
             menuStrip.Location = new Point(0, 0);
@@ -63,7 +63,7 @@
             rightPanel.Size = new Size(300, 900);
             rightPanel.TabIndex = 1;
             // 
-            // secondTurn 选择后切换到后手
+            // secondTurn
             // 
             secondTurn.AutoSize = true;
             secondTurn.Location = new Point(180, 360);
@@ -74,7 +74,7 @@
             secondTurn.Text = "后手";
             secondTurn.UseVisualStyleBackColor = true;
             // 
-            // firstTurn 选择后切换到先手
+            // firstTurn
             // 
             firstTurn.AutoSize = true;
             firstTurn.Location = new Point(69, 360);
@@ -85,7 +85,7 @@
             firstTurn.Text = "先手";
             firstTurn.UseVisualStyleBackColor = true;
             // 
-            // statusSwitch 点击触发开始游戏/终止游戏/清空游戏状态
+            // statusSwitch
             // 
             statusSwitch.Location = new Point(69, 495);
             statusSwitch.Name = "statusSwitch";
@@ -94,7 +94,7 @@
             statusSwitch.Text = "开始";
             statusSwitch.UseVisualStyleBackColor = true;
             // 
-            // AIType 选择以切换对战的AI
+            // AIType
             // 
             AIType.DropDownStyle = ComboBoxStyle.DropDownList;
             AIType.FormattingEnabled = true;
@@ -122,7 +122,7 @@
             LogListBox.Size = new Size(300, 325);
             LogListBox.TabIndex = 0;
             // 
-            // ZJUTLogo 双击弹窗
+            // ZJUTLogo
             // 
             ZJUTLogo.BackgroundImage = Properties.Resources.logo;
             ZJUTLogo.BackgroundImageLayout = ImageLayout.Stretch;

@@ -1,9 +1,11 @@
-﻿using GameHive.Constants.RoleTypeEnum;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*************************************************************************************
+ * 文 件 名:   firstTurnRegister.cs
+ * 描    述: 
+ * 版    本：  V1.0
+ * 创 建 者：  Cassifa
+ * 创建时间：  2024/11/26 1:31
+*************************************************************************************/
+using GameHive.Constants.RoleTypeEnum;
 
 namespace GameHive.Controller {
     //用于注册切换到人类先手
@@ -14,9 +16,9 @@ namespace GameHive.Controller {
         private void FirstTurnCheckedChanged(object sender, EventArgs e) {
             //如果已经开始游戏则不可设置
             if (boardManager.gameRunning) return;
-            //若不是由点击触发的补齐选中事件
-            if(!mainForm.firstTurn.Checked) mainForm.firstTurn.Checked = true;
-            //TODO: 通知棋盘管理类切换先后手
+            //若不是由点击触发的补齐选中事件(切换游戏自动选择)
+            mainForm.firstTurn.Checked = true;
+            //通知棋盘管理类切换先后手
             ModelMessageSetPlayerTurnOrder(Role.Player);
             //通知显示层先后手变化
             ViewMessageSetFirst(Role.Player);

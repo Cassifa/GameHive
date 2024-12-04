@@ -21,7 +21,7 @@ namespace GameHive.Model.GameManager {
         //当前在使用的AI算法
         private AIAlgorithmType aIAlgorithmType;
         public bool gameRunning { get; private set; }
-        public Role first { get; set; }
+        private Role first { get; set; }
 
         //当前在运行的AI产品实例
         private AbstractAIStrategy runningAI;
@@ -35,24 +35,29 @@ namespace GameHive.Model.GameManager {
             return runningAI.CheckGameOver(board);
         }
 
-        //执行下一步
-        public void Move() { 
-            GetNextAIMove();
-        }
-
 
         //获取AI下一步输出
-        private void GetNextAIMove(){
+        private void LetAIMove(){
             //获取下一步
             Tuple<int,int> nextMove=runningAI.GetNextAIMove(board);
-            //记录下一步
-            board[nextMove.Item1][nextMove.Item2] = Role.AI;
+            //通知控制层AI的决策
             SendAIPlayChess(nextMove.Item1, nextMove.Item2);
-            //检查游戏是否结束
-            Role winner=CheckGameOver();
+            //记录下一步
+            PlayChess(Role.AI, nextMove.Item1, nextMove.Item2);
+        }
+
+        //下棋，并返回此次下棋是否导致游戏终止
+        private bool PlayChess(Role role,int x,int y) {
+            board[x][y] = Role.Player;
+            //处理落子结果
+            Role winner = CheckGameOver();
+            //胜者不为空说明 AI胜利/玩家胜利/平局
             if (winner != Role.Empty) {
-                SendGameOver(winner);
+                //处理结束后工作
+                Task.Run(() => SendGameOver(winner));
+                return true;
             }
+            return false;
         }
 
 

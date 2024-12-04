@@ -17,7 +17,7 @@ namespace GameHive.Controller {
                 };
                 // 为菜单项添加点击事件
                 menuItem.Click += (sender, e) => GameMenuItem_Click(gameType);
-
+                //讲已经绑定过事件的条目加入一级菜单
                 menuStrip.Items.Add(menuItem);
             }
 
@@ -26,7 +26,6 @@ namespace GameHive.Controller {
         private void GameMenuItem_Click(GameType gameType) {
             //如果已经开始游戏则不可切换
             if (boardManager.gameRunning) return;
-
             //执行切换游戏行为
             SwitchGame(gameType);
         }

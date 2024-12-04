@@ -31,11 +31,10 @@ namespace GameHive.Controller {
             SetupInitialState();
         }
 
-        //设定初始状态 0号游戏 0号AI 先手
+        //设定初始状态 0号游戏，0号AI，先手
         private void SetupInitialState() {
             //初始化先后手（触发一个点击先手事件）
             FirstTurnCheckedChanged(null, null);
-
             //初始化选择的棋盘（触发一次点击第一个菜单事件）
             MenuStrip menuStrip = mainForm.Controls.OfType<MenuStrip>().FirstOrDefault();
             if (menuStrip != null && menuStrip.Items.Count > 0) {
@@ -43,8 +42,6 @@ namespace GameHive.Controller {
                 ToolStripMenuItem firstMenuItem = menuStrip.Items[0] as ToolStripMenuItem;
                 firstMenuItem?.PerformClick();
             }
-            //初始化选择的算法
-            SetDefaultAI();
         }
 
         //切换游戏种类
@@ -56,9 +53,8 @@ namespace GameHive.Controller {
             //重新设置默认AI
             SetDefaultAI();
             //使用GameInfo命令View绘制地图,先后手保持不变
-            view.DrawBoard(boardInfo);
+            ViewMessageDrawMap(boardInfo);
         }
-
 
         //设置默认出战AI（GameInfo的第一个）触发点击事件
         private void SetDefaultAI() {
@@ -70,19 +66,15 @@ namespace GameHive.Controller {
             int defaultIndex = mainForm.AIType.Items.IndexOf(defaultAIName);
             if (defaultIndex >= 0) {
                 mainForm.AIType.SelectedIndex = defaultIndex; // 触发 SelectedIndexChanged 事件
+                //通知模型切换
+                ModelMessageSwitchAI(defaultAI);
             }
         }
 
         private void EndGame(Role role) {
-            //终止游戏
+            //终止游戏,公布赢家
             ModelMessageEndGame();
             ViewMessageEndGame(role);
-            //处理组件显示
-            mainForm.statusSwitch.Text = "开始游戏";
-            mainForm.statusSwitch.BackColor = Color.Green;
-            mainForm.firstTurn.Enabled = true;
-            mainForm.secondTurn.Enabled = true;
-            mainForm.AIType.Enabled = true;
         }
         private void StartGame() {
             ModelMessageStartGame();
