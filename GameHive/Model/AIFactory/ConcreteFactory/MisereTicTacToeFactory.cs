@@ -7,26 +7,24 @@
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.AIFactory.ConcreteProduct;
 
 namespace GameHive.Model.AIFactory {
     internal class MisereTicTacToeFactory : AbstractFactory {
-        GameBoardInfo boardInfo;
-
-
-        public MCTS GetMCTSProduct() {
-            throw new NotImplementedException();
+        public override MCTS GetMCTSProduct() {
+            return new MisereTicTacToeMCTS();
         }
 
-        public MinMax GetMinMaxProduct() {
-            throw new NotImplementedException();
+        public override MinMax GetMinMaxProduct() {
+            return new MisereTicTacToeMinMax();
         }
 
-        public Negamax GetNegamaxProduct() {
-            throw new NotImplementedException();
+        public override Negamax GetNegamaxProduct() {
+            return new MisereTicTacToeNegamax();
         }
 
         /*——————————不可用———————————*/
-        public DRL GetDRLProduct() {
+        public override DRL GetDRLProduct() {
             throw new NotImplementedException();
         }
 

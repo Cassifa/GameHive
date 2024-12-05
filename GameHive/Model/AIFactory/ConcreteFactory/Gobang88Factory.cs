@@ -7,31 +7,25 @@
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GameHive.Model.AIFactory.ConcreteProduct;
 
 namespace GameHive.Model.AIFactory {
     internal class Gobang88Factory : AbstractFactory {
-        GameBoardInfo boardInfo;
 
-        public DRL GetDRLProduct() {
-            throw new NotImplementedException();
-            //return new GoBang88DRL();
+        public override DRL GetDRLProduct() {
+            return new GoBang88DRL();
         }
 
-        public MinMax GetMinMaxProduct() {
-            throw new NotImplementedException();
+        public override MinMax GetMinMaxProduct() {
+            return new GoBang88MinMax();
         }
 
         /*——————————不可用———————————*/
-        public Negamax GetNegamaxProduct() {
+        public override Negamax GetNegamaxProduct() {
             throw new NotImplementedException();
         }
 
-        public MCTS GetMCTSProduct() {
+        public override MCTS GetMCTSProduct() {
             throw new NotImplementedException();
         }
 

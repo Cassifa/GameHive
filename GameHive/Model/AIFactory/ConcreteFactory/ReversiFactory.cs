@@ -7,30 +7,24 @@
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GameHive.Model.AIFactory.ConcreteProduct;
 
 namespace GameHive.Model.AIFactory {
     internal class ReversiFactory : AbstractFactory {
-        GameBoardInfo boardInfo;
-
-        public MCTS GetMCTSProduct() {
-            throw new NotImplementedException();
+        public override MCTS GetMCTSProduct() {
+            return new ReversiTicTacToeMCTS();
         }
 
-        public MinMax GetMinMaxProduct() {
-            throw new NotImplementedException();
+        public override MinMax GetMinMaxProduct() {
+            return new ReversiTicTacToeMinMax();
         }
 
         /*——————————不可用———————————*/
 
-        public Negamax GetNegamaxProduct() {
+        public override Negamax GetNegamaxProduct() {
             throw new NotImplementedException();
         }
-        public DRL GetDRLProduct() {
+        public override DRL GetDRLProduct() {
             throw new NotImplementedException();
         }
 

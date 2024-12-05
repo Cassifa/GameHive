@@ -8,11 +8,14 @@
 using GameHive.Model.AIFactory.AbstractAIProduct;
 
 namespace GameHive.Model.AIFactory {
-    internal interface AbstractFactory {
-        public DRL GetDRLProduct();
-        public MCTS GetMCTSProduct();
-        public MinMax GetMinMaxProduct();
-        public Negamax GetNegamaxProduct();
-        public GameBoardInfo GetBoardInfoProduct();
+    internal abstract class AbstractFactory {
+        protected GameBoardInfo boardInfo;
+        public abstract DRL GetDRLProduct();
+        public abstract MCTS GetMCTSProduct();
+        public abstract MinMax GetMinMaxProduct();
+        public abstract Negamax GetNegamaxProduct();
+        public GameBoardInfo GetBoardInfoProduct() {
+            return boardInfo;
+        }
     }
 }

@@ -6,17 +6,12 @@
  * 创建时间：  2024/11/26 18:11
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MinMax : AbstractAIStrategy {
-        private int maxDeep;
-        private abstract bool IsHeWin(Role role);
-        private abstract bool IsEnd();
+        int maxDeep;
+        public abstract bool IsHeWin(Role role);
+        public abstract bool IsEnd();
 
     }
 }

@@ -6,18 +6,13 @@
  * 创建时间：  2024/11/26 18:49
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class AbstractAIStrategy {
         //获取下一步移动
-        public abstract Tuple<int,int> GetNextAIMove(List<List<Role>> currentBoard);
+        public abstract Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard);
+        //检查游戏是否结束
         public abstract Role CheckGameOver(List<List<Role>> currentBoard);
-        private GameBoardInfo GameBoardInfo;
 
     }
 }
