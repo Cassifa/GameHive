@@ -32,8 +32,9 @@
             LogPanel = new Panel();
             LogListBox = new ListBox();
             ZJUTLogo = new PictureBox();
-            LeftPanel = new Panel();
-            BoardPanel = new Panel();
+            //保证不抖动
+            LeftPanel = new MyPanel();
+            BoardPanel = new MyPanel();
             rightPanel.SuspendLayout();
             LogPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)ZJUTLogo).BeginInit();

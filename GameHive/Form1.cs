@@ -13,6 +13,7 @@ namespace GameHive.MainForm {
             InitializeComponent();
             //×¢²á¿ØÖÆÆ÷
             controller = new Controller.Controller(this);
+
         }
 
         private void Form1_Load(object sender, EventArgs e) {
