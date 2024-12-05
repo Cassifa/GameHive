@@ -32,7 +32,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
             for (int i = 0; i < rowCount; i++) {
                 for (int j = 0; j < colCount; j++) {
-                    if (currentBoard[i][j] != Role.Empty) {
+                    if (currentBoard[i][j] == Role.Empty) {
                         availableMoves.Add(new Tuple<int, int>(i, j));
                     }
                 }

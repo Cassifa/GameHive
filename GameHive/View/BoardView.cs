@@ -7,19 +7,17 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model;
-using System.Drawing;
 
 namespace GameHive.View {
     //控制棋盘上所有动画
     internal partial class View {
         //本局已经落子数
         private int currentCnt = 0;
-        //单位长度
-        private double unitLength;
         private Role first;
         private GameBoardInfo boardInfo;
         private Graphics? graphics;
         private Bitmap? boardBitmap;
+
         //绘制一个棋盘
         public void DrawBoard(GameBoardInfo boardInfo) {
             this.boardInfo = boardInfo;
@@ -41,11 +39,12 @@ namespace GameHive.View {
         //画一颗棋子在数组坐坐标系的x,y落子
         public void DrawChess(double x, double y, Role role) {
             if (graphics == null || boardBitmap == null) return;
-
+            currentCnt++;
+            int t = currentCnt % 2;
             // 根据 Role 确定棋子颜色
-            Brush brush = role switch {
-                Role.Player => Brushes.Black,
-                Role.AI => Brushes.White,
+            Brush brush = t switch {
+                1 => Brushes.Black,
+                0 => Brushes.Red,
                 _ => Brushes.Transparent,
             };
             // 绘制棋子
@@ -55,7 +54,11 @@ namespace GameHive.View {
                 (float)(2 * boardInfo.R),
                 (float)(2 * boardInfo.R));
             // 刷新 Panel 或 PictureBox
-            mainForm.BoardPanel.Refresh();
+            if (mainForm.BoardPanel.InvokeRequired) {
+                mainForm.BoardPanel.Invoke(new Action(() => mainForm.BoardPanel.Refresh()));
+            } else {
+                mainForm.BoardPanel.Refresh();
+            }
         }
         private void InitializeGraphics() {
             // 创建画布
@@ -70,50 +73,6 @@ namespace GameHive.View {
             graphics.Clear(Color.White);
             DrawBoard(boardInfo); // 重新绘制空棋盘
             mainForm.BoardPanel.Refresh();
-        }
-
-        //设置先手
-        public void SetFirst(Role role) {
-            first = role;
-        }
-        //游戏结束
-        public void GameOver(Role role) {
-            string winner = "";
-            // 判断赢家
-            switch (role) {
-                case Role.Player:
-                    winner = "Player 1 wins!";
-                    break;
-                case Role.AI:
-                    winner = "AI 2 wins!";
-                    break;
-                case Role.Empty:
-                    winner = "It's a draw!";
-                    break;
-                default:
-                    winner = "Game Over!";
-                    break;
-            }
-            // 弹出提示框展示赢家
-            MessageBox.Show(winner, "Game Over", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        //开启游戏
-        public void StartGame() {
-            //处理组件显示
-            mainForm.statusSwitch.Text = "终止游戏";
-            mainForm.statusSwitch.BackColor = Color.Red;
-            mainForm.firstTurn.Enabled = false;
-            mainForm.secondTurn.Enabled = false;
-            mainForm.AIType.Enabled = false;
-        }
-        public void EndGame(Role role) {
-            //处理组件显示
-            mainForm.statusSwitch.Text = "开始游戏";
-            mainForm.statusSwitch.BackColor = Color.Green;
-            mainForm.firstTurn.Enabled = true;
-            mainForm.secondTurn.Enabled = true;
-            mainForm.AIType.Enabled = true;
         }
 
     }

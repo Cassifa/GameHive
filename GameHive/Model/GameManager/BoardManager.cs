@@ -9,8 +9,6 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
-using GameHive.Controller;
-using Microsoft.VisualBasic.Devices;
 
 namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
@@ -20,6 +18,8 @@ namespace GameHive.Model.GameManager {
         private GameType gameType;
         //当前在使用的AI算法
         private AIAlgorithmType aIAlgorithmType;
+        //AI正在决策
+        public bool AIMoving {  get;private set; }
         public bool gameRunning { get; private set; }
         private Role first { get; set; }
 
@@ -34,20 +34,21 @@ namespace GameHive.Model.GameManager {
         public Role CheckGameOver() {
             return runningAI.CheckGameOver(board);
         }
-
-
         //获取AI下一步输出
-        private void LetAIMove(){
+        private void LetAIMove() {
+            AIMoving = true;
             //获取下一步
-            Tuple<int,int> nextMove=runningAI.GetNextAIMove(board);
+            Tuple<int, int> nextMove = runningAI.GetNextAIMove(board);
+            Console.WriteLine(nextMove.Item1.ToString()+nextMove.Item2.ToString());
             //通知控制层AI的决策
             SendAIPlayChess(nextMove.Item1, nextMove.Item2);
             //记录下一步
             PlayChess(Role.AI, nextMove.Item1, nextMove.Item2);
+            AIMoving = false;
         }
 
         //下棋，并返回此次下棋是否导致游戏终止
-        private bool PlayChess(Role role,int x,int y) {
+        private bool PlayChess(Role role, int x, int y) {
             board[x][y] = Role.Player;
             //处理落子结果
             Role winner = CheckGameOver();
@@ -67,6 +68,7 @@ namespace GameHive.Model.GameManager {
 #pragma warning restore CS8618 
         private BoardManager(Controller.Controller controller) {
             this.controller = controller;
+            AIMoving = false;
         }
         private static readonly object _lock = new object();
         public static BoardManager Instance(Controller.Controller controller) {

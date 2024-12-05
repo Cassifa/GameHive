@@ -21,10 +21,19 @@ namespace GameHive.Model.GameManager {
         //玩家终止游戏
         public void UserEndGame() {
             gameRunning = false;
+            board = null;
         }
         //玩家开始游戏
         public void StartGame() {
             //玩家开始游戏并且AI先手情况下，调用获取输入的逻辑由 controller 执行
+            board = new List<List<Role>>();
+            for (int i = 0; i < BoardInfo.Column; i++) {
+                var row = new List<Role>();
+                for (int j = 0; j < BoardInfo.Column; j++) {
+                    row.Add(Role.Empty); // 初始化为无子状态
+                }
+                board.Add(row);
+            }
             gameRunning = true;
         }
         //检查此处落子是否有效

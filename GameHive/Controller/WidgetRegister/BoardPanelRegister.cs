@@ -14,7 +14,7 @@ namespace GameHive.Controller {
         }
         private void BoardPanelClick(object sender, EventArgs e) {
             // 游戏未开始，直接返回
-            if (!boardManager.gameRunning) return;
+            if (!boardManager.gameRunning||boardManager.AIMoving) return;
 
             // 从事件参数中获取点击的鼠标位置
             var mouseEvent = (MouseEventArgs)e;

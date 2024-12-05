@@ -16,7 +16,7 @@ namespace GameHive.Model.GameManager {
         }
         //AI在x,y下棋
         private void SendAIPlayChess(int x, int y) {
-            controller.ChessPlay(Role.AI, x, y);
+            controller.ChessPlay( x, y);
         }
     }
 }

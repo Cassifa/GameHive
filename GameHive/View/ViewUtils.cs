@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/12/2 19:01
 *************************************************************************************/
+using GameHive.Constants.RoleTypeEnum;
 using GameHive.MainForm;
 
 namespace GameHive.View {
@@ -12,6 +13,46 @@ namespace GameHive.View {
         private Controller.Controller controller;
         private Form1 mainForm;
 
+        //设置先手
+        public void SetFirst(Role role) {
+            first = role;
+        }
+        //开启游戏
+        public void StartGame() {
+            ClearBoard();
+            //处理组件显示
+            mainForm.statusSwitch.Text = "终止游戏";
+            mainForm.statusSwitch.BackColor = Color.Red;
+            mainForm.firstTurn.Enabled = false;
+            mainForm.secondTurn.Enabled = false;
+            mainForm.AIType.Enabled = false;
+        }
+        public void EndGame(Role role) {
+            //处理组件显示
+            mainForm.statusSwitch.Text = "开始游戏";
+            mainForm.statusSwitch.BackColor = Color.Green;
+            mainForm.firstTurn.Enabled = true;
+            mainForm.secondTurn.Enabled = true;
+            mainForm.AIType.Enabled = true;
+            GameOver(role);
+        }
+        //游戏结束
+        public void GameOver(Role role) {
+            string winner = "";
+            switch (role) {
+                case Role.Player:
+                    winner = "玩家胜利";
+                    break;
+                case Role.AI:
+                    winner = "AI获胜";
+                    break;
+                case Role.Draw:
+                    winner = "平局";
+                    break;
+            }
+            // 弹出提示框展示赢家
+            MessageBox.Show(winner, "Game Over", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
         //单例模式
 #pragma warning disable CS8618
         private static View _instance;
