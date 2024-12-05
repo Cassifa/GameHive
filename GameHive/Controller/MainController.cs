@@ -80,6 +80,8 @@ namespace GameHive.Controller {
         private void StartGame() {
             ModelMessageStartGame();
             ViewMessageStartGame();
+            if (boardManager.first == Role.AI)
+                ModelMessageAskAIMove();
         }
     }
 }

@@ -21,7 +21,7 @@ namespace GameHive.Model.GameManager {
         //AI正在决策
         public bool AIMoving {  get;private set; }
         public bool gameRunning { get; private set; }
-        private Role first { get; set; }
+        public Role first { get; set; }
 
         //当前在运行的AI产品实例
         private AbstractAIStrategy runningAI;
@@ -42,8 +42,9 @@ namespace GameHive.Model.GameManager {
             Console.WriteLine(nextMove.Item1.ToString()+nextMove.Item2.ToString());
             //通知控制层AI的决策
             SendAIPlayChess(nextMove.Item1, nextMove.Item2);
-            //记录下一步
-            PlayChess(Role.AI, nextMove.Item1, nextMove.Item2);
+            //记录下一步,由于耗时可能很长，先判断游戏有没有终止
+            if(gameRunning)
+                PlayChess(Role.AI, nextMove.Item1, nextMove.Item2);
             AIMoving = false;
         }
 

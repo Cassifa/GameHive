@@ -15,7 +15,7 @@ namespace GameHive.Controller {
         }
 
         private void SecondTurnCheckedChanged(object sender, EventArgs e) {
-            if (mainForm.secondTurn.Checked) return;
+            if (!mainForm.secondTurn.Checked) return;
             //如果已经开始游戏则不可设置
             if (boardManager.gameRunning) return;
             //通知棋盘管理类切换先后手
