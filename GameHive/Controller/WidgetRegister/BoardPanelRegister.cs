@@ -24,7 +24,7 @@ namespace GameHive.Controller {
             // 遍历中心点，找到是否点击了某合法位置
             //由于ChessCenter中存了对应(x,y)可相应范围，且范围不会重叠，不用考虑坐标变化
             var chessCenters = boardManager.BoardInfo.ChessCenter;
-            double r = boardManager.BoardInfo.R; // 可落子的半径
+            double r = (double)boardManager.BoardInfo.R; // 可落子的半径
             for (int x = 0; x < chessCenters.Count; x++) {
                 for (int y = 0; y < chessCenters[x].Count; y++) {
                     //棋盘x,y变化坐标后对应的物理可点击位置中心

@@ -14,10 +14,9 @@ namespace GameHive.Controller {
             firstTurnRegister += FirstTurnCheckedChanged;
         }
         private void FirstTurnCheckedChanged(object sender, EventArgs e) {
+            if (mainForm.firstTurn.Checked) return;
             //如果已经开始游戏则不可设置
             if (boardManager.gameRunning) return;
-            //若不是由点击触发的补齐选中事件(切换游戏自动选择)
-            mainForm.firstTurn.Checked = true;
             //通知棋盘管理类切换先后手
             ModelMessageSetPlayerTurnOrder(Role.Player);
             //通知显示层先后手变化

@@ -34,7 +34,8 @@ namespace GameHive.Controller {
         //设定初始状态 0号游戏，0号AI，先手
         private void SetupInitialState() {
             //初始化先后手（触发一个点击先手事件）
-            FirstTurnCheckedChanged(null, null);
+            //FirstTurnCheckedChanged(null, null);
+            mainForm.firstTurn.Checked = true;
             //初始化选择的棋盘（触发一次点击第一个菜单事件）
             MenuStrip menuStrip = mainForm.Controls.OfType<MenuStrip>().FirstOrDefault();
             if (menuStrip != null && menuStrip.Items.Count > 0) {

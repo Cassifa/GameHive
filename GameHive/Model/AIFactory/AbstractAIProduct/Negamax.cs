@@ -7,5 +7,6 @@
 *************************************************************************************/
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class Negamax : AbstractAIStrategy {
+
     }
 }
