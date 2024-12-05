@@ -128,7 +128,7 @@ namespace GameHive.View {
                 char colChar = (char)('A' + i); // 动态生成字母列标
                 string colText = $"{colChar}";
                 graphics.DrawString(colText, font, brush,
-                    col - fontSize ,//x坐标
+                    col - fontSize,//x坐标
                     (float)boardInfo.BoardLength + (float)boardInfo.Bias / 2); // y坐标
             }
 

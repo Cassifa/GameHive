@@ -1,13 +1,16 @@
-﻿using GameHive.Constants.RoleTypeEnum;
+﻿using GameHive.Constants.AIAlgorithmTypeEnum;
+using GameHive.Constants.GameTypeEnum;
+using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model;
 
 namespace GameHive.Controller {
     //用于向视图层发送命令
     internal partial class Controller {
         //增加一条记录
-        private void ViewMessageAddLog(String log) {
-            view.AddLog(log);
+        private void ViewMessageLogMove(Role role,int x,int y) {
+            view.LogMove(role,x,y);
         }
+
         //logo弹窗
         private void ViewMessageLogoShow() {
             view.ShowLogo();
@@ -31,6 +34,16 @@ namespace GameHive.Controller {
         //结束游戏
         private void ViewMessageEndGame(Role role) {
             view.EndGame(role);
+        }
+
+        //切换先手
+        private void ViewMessageSwitchGame(GameType game) {
+            view.LogSwitchGame(game);
+        }
+
+        //切换算法
+        private void ViewMessageSwitchAlgorithm(AIAlgorithmType algorithmType ) {
+            view.LogSwitchAlgorithm(algorithmType);
         }
     }
 }

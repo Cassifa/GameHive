@@ -50,7 +50,7 @@ namespace GameHive.Model.GameManager {
 
         //下棋，并返回此次下棋是否导致游戏终止
         private bool PlayChess(Role role, int x, int y) {
-            board[x][y] = Role.Player;
+            board[x][y] = role;
             //处理落子结果
             Role winner = CheckGameOver();
             //胜者不为空说明 AI胜利/玩家胜利/平局

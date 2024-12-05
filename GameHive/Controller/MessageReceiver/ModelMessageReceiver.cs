@@ -17,6 +17,7 @@ namespace GameHive.Controller {
             double centerY = center.Item2;
             //向 View 转发下棋信息
             view.DrawChess(centerX, centerY, Role.AI);
+            ViewMessageLogMove(Role.AI, y, x);
         }
         public void GameOver(Role role) {
             EndGame(role);

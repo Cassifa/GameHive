@@ -34,6 +34,7 @@ namespace GameHive.View {
             mainForm.firstTurn.Enabled = true;
             mainForm.secondTurn.Enabled = true;
             mainForm.AIType.Enabled = true;
+            LogWin(role);
             //GameOver(role);
         }
         //游戏结束

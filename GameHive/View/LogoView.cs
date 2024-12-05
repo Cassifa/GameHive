@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿/*************************************************************************************
+ * 文 件 名:   LogoView.cs
+ * 描    述: 
+ * 版    本：  V1.0
+ * 创 建 者：  Cassifa
+ * 创建时间：  2024/11/25 19:04
+*************************************************************************************/
 namespace GameHive.View {
     //控制校徽的动画
     internal partial class View {
-        public void AddLog(String logContext) { }
+        public void ShowLogo() {
+
+        }
     }
 }

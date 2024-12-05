@@ -55,6 +55,8 @@ namespace GameHive.Controller {
             SetDefaultAI();
             //使用GameInfo命令View绘制地图,先后手保持不变
             ViewMessageDrawMap(boardInfo);
+            //加入历史记录
+            ViewMessageSwitchGame(gameType);
         }
 
         //设置默认出战AI（GameInfo的第一个）触发点击事件

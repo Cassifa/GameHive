@@ -37,6 +37,7 @@ namespace GameHive.Controller {
                         if (!ModelMessageCheckValid(x,y)) return;
                         //给显示层发消息
                         ViewMessagePlayChess(centerX, centerY, Role.Player);
+                        ViewMessageLogMove(Role.Player, y, x);
                         //给模型层发消息,并获取是否结束
                         bool isEnd = ModelMessageUserPlayChess(x, y);
                         if (!isEnd) {
