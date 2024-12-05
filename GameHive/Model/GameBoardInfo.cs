@@ -16,7 +16,12 @@ namespace GameHive.Model {
             totalSize = 810;
             CalculateMapping();
         }
-        public double totalSize { get; private set; }// 棋盘总大小
+        //面板大小
+        public double totalSize { get; private set; }
+        //可接收点击的半径
+        public double InputR { get; private set; }
+        //展示棋子半径
+        public double showR { get; private set; }
         //行列数
         public int Column { get; set; }
         //标号是否居中
@@ -43,43 +48,18 @@ namespace GameHive.Model {
             // **中心落子逻辑**
             if (IsCenter) {
                 int gridCount = Column; // 实际棋盘网格数等于输入 Column
-                R = totalSize / (gridCount * 2);
-                Bias = 0;
+                R = totalSize / (gridCount * 2 + 2);
+                Bias = R;
                 double cellSize = R * 2;
-                BoardLength = totalSize;
+                BoardLength = totalSize - R;
 
                 for (int i = 0; i < Column; i++) {
                     //外层数组x(i)方向，屏幕y方向
                     List<Tuple<double, double>> rowCenters = new List<Tuple<double, double>>();
                     for (int j = 0; j < Column; j++) {
                         //内层数组y(i)方向，屏幕x方向
-                        double x = j * cellSize + cellSize / 2; // 中心点 x 坐标
-                        double y = i * cellSize + cellSize / 2; // 中心点 y 坐标
-                        rowCenters.Add(new Tuple<double, double>((double)x, (double)y));
-                        if (i == 0) {
-                            //计算 Columns
-                            Columns.Add((double)(j * cellSize));
-                        }
-                    }
-                    ChessCenter.Add(rowCenters);
-                    //计算Rows
-                    Rows.Add((double)(i * cellSize));
-                }
-                Rows.Add((double)(Column * cellSize));
-                Columns.Add((double)(Column * cellSize));
-            } else {
-                // **交点落子逻辑**
-                int gridCount = Column - 1; // 在交点落子时网格数量少一行一列
-                R = totalSize / (gridCount * 2 + 2);
-                Bias = R;
-                double cellSize = R * 2;
-                BoardLength = (totalSize - R);
-
-                for (int i = 0; i < Column; i++) {
-                    List<Tuple<double, double>> rowCenters = new List<Tuple<double, double>>();
-                    for (int j = 0; j < Column; j++) {
-                        double x = j * cellSize + R; // 交点 x 坐标，预留边界
-                        double y = i * cellSize + R; // 交点 y 坐标，预留边界
+                        double x = j * cellSize + cellSize / 2 + R; // 中心点 x 坐标
+                        double y = i * cellSize + cellSize / 2 + R; // 中心点 y 坐标
                         rowCenters.Add(new Tuple<double, double>((double)x, (double)y));
                         if (i == 0) {
                             //计算 Columns
@@ -90,7 +70,36 @@ namespace GameHive.Model {
                     //计算Rows
                     Rows.Add((double)(i * cellSize + R));
                 }
+                Rows.Add((double)(Column * cellSize + R));
+                Columns.Add((double)(Column * cellSize + R));
+            } else {
+                // **交点落子逻辑**
+                int gridCount = Column - 1; // 在交点落子时网格数量少一行一列
+                R = totalSize / (gridCount * 2 + 4);
+                Bias = 2*R;
+                double cellSize = R * 2;
+                BoardLength = (totalSize - 2*R);
+
+                for (int i = 0; i < Column; i++) {
+                    List<Tuple<double, double>> rowCenters = new List<Tuple<double, double>>();
+                    for (int j = 0; j < Column; j++) {
+                        double x = j * cellSize + R*2; // 交点 x 坐标，预留边界
+                        double y = i * cellSize + R*2; // 交点 y 坐标，预留边界
+                        rowCenters.Add(new Tuple<double, double>((double)x, (double)y));
+                        if (i == 0) {
+                            //计算 Columns
+                            Columns.Add((double)(j * cellSize + R*2));
+                        }
+                    }
+                    ChessCenter.Add(rowCenters);
+                    //计算Rows
+                    Rows.Add((double)(i * cellSize + R * 2));
+                }
+                //Rows.Add((double)(Column * cellSize + R * 2));
+                //Columns.Add((double)(Column * cellSize + R*2));
             }
+            InputR = R * 3 / 5;
+            showR = R * 5 / 6;
         }
 
     }
