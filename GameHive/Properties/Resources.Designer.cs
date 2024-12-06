@@ -61,12 +61,42 @@ namespace GameHive.Properties {
         }
         
         /// <summary>
+        ///   查找 System.Byte[] 类型的本地化资源。
+        /// </summary>
+        internal static byte[] BlackPieces {
+            get {
+                object obj = ResourceManager.GetObject("BlackPieces", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Byte[] 类型的本地化资源。
+        /// </summary>
+        internal static byte[] Cassifa {
+            get {
+                object obj = ResourceManager.GetObject("Cassifa", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   查找 System.Drawing.Bitmap 类型的本地化资源。
         /// </summary>
         internal static System.Drawing.Bitmap logo {
             get {
                 object obj = ResourceManager.GetObject("logo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Byte[] 类型的本地化资源。
+        /// </summary>
+        internal static byte[] WhitePieces {
+            get {
+                object obj = ResourceManager.GetObject("WhitePieces", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

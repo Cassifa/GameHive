@@ -38,23 +38,31 @@ namespace GameHive.View {
             mainForm.BoardPanel.BackgroundImage = boardBitmap;
         }
 
-        //画一颗棋子在数组坐坐标系的x,y落子
+        // 画一颗棋子在数组坐标系的 x, y 落子
         public void DrawChess(double x, double y, Role role) {
             if (graphics == null || boardBitmap == null) return;
+
             currentCnt++;
             int t = currentCnt % 2;
-            // 根据 Role 确定棋子颜色
-            Brush brush = t switch {
-                1 => Brushes.Black,
-                0 => Brushes.Red,
-                _ => Brushes.Transparent,
+
+            // 根据 Role 或 t 值加载对应棋子图片
+            Image pieceImage = t switch {
+                1 => ByteArrayToImage(Properties.Resources.BlackPieces),
+                0 => ByteArrayToImage(Properties.Resources.WhitePieces),
+                _ => null,
             };
-            // 绘制棋子
-            graphics.FillEllipse(brush,
-                (float)(x - boardInfo.showR),
-                (float)(y - boardInfo.showR),
-                (float)(2 * boardInfo.showR),
-                (float)(2 * boardInfo.showR));
+
+            if (pieceImage != null) {
+                // 绘制棋子图片
+                graphics.DrawImage(
+                    pieceImage,
+                    (float)(x - boardInfo.showR),
+                    (float)(y - boardInfo.showR),
+                    (float)(2 * boardInfo.showR),
+                    (float)(2 * boardInfo.showR)
+                );
+            }
+
             // 刷新 Panel 或 PictureBox
             if (mainForm.BoardPanel.InvokeRequired) {
                 mainForm.BoardPanel.Invoke(new Action(() => mainForm.BoardPanel.Refresh()));
@@ -62,12 +70,24 @@ namespace GameHive.View {
                 mainForm.BoardPanel.Refresh();
             }
         }
+
+        // 工具方法：将字节数组转换为 Image
+        private Image ByteArrayToImage(byte[] byteArray) {
+            using (MemoryStream ms = new MemoryStream(byteArray)) {
+                return Image.FromStream(ms);
+            }
+        }
+
+
+
         private void InitializeGraphics() {
             // 创建画布
             boardBitmap = new Bitmap((int)boardInfo.totalSize, (int)boardInfo.totalSize);
             graphics = Graphics.FromImage(boardBitmap);
-            graphics.Clear(Color.White);
+            Color backgroundColor = ColorTranslator.FromHtml("#b26227");
+            graphics.Clear(backgroundColor);
         }
+
         // 清空棋盘
         public void ClearBoard() {
             if (graphics == null || boardBitmap == null) return;

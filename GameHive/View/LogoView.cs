@@ -22,7 +22,8 @@ namespace GameHive.View {
 
             // 添加图片框
             PictureBox pictureBox = new PictureBox {
-                Image = Properties.Resources.logo,
+                // 从 byte[] 转换为 Bitmap
+                Image = new Bitmap(new MemoryStream(Properties.Resources.Cassifa)),
                 SizeMode = PictureBoxSizeMode.Zoom,
                 Dock = DockStyle.Top,
                 Height = 200
