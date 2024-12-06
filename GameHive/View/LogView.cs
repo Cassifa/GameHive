@@ -17,9 +17,11 @@ namespace GameHive.View {
                 // 跨线程更新控件
                 mainForm.LogListBox.Invoke(new Action(() => {
                     mainForm.LogListBox.Items.Add(new ColoredListItem(logContext, color));
+                    mainForm.LogListBox.TopIndex = mainForm.LogListBox.Items.Count - 1;
                 }));
             } else {
                 mainForm.LogListBox.Items.Add(new ColoredListItem(logContext, color));
+                mainForm.LogListBox.TopIndex = mainForm.LogListBox.Items.Count - 1;
             }
         }
         //下棋

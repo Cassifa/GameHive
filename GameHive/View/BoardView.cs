@@ -71,15 +71,6 @@ namespace GameHive.View {
             }
         }
 
-        // 工具方法：将字节数组转换为 Image
-        private Image ByteArrayToImage(byte[] byteArray) {
-            using (MemoryStream ms = new MemoryStream(byteArray)) {
-                return Image.FromStream(ms);
-            }
-        }
-
-
-
         private void InitializeGraphics() {
             // 创建画布
             boardBitmap = new Bitmap((int)boardInfo.totalSize, (int)boardInfo.totalSize);
@@ -91,7 +82,6 @@ namespace GameHive.View {
         // 清空棋盘
         public void ClearBoard() {
             if (graphics == null || boardBitmap == null) return;
-
             graphics.Clear(Color.White);
             DrawBoard(boardInfo); // 重新绘制空棋盘
             mainForm.BoardPanel.Refresh();
@@ -152,6 +142,12 @@ namespace GameHive.View {
                     (float)boardInfo.BoardLength + (float)boardInfo.Bias / 2); // y坐标
             }
 
+        }
+
+        private Image ByteArrayToImage(byte[] byteArray) {
+            using (MemoryStream ms = new MemoryStream(byteArray)) {
+                return Image.FromStream(ms);
+            }
         }
 
     }
