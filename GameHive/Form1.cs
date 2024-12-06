@@ -11,7 +11,7 @@ namespace GameHive.MainForm {
         public Form1() {
             //创建组件并初始化外观
             InitializeComponent();
-
+            FormBorderStyle = FormBorderStyle.FixedDialog;
             LogListBox.DrawMode = DrawMode.OwnerDrawFixed;
             LogListBox.DrawItem += (sender, e) => {
                 if (e.Index < 0) return;
@@ -19,15 +19,10 @@ namespace GameHive.MainForm {
                 var listBox = sender as ListBox;
                 var item = listBox?.Items[e.Index] as ColoredListItem;
                 if (item == null) return;
-
-                // 绘制背景
-                //e.DrawBackground();
-
                 // 绘制文本
                 using (Brush brush = new SolidBrush(item.TextColor)) {
                     e.Graphics.DrawString(item.Text, e.Font, brush, e.Bounds);
                 }
-
                 // 绘制焦点框
                 e.DrawFocusRectangle();
             };
