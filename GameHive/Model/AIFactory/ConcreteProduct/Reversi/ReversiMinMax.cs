@@ -1,6 +1,6 @@
 ﻿/*************************************************************************************
- * 文 件 名:   MisereTicTacToeMCTS.cs
- * 描    述: 蒙塔卡洛搜索黑白棋产品实例
+ * 文 件 名:   MisereTicTacToeMInMax.cs
+ * 描    述: α-β剪枝博弈树黑白棋产品实例
  * 版    本：  V1.0
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:38
@@ -9,8 +9,7 @@ using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
-    internal class ReversiTicTacToeMCTS : MCTS {
-        /*****实现两个策略*****/
+    internal class ReversiMinMax : MinMax {
         public override Role CheckGameOver(List<List<Role>> currentBoard) {
             if (currentBoard[0][0] != Role.Empty) {
                 return currentBoard[0][0];
@@ -34,6 +33,18 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             int randomIndex = rand.Next(availableMoves.Count);
             return availableMoves[randomIndex];
+        }
+
+        protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
+            throw new NotImplementedException();
+        }
+
+        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+            throw new NotImplementedException();
+        }
+
+        protected override void InitACAutomaton() {
+            throw new NotImplementedException();
         }
     }
 }

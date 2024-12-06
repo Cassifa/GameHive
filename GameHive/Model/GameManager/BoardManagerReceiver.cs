@@ -35,6 +35,7 @@ namespace GameHive.Model.GameManager {
                 board.Add(row);
             }
             gameRunning = true;
+            AIMoving = false;
         }
         //检查此处落子是否有效
         public bool CheckValid(int x, int y) {

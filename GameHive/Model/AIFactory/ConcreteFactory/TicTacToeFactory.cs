@@ -16,7 +16,7 @@ namespace GameHive.Model.AIFactory {
         }
 
         public override MinMax GetMinMaxProduct() {
-            return new MisereTicTacToeMinMax();
+            return new TicTacToeMinMax();
         }
 
         public override Negamax GetNegamaxProduct() {

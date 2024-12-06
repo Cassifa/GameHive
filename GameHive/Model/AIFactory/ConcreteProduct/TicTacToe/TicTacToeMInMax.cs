@@ -9,38 +9,66 @@ using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
-    internal class TicTacToeMInMax : MinMax {
-        /*****实现两个策略*****/
+    internal class TicTacToeMinMax : MinMax {
+        public TicTacToeMinMax() {
+            maxDeep = 10;
+        }
+        /*****实现两个博弈树策略*****/
         public override Role CheckGameOver(List<List<Role>> currentBoard) {
-            if (currentBoard[0][0] != Role.Empty) {
+            int boardSize = currentBoard.Count;
+            // 检查行
+            for (int i = 0; i < boardSize; i++) {
+                if (currentBoard[i][0] != Role.Empty &&
+                    currentBoard[i][0] == currentBoard[i][1] &&
+                    currentBoard[i][1] == currentBoard[i][2]) {
+                    return currentBoard[i][0];
+                }
+            }
+            // 检查列
+            for (int j = 0; j < boardSize; j++) {
+                if (currentBoard[0][j] != Role.Empty &&
+                    currentBoard[0][j] == currentBoard[1][j] &&
+                    currentBoard[1][j] == currentBoard[2][j]) {
+                    return currentBoard[0][j];
+                }
+            }
+            // 检查主对角线
+            if (currentBoard[0][0] != Role.Empty &&
+                currentBoard[0][0] == currentBoard[1][1] &&
+                currentBoard[1][1] == currentBoard[2][2]) {
                 return currentBoard[0][0];
             }
-            return Role.Empty;
+            // 检查副对角线
+            if (currentBoard[0][2] != Role.Empty &&
+                currentBoard[0][2] == currentBoard[1][1] &&
+                currentBoard[1][1] == currentBoard[2][0]) {
+                return currentBoard[0][2];
+            }
+            foreach (var row in currentBoard) {
+                if (row.Contains(Role.Empty)) {
+                    return Role.Empty;
+                }
+            }
+            return Role.Draw;
         }
-        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard) {
-            Random rand = new Random();
-            // 获取棋盘大小
-            int rowCount = currentBoard.Count;
-            int colCount = currentBoard[0].Count;
-            // 收集所有不为 Empty 的点
-            List<Tuple<int, int>> availableMoves = new List<Tuple<int, int>>();
 
-            for (int i = 0; i < rowCount; i++) {
-                for (int j = 0; j < colCount; j++) {
-                    if (currentBoard[i][j] == Role.Empty) {
-                        availableMoves.Add(new Tuple<int, int>(i, j));
+        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+            var moves = new List<Tuple<int, int>>();
+            for (int i = 0; i < board.Count; i++) {
+                for (int j = 0; j < board[i].Count; j++) {
+                    if (board[i][j] == Role.Empty) {
+                        moves.Add(new Tuple<int, int>(i, j));
                     }
                 }
             }
-            int randomIndex = rand.Next(availableMoves.Count);
-            return availableMoves[randomIndex];
+            return moves;
         }
 
-        public override bool IsEnd() {
+        /*****对于井字棋的搜索空间不需要*****/
+        protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
             throw new NotImplementedException();
         }
-
-        public override bool IsHeWin(Role role) {
+        protected override void InitACAutomaton() {
             throw new NotImplementedException();
         }
     }

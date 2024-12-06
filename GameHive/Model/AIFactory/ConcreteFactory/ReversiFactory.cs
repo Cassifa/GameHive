@@ -12,11 +12,11 @@ using GameHive.Model.AIFactory.ConcreteProduct;
 namespace GameHive.Model.AIFactory {
     internal class ReversiFactory : AbstractFactory {
         public override MCTS GetMCTSProduct() {
-            return new ReversiTicTacToeMCTS();
+            return new ReversiMCTS();
         }
 
         public override MinMax GetMinMaxProduct() {
-            return new ReversiTicTacToeMinMax();
+            return new ReversiMinMax();
         }
 
         /*——————————不可用———————————*/

@@ -54,7 +54,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
 
-
         protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
             var moves = new List<Tuple<int, int>>();
             for (int i = 0; i < board.Count; i++) {
