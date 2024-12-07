@@ -36,6 +36,8 @@ namespace GameHive.View {
         //游戏结束
         private void LogWin(Role role) {
             string logMessage = $"{role.GetChineseName()}获胜！";
+            if(role==Role.Draw)
+                logMessage = $"{role.GetChineseName()}！";
             AddLog(Color.Green, logMessage);
         }
         //切换游戏

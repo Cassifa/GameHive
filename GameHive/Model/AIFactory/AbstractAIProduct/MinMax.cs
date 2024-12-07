@@ -28,11 +28,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //获取下一步移动
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
+            //收到玩家移动，更新棋盘
             PlayChess(lastX, lastY, Role.Player);
             HashSet<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
             //计算最优值
             EvalToGo(maxDeep, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
             PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
+            //计算出AI移动，跟新棋盘
             return FinalDecide;
         }
 
@@ -49,7 +51,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 int defendScore = DefendBias * EvalNowSituation(GetCurrentBoard(), Role.Player);
                 return attackScore - defendScore;
             }
-            bool IsAi = ((depth % 2) == 0);
+            bool IsAi = ((depth % 2) == 1);
             int nowScore; Tuple<int, int>? nowDec = null;
             //根据上一步操作获取下一步可行点位
             var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
