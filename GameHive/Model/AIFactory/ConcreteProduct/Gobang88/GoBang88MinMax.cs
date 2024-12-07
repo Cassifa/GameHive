@@ -13,7 +13,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88MinMax : MinMax {
 
         public GoBang88MinMax() {
-            maxDeep = 5;
+            maxDeep = 4;
             InitACAutomaton();
         }
         /*****实现四个博弈树策略*****/
@@ -171,7 +171,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     }
                 }
             }
-            temp.Sort((a, b) => b.Item1.CompareTo(a.Item1));
+            //temp.Sort((a, b) => b.Item1.CompareTo(a.Item1));
             foreach (var t in temp) {
                 usefulSteps.Add(t.Item2);
             }

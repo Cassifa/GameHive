@@ -24,7 +24,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //获取下一步移动
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard) {
             //计算最优值
-            EvalToGo(currentBoard, 1, int.MinValue, int.MaxValue);
+            EvalToGo(currentBoard, maxDeep, int.MinValue, int.MaxValue);
             return FinalDecide;
         }
 
@@ -33,47 +33,46 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             // 检查当前局面的胜负情况
             Role winner = CheckGameOver(currentBoard);
             if (winner == Role.Draw) return 0;
-            else if (winner == Role.AI) return 1_000_000;
-            else if (winner == Role.Player) return -1_000_000;
-            if (depth == maxDeep) {
+            else if (winner == Role.AI) return int.MaxValue;
+            else if (winner == Role.Player) return int.MinValue;
+            if (depth == 0) {
                 int attackScore = AttackBias * EvalNowSituation(currentBoard, Role.AI);
                 int defendScore = DefendBias * EvalNowSituation(currentBoard, Role.Player);
                 return attackScore - defendScore;
             }
-            
-            // 判断是否为 AI 选择 (Max 层)
-            bool isAI = (depth) % 2 == 1;
-            int bestScore = isAI ? int.MinValue : int.MaxValue;
-            Tuple<int, int>? bestMove = null;
-            // 获取可下棋点位
+            bool IsAi = ((depth % 2) == 0);
+            int nowScore; Tuple<int, int>? nowDec = null;
             var availableMoves = GetAvailableMoves(currentBoard);
-            foreach (var move in availableMoves) {
-                // 模拟在当前点位落子
-                currentBoard[move.Item1][move.Item2] = isAI ? Role.AI : Role.Player;
-                // 递归计算下一层的分数
-                int score = EvalToGo(currentBoard, depth + 1, alpha, beta);
-                // 恢复局面
-                currentBoard[move.Item1][move.Item2] = Role.Empty;
-                if (isAI) {
-                    // 更新最大值
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestMove = move;
-                        alpha = Math.Max(alpha, score);
+            if (IsAi) {
+                nowScore = int.MinValue;
+                foreach (var move in availableMoves) {
+                    currentBoard[move.Item1][move.Item2] = Role.AI;
+                    int nowRoundScore = EvalToGo(currentBoard, depth - 1, alpha, beta);
+                    currentBoard[move.Item1][move.Item2] = Role.Empty;
+                    if (nowRoundScore > nowScore) {
+                        nowScore = nowRoundScore;
+                        nowDec = move;
+                        alpha = Math.Max(alpha, nowRoundScore);
                     }
-                } else {
-                    // 更新最小值
-                    if (score < bestScore) {
-                        bestScore = score;
-                        bestMove = move;
-                        beta = Math.Min(beta, score);
-                    }
+                    if (alpha >= beta) break;
                 }
-                // Alpha-Beta 剪枝
-                if (alpha >= beta) break;
+            } else {
+                nowScore = int.MaxValue;
+                foreach (var move in availableMoves) {
+                    currentBoard[move.Item1][move.Item2] = Role.Player;
+                    int nowRoundScore = EvalToGo(currentBoard, depth - 1, alpha, beta);
+                    currentBoard[move.Item1][move.Item2] = Role.Empty;
+                    if (nowRoundScore < nowScore) {
+                        nowScore = nowRoundScore;
+                        nowDec = move;
+                        alpha = Math.Min(beta, nowRoundScore);
+                    }
+                    if (alpha >= beta) break;
+                }
+
             }
-            FinalDecide = bestMove;
-            return bestScore;
+            FinalDecide = nowDec;
+            return nowScore;
         }
 
 
