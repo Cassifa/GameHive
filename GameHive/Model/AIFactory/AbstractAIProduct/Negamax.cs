@@ -15,7 +15,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
 
         private Tuple<int, int> FinalDecide;
-        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard) {
+        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             EvalToGo(currentBoard, 1);
             return FinalDecide;
         }
@@ -44,6 +44,16 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             }
             if (bestMove != null) FinalDecide = bestMove;
             return maxScore;
+        }
+
+
+
+        /*****负极大值博弈树不需要*****/
+        //用户下棋
+        public override void UserPlayPiece(int lastX, int lastY) {
+        }
+        //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
+        public override void GameForcedEnd() {
         }
     }
 }

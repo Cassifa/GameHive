@@ -33,10 +33,9 @@ namespace GameHive.Controller {
         private bool ModelMessageUserPlayChess(int x, int y) {
             return boardManager.UserPalyChess(x, y);
         }
-
         //要求AI下棋
-        private void ModelMessageAskAIMove() {
-            boardManager.AskAIMove();
+        private void ModelMessageAskAIMove(int lastX,int lastY) {
+            boardManager.AskAIMove(lastX, lastY);
         }
 
         //检查是否合法

@@ -22,21 +22,30 @@ namespace GameHive.Model.GameManager {
         public void UserEndGame() {
             gameRunning = false;
             board = null;
+            //如果算法还在运行，直接终止
+            if (CurrentAIRunningThread.IsAlive) { 
+                CurrentAIRunningThread.Abort();
+            }
+            //通知算法对象游戏被终止，释放资源，重新初始化自带资源
+            runningAI.GameForcedEnd();
         }
         //玩家开始游戏
         public void StartGame() {
+            Random random =new Random();
+            RoundId=random.Next();
             //玩家开始游戏并且AI先手情况下，调用获取输入的逻辑由 controller 执行
             board = new List<List<Role>>();
             for (int i = 0; i < BoardInfo.Column; i++) {
                 var row = new List<Role>();
                 for (int j = 0; j < BoardInfo.Column; j++) {
-                    row.Add(Role.Empty); // 初始化为无子状态
+                    row.Add(Role.Empty);
                 }
                 board.Add(row);
             }
             gameRunning = true;
             AIMoving = false;
         }
+
         //检查此处落子是否有效
         public bool CheckValid(int x, int y) {
             //不越界且未落子则有效
@@ -44,8 +53,8 @@ namespace GameHive.Model.GameManager {
             return board[x][y] == Role.Empty;
         }
         //要求AI移动
-        public void AskAIMove() {
-            LetAIMove();
+        public void AskAIMove(int lastX, int lastY) {
+            LetAIMove( lastX,  lastY);
         }
         //用户设置先后手
         public void SetFirst(Role first) {
@@ -53,7 +62,10 @@ namespace GameHive.Model.GameManager {
         }
         //用户在x,y下棋 返回是否结束
         public bool UserPalyChess(int x, int y) {
+            //此线程与算法线程天然互斥
+            runningAI.UserPlayPiece(x, y);
             return PlayChess(Role.Player, x, y);
+            //TODO:游戏无法判断玩家平局 AI智力降低
         }
 
         //切换算法

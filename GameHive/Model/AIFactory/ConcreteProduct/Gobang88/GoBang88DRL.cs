@@ -17,7 +17,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             return Role.Empty;
         }
-        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard) {
+        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             Random rand = new Random();
             // 获取棋盘大小
             int rowCount = currentBoard.Count;

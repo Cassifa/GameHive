@@ -16,39 +16,49 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         private Tuple<int, int> FinalDecide;
         protected ACAutomaton ACautomaton;
         //获取可下棋点位
-        protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
+        protected abstract HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
         protected abstract int EvalNowSituation(List<List<Role>> currentBoard, Role role);
-        //初始化AC自动机
-        protected abstract void InitACAutomaton();
+        //在算法备份的棋盘上落子
+        protected abstract void PlayChess(int x, int y, Role role);
+        //获取当前棋盘
+        protected abstract List<List<Role>> GetCurrentBoard();
+        //使用历史可用与最新落子获取最新可用
+        protected abstract HashSet<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard,
+                    HashSet<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY);
 
         //获取下一步移动
-        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard) {
+        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
+            PlayChess(lastX, lastY, Role.Player);
+            HashSet<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
             //计算最优值
-            EvalToGo(currentBoard, maxDeep, int.MinValue, int.MaxValue);
+            EvalToGo(maxDeep, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
+            PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
             return FinalDecide;
         }
 
         //执行博弈树搜索
-        private int EvalToGo(List<List<Role>> currentBoard, int depth, int alpha, int beta) {
+        private int EvalToGo(int depth, int alpha, int beta,
+                HashSet<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             // 检查当前局面的胜负情况
-            Role winner = CheckGameOver(currentBoard);
+            Role winner = CheckGameOver(GetCurrentBoard());
             if (winner == Role.Draw) return 0;
-            else if (winner == Role.AI) return int.MaxValue;
-            else if (winner == Role.Player) return int.MinValue;
+            else if (winner == Role.AI) return 1_000_000;
+            else if (winner == Role.Player) return -1_000_000;
             if (depth == 0) {
-                int attackScore = AttackBias * EvalNowSituation(currentBoard, Role.AI);
-                int defendScore = DefendBias * EvalNowSituation(currentBoard, Role.Player);
+                int attackScore = AttackBias * EvalNowSituation(GetCurrentBoard(), Role.AI);
+                int defendScore = DefendBias * EvalNowSituation(GetCurrentBoard(), Role.Player);
                 return attackScore - defendScore;
             }
             bool IsAi = ((depth % 2) == 0);
             int nowScore; Tuple<int, int>? nowDec = null;
-            var availableMoves = GetAvailableMoves(currentBoard);
+            //根据上一步操作获取下一步可行点位
+            var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
             if (IsAi) {
                 nowScore = int.MinValue;
                 foreach (var move in availableMoves) {
-                    currentBoard[move.Item1][move.Item2] = Role.AI;
-                    int nowRoundScore = EvalToGo(currentBoard, depth - 1, alpha, beta);
-                    currentBoard[move.Item1][move.Item2] = Role.Empty;
+                    PlayChess(move.Item1, move.Item2, Role.AI);
+                    int nowRoundScore = EvalToGo(depth - 1, alpha, beta, availableMoves, move.Item1, move.Item2);
+                    PlayChess(move.Item1, move.Item2, Role.Empty);
                     if (nowRoundScore > nowScore) {
                         nowScore = nowRoundScore;
                         nowDec = move;
@@ -59,9 +69,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             } else {
                 nowScore = int.MaxValue;
                 foreach (var move in availableMoves) {
-                    currentBoard[move.Item1][move.Item2] = Role.Player;
-                    int nowRoundScore = EvalToGo(currentBoard, depth - 1, alpha, beta);
-                    currentBoard[move.Item1][move.Item2] = Role.Empty;
+                    PlayChess(move.Item1, move.Item2, Role.Player);
+                    int nowRoundScore = EvalToGo(depth - 1, alpha, beta, availableMoves, move.Item1, move.Item2);
+                    PlayChess(move.Item1, move.Item2, Role.Empty);
                     if (nowRoundScore < nowScore) {
                         nowScore = nowRoundScore;
                         nowDec = move;
@@ -74,8 +84,6 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             FinalDecide = nowDec;
             return nowScore;
         }
-
-
 
         ////获取在X,Y落子带来的总收益(带风险偏好)
         //protected abstract int evalXYTRoundScore(List<List<Role>> currentBoard, int x,int y, Role role);

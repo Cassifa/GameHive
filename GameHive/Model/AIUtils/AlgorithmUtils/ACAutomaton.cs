@@ -63,9 +63,9 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
                     }
                     if (match) {
                         count++;
-                        index += pattern.Key.Count; // 移动到下一个可能的起点
+                        index += pattern.Key.Count;
                     } else {
-                        index++; // 匹配失败，逐字符移动
+                        index++;
                     }
                 }
                 score += count * pattern.Value; // 出现次数 * 价值

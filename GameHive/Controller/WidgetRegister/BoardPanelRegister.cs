@@ -6,6 +6,7 @@
  * 创建时间：  2024/11/26 1:30
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using System.Threading;
 namespace GameHive.Controller {
     //用于注册棋盘点击事件事件
     internal partial class Controller {
@@ -42,7 +43,8 @@ namespace GameHive.Controller {
                         bool isEnd = ModelMessageUserPlayChess(x, y);
                         if (!isEnd) {
                             //没有结束，令AI计算下一步,异步计算
-                            Task.Run(() => ModelMessageAskAIMove());
+                            Thread aiThread = new Thread(() => ModelMessageAskAIMove(x, y));
+                            aiThread.Start();
                         }
                         return;
                     }

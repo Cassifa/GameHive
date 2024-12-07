@@ -14,12 +14,15 @@ namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
         //控制层实例
         private Controller.Controller controller;
+        private Thread CurrentAIRunningThread;
         //当前在玩的游戏
         private GameType gameType;
         //当前在使用的AI算法
         private AIAlgorithmType aIAlgorithmType;
+        //当前运行游戏的代码
+        private int RoundId;
         //AI正在决策
-        public bool AIMoving {  get;private set; }
+        public bool AIMoving { get; private set; }
         public bool gameRunning { get; private set; }
         public Role first { get; set; }
 
@@ -30,29 +33,29 @@ namespace GameHive.Model.GameManager {
         //当前棋盘
         public List<List<Role>> board { get; private set; }
 
-        //检查是否结束 返回赢家，如果没人赢返回Role.Empty
-        public Role CheckGameOver() {
-            return runningAI.CheckGameOver(board);
-        }
         //获取AI下一步输出
-        private void LetAIMove() {
+        private void LetAIMove(int lastX, int lastY) {
             AIMoving = true;
+            CurrentAIRunningThread = Thread.CurrentThread;
+            //记录本次ID
+            int currentID = RoundId;
             //获取下一步
-            Tuple<int, int> nextMove = runningAI.GetNextAIMove(board);
-            Console.WriteLine(nextMove.Item1.ToString()+nextMove.Item2.ToString());
-            //通知控制层AI的决策
-            SendAIPlayChess(nextMove.Item1, nextMove.Item2);
-            //记录下一步,由于耗时可能很长，先判断游戏有没有终止
-            if(gameRunning)
-                PlayChess(Role.AI, nextMove.Item1, nextMove.Item2);
+            Tuple<int, int> nextMove = runningAI.GetNextAIMove(board, lastX, lastY);
             AIMoving = false;
+            //记录下一步,由于耗时可能很长，先判断本局游戏有没有被终止
+            if (currentID == RoundId && gameRunning) {
+                //通知控制层AI的决策
+                SendAIPlayChess(nextMove.Item1, nextMove.Item2);
+                PlayChess(Role.AI, nextMove.Item1, nextMove.Item2);
+            }
+
         }
 
-        //下棋，并返回此次下棋是否导致游戏终止
+        //下棋，并返回此次下棋是否导致游戏终止 若终止会触发游戏结束事件
         private bool PlayChess(Role role, int x, int y) {
             board[x][y] = role;
             //处理落子结果
-            Role winner = CheckGameOver();
+            Role winner = runningAI.CheckGameOver(board);
             //胜者不为空说明 AI胜利/玩家胜利/平局
             if (winner != Role.Empty) {
                 //处理结束后工作

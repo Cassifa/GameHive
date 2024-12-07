@@ -10,8 +10,15 @@ using GameHive.Model.AIFactory.AbstractAIProduct;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class TicTacToeMinMax : MinMax {
+        private int PlayedPiecesCnt;
+        private int TotalPiecesCnt;
+        private List<List<Role>> NormalBoard;
         public TicTacToeMinMax() {
+            //井字棋直接搜完
             maxDeep = 10;
+            PlayedPiecesCnt = 0; TotalPiecesCnt = 3;
+            NormalBoard = new List<List<Role>>(TotalPiecesCnt);
+            InitBoard();
         }
         /*****实现两个博弈树策略*****/
         public override Role CheckGameOver(List<List<Role>> currentBoard) {
@@ -44,16 +51,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 currentBoard[1][1] == currentBoard[2][0]) {
                 return currentBoard[0][2];
             }
-            foreach (var row in currentBoard) {
-                if (row.Contains(Role.Empty)) {
-                    return Role.Empty;
-                }
-            }
-            return Role.Draw;
+            return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;
         }
 
-        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
-            var moves = new List<Tuple<int, int>>();
+        // 获取所有可下棋点位
+        protected override HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+            var moves = new HashSet<Tuple<int, int>>();
             for (int i = 0; i < board.Count; i++) {
                 for (int j = 0; j < board[i].Count; j++) {
                     if (board[i][j] == Role.Empty) {
@@ -63,13 +66,44 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             return moves;
         }
+        protected override HashSet<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard, HashSet<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+            return GetAvailableMoves(currentBoard);
+        }
 
+
+        //在x,y下棋 数组坐标
+        protected override void PlayChess(int x, int y, Role role) {
+            if (x == -1) return;
+            if (role == Role.Empty) PlayedPiecesCnt--;
+            else PlayedPiecesCnt++;
+            NormalBoard[x][y] = role;
+        }
+
+        protected override List<List<Role>> GetCurrentBoard() {
+            return NormalBoard;
+        }
+
+        private void InitBoard() {
+            NormalBoard.Clear();
+            for (int i = 0; i < TotalPiecesCnt; i++) {
+                NormalBoard.Add(new List<Role>(new Role[TotalPiecesCnt]));
+                for (int j = 0; j < TotalPiecesCnt; j++)
+                    NormalBoard[i][j] = Role.Empty;
+            }
+        }
+
+        //用户下棋
+        public override void UserPlayPiece(int lastX, int lastY) {
+            NormalBoard[lastX][lastY] = Role.Player;
+        }
+        //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
+        public override void GameForcedEnd() {
+            InitBoard();
+        }
         /*****对于井字棋的搜索空间不需要*****/
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
             throw new NotImplementedException();
         }
-        protected override void InitACAutomaton() {
-            throw new NotImplementedException();
-        }
+
     }
 }

@@ -9,10 +9,14 @@ using GameHive.Constants.RoleTypeEnum;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class AbstractAIStrategy {
-        //获取下一步移动
-        public abstract Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard);
+        //获取下一步移动 棋盘 玩家上一次落子的X,上一次落子的Y
+        public abstract Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY);
         //检查游戏是否结束
         public abstract Role CheckGameOver(List<List<Role>> currentBoard);
+        //用户下棋
+        public abstract void UserPlayPiece(int lastX, int lastY);
+        //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
+        public abstract void GameForcedEnd();
 
     }
 }

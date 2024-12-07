@@ -83,7 +83,7 @@ namespace GameHive.Controller {
             ModelMessageStartGame();
             ViewMessageStartGame();
             if (boardManager.first == Role.AI)
-                ModelMessageAskAIMove();
+                ModelMessageAskAIMove(-1,-1);
         }
     }
 }

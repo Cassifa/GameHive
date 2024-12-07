@@ -16,7 +16,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             return Role.Empty;
         }
-        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard) {
+
+        public override void GameForcedEnd() {
+            throw new NotImplementedException();
+        }
+
+        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             Random rand = new Random();
             // 获取棋盘大小
             int rowCount = currentBoard.Count;
@@ -35,15 +40,27 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return availableMoves[randomIndex];
         }
 
+        public override void UserPlayPiece(int lastX, int lastY) {
+            throw new NotImplementedException();
+        }
+
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
             throw new NotImplementedException();
         }
 
-        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+        protected override HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
             throw new NotImplementedException();
         }
 
-        protected override void InitACAutomaton() {
+        protected override HashSet<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard, HashSet<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+            throw new NotImplementedException();
+        }
+
+        protected override List<List<Role>> GetCurrentBoard() {
+            throw new NotImplementedException();
+        }
+
+        protected override void PlayChess(int x, int y, Role role) {
             throw new NotImplementedException();
         }
     }
