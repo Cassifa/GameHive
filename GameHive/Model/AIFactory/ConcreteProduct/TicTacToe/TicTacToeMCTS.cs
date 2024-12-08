@@ -12,28 +12,42 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class TicTacToeMCTS : MCTS {
         /*****实现两个策略*****/
         public override Role CheckGameOver(List<List<Role>> currentBoard) {
-            if (currentBoard[0][0] != Role.Empty) {
-                return currentBoard[0][0];
-            }
-            return Role.Empty;
-        }
-        public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
-            Random rand = new Random();
-            // 获取棋盘大小
-            int rowCount = currentBoard.Count;
-            int colCount = currentBoard[0].Count;
-            // 收集所有不为 Empty 的点
-            List<Tuple<int, int>> availableMoves = new List<Tuple<int, int>>();
-
-            for (int i = 0; i < rowCount; i++) {
-                for (int j = 0; j < colCount; j++) {
-                    if (currentBoard[i][j] == Role.Empty) {
-                        availableMoves.Add(new Tuple<int, int>(i, j));
-                    }
+            int boardSize = currentBoard.Count;
+            // 检查行
+            for (int i = 0; i < boardSize; i++) {
+                if (currentBoard[i][0] != Role.Empty &&
+                    currentBoard[i][0] == currentBoard[i][1] &&
+                    currentBoard[i][1] == currentBoard[i][2]) {
+                    return currentBoard[i][0];
                 }
             }
-            int randomIndex = rand.Next(availableMoves.Count);
-            return availableMoves[randomIndex];
+            // 检查列
+            for (int j = 0; j < boardSize; j++) {
+                if (currentBoard[0][j] != Role.Empty &&
+                    currentBoard[0][j] == currentBoard[1][j] &&
+                    currentBoard[1][j] == currentBoard[2][j]) {
+                    return currentBoard[0][j];
+                }
+            }
+            // 检查主对角线
+            if (currentBoard[0][0] != Role.Empty &&
+                currentBoard[0][0] == currentBoard[1][1] &&
+                currentBoard[1][1] == currentBoard[2][2]) {
+                return currentBoard[0][0];
+            }
+            // 检查副对角线
+            if (currentBoard[0][2] != Role.Empty &&
+                currentBoard[0][2] == currentBoard[1][1] &&
+                currentBoard[1][1] == currentBoard[2][0]) {
+                return currentBoard[0][2];
+            }
+            //return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;
+
+            for (int i = 0; i < boardSize; i++)
+                for (int j = 0; j < boardSize; j++)
+                    if (currentBoard[i][j] == Role.Empty)
+                        return Role.Empty;
+            return Role.Draw;
         }
     }
 }
