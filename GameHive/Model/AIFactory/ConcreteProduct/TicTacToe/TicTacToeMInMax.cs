@@ -73,7 +73,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //在博弈树内部维护棋盘x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            if ((NormalBoard[x][y]!=Role.Empty&& role!=Role.Empty) ||x == -1) return;
+            if ( x == -1||(NormalBoard[x][y]!=Role.Empty&& role!=Role.Empty) ) return;
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
             NormalBoard[x][y] = role;

@@ -9,6 +9,7 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory;
+using System.Threading;
 
 namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
@@ -22,17 +23,13 @@ namespace GameHive.Model.GameManager {
         public void UserEndGame() {
             gameRunning = false;
             board = null;
-            //如果算法还在运行，直接终止
-            if (CurrentAIRunningThread.IsAlive) { 
-                CurrentAIRunningThread.Abort();
-            }
             //通知算法对象游戏被终止，释放资源，重新初始化自带资源
             runningAI.GameForcedEnd();
         }
         //玩家开始游戏
         public void StartGame() {
-            Random random =new Random();
-            RoundId=random.Next();
+            Random random = new Random();
+            RoundId = random.Next();
             //玩家开始游戏并且AI先手情况下，调用获取输入的逻辑由 controller 执行
             board = new List<List<Role>>();
             for (int i = 0; i < BoardInfo.Column; i++) {
@@ -54,7 +51,7 @@ namespace GameHive.Model.GameManager {
         }
         //要求AI移动
         public void AskAIMove(int lastX, int lastY) {
-            LetAIMove( lastX,  lastY);
+            LetAIMove(lastX, lastY);
         }
         //用户设置先后手
         public void SetFirst(Role first) {

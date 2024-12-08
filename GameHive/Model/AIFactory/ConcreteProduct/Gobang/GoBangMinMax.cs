@@ -30,7 +30,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //判断游戏是否结束
         public override Role CheckGameOver(List<List<Role>> currentBoard) {
             if (EvalNowSituation(GetCurrentBoard(), Role.AI) >= 1_000_000) return Role.AI;
-            if (EvalNowSituation(GetCurrentBoard(), Role.AI) >= 1_000_000) return Role.Player;
+            if (EvalNowSituation(GetCurrentBoard(), Role.Player) >= 1_000_000) return Role.Player;
             return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;
 
         }
@@ -54,19 +54,22 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         protected override HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
             // 最终结果
             var usefulSteps = new HashSet<Tuple<int, int>>();
-            int[] dx = { -1, -1, -1, 0, 0, 1, 1, 1, -2, -2, -2, -1, -1, 0, 0, 1, 1, 2, 2, 2, -2, 0, 2, 0 };
-            int[] dy = { -1, 0, 1, -1, 1, -1, 0, 1, -2, 0, 2, -2, 2, -2, 2, -2, 2, -2, 0, 2, 0, 2, 0, -2 };
+            int[] dx = { -2, -1, 0, 1, 2 };
+            int[] dy = { -2, -1, 0, 1, 2 };
 
             // 遍历棋盘，寻找所有落子点附近的可用位置
             for (int i = 0; i < board.Count; i++)
                 for (int j = 0; j < board[i].Count; j++) {
                     if (board[i][j] == Role.Empty) continue;
                     // 在落子点周围扩展
-                    for (int k = 0; k < dx.Length; k++) {
-                        int x = i + dx[k], y = j + dy[k];
-                        if (x < 0 || y < 0 || x >= board.Count || y >= board[0].Count) continue;
-                        if (board[x][y] == Role.Empty) {
-                            usefulSteps.Add(new Tuple<int, int>(x, y));
+                    for (int a = 0; i < 5; i++) {
+                        for (int b = 0; j < 5; j++) {
+                            int newX = i + dx[a];
+                            int newY = j + dy[b];
+                            if (newX < 0 || newY < 0 || newX >= board.Count || newY >= board[0].Count || (i == newX && j == newY)) continue;
+                            if (board[newX][newY] == Role.Empty) {
+                                usefulSteps.Add(new Tuple<int, int>(newX, newY));
+                            }
                         }
                     }
                 }
@@ -94,19 +97,16 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             //移除
             var lastMove = new Tuple<int, int>(lastX, lastY);
             newSet.Remove(lastMove);
-
-            int[] dx = { -1, -1, -1, 0, 0, 1, 1, 1, -2, -2, -2, -1, -1, 0, 0, 1, 1, 2, 2, 2, -2, 0, 2, 0 };
-            int[] dy = { -1, 0, 1, -1, 1, -1, 0, 1, -2, 0, 2, -2, 2, -2, 2, -2, 2, -2, 0, 2, 0, 2, 0, -2 };
-            for (int i = 0; i < 24; i++) {
-                int x = lastX + dx[i], y = lastY + dy[i];
-                if (x < 0 || y < 0 || x >= currentBoard.Count || y >= currentBoard[0].Count) continue;
-            }
-            // 生成新的可用点
-            for (int i = 0; i < 24; i++) {
-                int newX = lastX + dx[i];
-                int newY = lastY + dy[i];
-                if (currentBoard[newX][newY] == Role.Empty) {
-                    newSet.Add(new Tuple<int, int>(newX, newY));
+            int[] dx = { -2, -1, 0, 1, 2 };
+            int[] dy = { -2, -1, 0, 1, 2 };
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    int newX = lastX + dx[i];
+                    int newY = lastY + dy[j];
+                    if (newX < 0 || newY < 0 || newX >= currentBoard.Count || newY >= currentBoard[0].Count || (lastX == newX && lastY == newY)) continue;
+                    if (currentBoard[newX][newY] == Role.Empty) {
+                        newSet.Add(new Tuple<int, int>(newX, newY));
+                    }
                 }
             }
             return newSet;
@@ -115,13 +115,13 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //在x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            if (x == -1) return;
+            if (x == -1 || (NormalBoard[x][y] != Role.Empty && role != Role.Empty)) return;
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
             NormalBoard[x][y] = role;
             XYReversedBoard[y][x] = role;
             //主对角线从左下到右上0~2*TotalPiecesCnt-1
-            MainDiagonalBoard[TotalPiecesCnt - (x - y) - 1][x] = role;
+            MainDiagonalBoard[TotalPiecesCnt - (x - y) - 1][x - y > 0 ? y : x] = role;
             //反对角线从左上到右下0~2*TotalPiecesCnt-1
             AntiDiagonalBoard[x + y][x + y < TotalPiecesCnt ? x : TotalPiecesCnt - y - 1] = role;
         }
@@ -161,10 +161,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //用户下棋
         public override void UserPlayPiece(int lastX, int lastY) {
-            NormalBoard[lastX][lastY] = Role.Player;
+            PlayChess(lastX, lastY, Role.Player);
         }
         //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
         public override void GameForcedEnd() {
+            PlayedPiecesCnt = 0;
             InitBoards();
         }
     }

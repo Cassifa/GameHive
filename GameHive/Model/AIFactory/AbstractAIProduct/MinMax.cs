@@ -32,7 +32,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             PlayChess(lastX, lastY, Role.Player);
             HashSet<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
             //计算最优值
-            EvalToGo(maxDeep, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
+            EvalToGo(0, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
             PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
             //计算出AI移动，跟新棋盘
             return FinalDecide;
@@ -46,12 +46,12 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             if (winner == Role.Draw) return 0;
             else if (winner == Role.AI) return 1_000_000;
             else if (winner == Role.Player) return -1_000_000;
-            if (depth == 0) {
+            if (depth == maxDeep) {
                 int attackScore = AttackBias * EvalNowSituation(GetCurrentBoard(), Role.AI);
                 int defendScore = DefendBias * EvalNowSituation(GetCurrentBoard(), Role.Player);
                 return attackScore - defendScore;
             }
-            bool IsAi = ((depth % 2) == 1);
+            bool IsAi = ((depth % 2) == 0);
             int nowScore; Tuple<int, int>? nowDec = null;
             //根据上一步操作获取下一步可行点位
             var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
@@ -59,7 +59,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 nowScore = int.MinValue;
                 foreach (var move in availableMoves) {
                     PlayChess(move.Item1, move.Item2, Role.AI);
-                    int nowRoundScore = EvalToGo(depth - 1, alpha, beta, availableMoves, move.Item1, move.Item2);
+                    int nowRoundScore = EvalToGo(depth + 1, alpha, beta, availableMoves, move.Item1, move.Item2);
                     PlayChess(move.Item1, move.Item2, Role.Empty);
                     if (nowRoundScore > nowScore) {
                         nowScore = nowRoundScore;
@@ -72,7 +72,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 nowScore = int.MaxValue;
                 foreach (var move in availableMoves) {
                     PlayChess(move.Item1, move.Item2, Role.Player);
-                    int nowRoundScore = EvalToGo(depth - 1, alpha, beta, availableMoves, move.Item1, move.Item2);
+                    int nowRoundScore = EvalToGo(depth + 1, alpha, beta, availableMoves, move.Item1, move.Item2);
                     PlayChess(move.Item1, move.Item2, Role.Empty);
                     if (nowRoundScore < nowScore) {
                         nowScore = nowRoundScore;

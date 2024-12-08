@@ -57,6 +57,7 @@ namespace GameHive.Model.AIFactory {
 
             // 二
             // 活二 __OO__ _O_O_ O__O
+            rewardTable[new List<Role> { Role.Empty, Role.AI, Role.AI, Role.Empty, Role.Empty }] = 50;
             rewardTable[new List<Role> { Role.Empty, Role.Empty, Role.AI, Role.AI, Role.Empty, Role.Empty }] = 50;
             rewardTable[new List<Role> { Role.Empty, Role.AI, Role.Empty, Role.AI, Role.Empty }] = 20;
             rewardTable[new List<Role> { Role.AI, Role.Empty, Role.Empty, Role.AI }] = 20;

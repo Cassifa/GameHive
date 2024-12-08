@@ -15,7 +15,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         private List<List<Role>> NormalBoard;
         public MisereTicTacToeMinMax() {
             //井字棋直接搜完
-            maxDeep = 10;
+            maxDeep = 11;
             PlayedPiecesCnt = 0; TotalPiecesCnt = 3;
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
             InitBoard();
@@ -73,9 +73,9 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
 
-        //在x,y下棋 数组坐标
+        //在博弈树内部维护棋盘x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            if (x == -1) return;
+            if (x == -1 || (NormalBoard[x][y] != Role.Empty && role != Role.Empty)) return;
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
             NormalBoard[x][y] = role;
@@ -95,10 +95,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //用户下棋
         public override void UserPlayPiece(int lastX, int lastY) {
-            NormalBoard[lastX][lastY] = Role.Player;
+            PlayChess(lastX, lastY, Role.Player);
         }
         //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
         public override void GameForcedEnd() {
+            PlayedPiecesCnt = 0;
             InitBoard();
         }
 

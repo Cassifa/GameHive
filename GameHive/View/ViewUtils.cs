@@ -29,11 +29,13 @@ namespace GameHive.View {
         }
         public void EndGame(Role role) {
             //处理组件显示
-            mainForm.statusSwitch.Text = "开始游戏";
-            mainForm.statusSwitch.BackColor = Color.Green;
-            mainForm.firstTurn.Enabled = true;
-            mainForm.secondTurn.Enabled = true;
-            mainForm.AIType.Enabled = true;
+            mainForm.Invoke(new Action(() => {
+                mainForm.statusSwitch.Text = "开始游戏";
+                mainForm.statusSwitch.BackColor = Color.Green;
+                mainForm.firstTurn.Enabled = true;
+                mainForm.secondTurn.Enabled = true;
+                mainForm.AIType.Enabled = true;
+            }));
             LogWin(role);
             //GameOver(role);
         }

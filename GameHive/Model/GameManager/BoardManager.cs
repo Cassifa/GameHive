@@ -14,7 +14,6 @@ namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
         //控制层实例
         private Controller.Controller controller;
-        private Thread CurrentAIRunningThread;
         //当前在玩的游戏
         private GameType gameType;
         //当前在使用的AI算法
@@ -35,8 +34,8 @@ namespace GameHive.Model.GameManager {
 
         //获取AI下一步输出
         private void LetAIMove(int lastX, int lastY) {
+
             AIMoving = true;
-            CurrentAIRunningThread = Thread.CurrentThread;
             //记录本次ID
             int currentID = RoundId;
             //获取下一步

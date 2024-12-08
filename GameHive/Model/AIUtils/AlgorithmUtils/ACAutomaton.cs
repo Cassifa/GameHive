@@ -6,24 +6,18 @@
  * 创建时间：  2024/12/6 15:15
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace GameHive.Model.AIUtils.AlgorithmUtils {
     internal class ACAutomaton {
         //得分表
-        private Dictionary<List<Role>, int> AIRewardTable;
-        private Dictionary<List<Role>, int> PlayerRewardTable;
+        private Dictionary<List<Role>, int> AIRewardTable = new Dictionary<List<Role>, int>(new ListRoleComparer());
+        private Dictionary<List<Role>, int> PlayerRewardTable = new Dictionary<List<Role>, int>(new ListRoleComparer());
         //已记录匹配串
-        private Dictionary<List<Role>, int> AIScoreTable;
-        private Dictionary<List<Role>, int> PlayerScoreTable;
+        private Dictionary<List<Role>, int> AIScoreTable = new Dictionary<List<Role>, int>(new ListRoleComparer());
+        private Dictionary<List<Role>, int> PlayerScoreTable = new Dictionary<List<Role>, int>(new ListRoleComparer());
         //通过得分表构造AC自动机
         public ACAutomaton(Dictionary<List<Role>, int> RewardTable) {
-            //初始化得分表
-            AIRewardTable = new Dictionary<List<Role>, int>();
-            PlayerRewardTable = new Dictionary<List<Role>, int>();
-            //初始化已记录得分表
-            AIScoreTable = new Dictionary<List<Role>, int>();
-            PlayerScoreTable = new Dictionary<List<Role>, int>();
-
             foreach (var entry in RewardTable) {
                 // 原始规则保存到 AITable
                 AIRewardTable[entry.Key] = entry.Value;
@@ -36,12 +30,13 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
         }
         //计算一组序列对对于 role 的价值
         public int CalculateLineValue(List<Role> mode, Role role) {
+            int score = 0;
             if (role == Role.AI) {
-                if (AIScoreTable.ContainsKey(mode))
-                    return AIScoreTable[mode];
+                if (AIScoreTable.TryGetValue(mode, out score))
+                    return score;
             } else {
-                if (PlayerScoreTable.ContainsKey(mode))
-                    return PlayerScoreTable[mode];
+                if (PlayerScoreTable.TryGetValue(mode, out score))
+                    return score;
             }
             return ACAutomatonCalculateLineValue(mode, role);
         }
@@ -52,20 +47,21 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
             int score = 0;
             var table = role == Role.AI ? AIRewardTable : PlayerRewardTable;
             foreach (var pattern in table) {
-                int index = 0, count = 0;
-                while (index + pattern.Key.Count <= mode.Count) {
+                int count = 0;
+                var t = pattern.Key;
+                if (mode.Count < t.Count) continue;
+                for (int i = 0; i <= mode.Count - t.Count; i++) {
                     bool match = true;
-                    for (int i = 0; i < pattern.Key.Count; i++) {
-                        if (mode[index + i] != pattern.Key[i]) {
+                    // 内部循环: 比较 `mode[i + j]` 和 `t[j]`
+                    for (int j = 0; j < t.Count; j++) {
+                        if (mode[i + j] != t[j]) {
                             match = false;
-                            break;
+                            break; // 如果不匹配，直接跳出内层循环
                         }
                     }
                     if (match) {
                         count++;
-                        index += pattern.Key.Count;
-                    } else {
-                        index++;
+                        i += t.Count - 1;
                     }
                 }
                 score += count * pattern.Value; // 出现次数 * 价值
@@ -75,4 +71,23 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
             return score;
         }
     }
+    public class ListRoleComparer : IEqualityComparer<List<Role>> {
+        public bool Equals(List<Role> x, List<Role> y) {
+            if (x.Count != y.Count) return false;
+            for (int i = 0; i < x.Count; i++) {
+                if (x[i] != y[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        public int GetHashCode(List<Role> obj) {
+            int hash = 17;
+            foreach (var item in obj) {
+                hash = hash * 31 + (int)item;
+            }
+            return hash;
+        }
+    }
+
 }

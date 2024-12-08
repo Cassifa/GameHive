@@ -6,11 +6,11 @@
  * 创建时间：  2024/11/26 3:41
 *************************************************************************************/
 namespace GameHive.Constants.RoleTypeEnum {
-    public enum Role { 
-        Empty,
+    public enum Role {
         AI,
         Player,
         Draw,
+        Empty,
     }
     public static class RoleExtensions {
         public static string GetChineseName(this Role game) {
