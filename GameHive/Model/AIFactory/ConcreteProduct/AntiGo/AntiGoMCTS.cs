@@ -18,6 +18,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             return Role.Empty;
         }
+
+        public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+            return CheckGameOver(currentBoard);
+        }
+
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             Random rand = new Random();
             // 获取棋盘大小
@@ -35,6 +40,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             int randomIndex = rand.Next(availableMoves.Count);
             return availableMoves[randomIndex];
+        }
+
+        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+            throw new NotImplementedException();
         }
     }
 }

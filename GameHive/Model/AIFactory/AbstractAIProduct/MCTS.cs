@@ -13,9 +13,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
         protected MCTSNode RootNode;
         protected List<List<Role>> currentBoard;
+        //获取可行落子
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
-        //检查游戏是否结束
-        //public abstract Role CheckGameOver(List<List<Role>> currentBoard);
+        //根据落子事件检查游戏是否结束
+        public abstract Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y);
 
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             RootNode = new MCTSNode(currentBoard, null, -1, -1, Role.Player,
@@ -51,7 +52,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 List<List<Role>> currentBoard = father.NodeBoard.Select(row => new List<Role>(row)).ToList();
                 currentBoard[move.Item1][move.Item2] = sonPlayerView;
                 MCTSNode nowSon = new MCTSNode(currentBoard, father, move.Item1, move.Item2,
-                    sonPlayerView, CheckGameOver(currentBoard), GetAvailableMoves(currentBoard));
+                    sonPlayerView, CheckGameOverByPiece(currentBoard, move.Item1, move.Item2),
+                    GetAvailableMoves(currentBoard));
                 father.AddSon(nowSon, move.Item1, move.Item2);
             }
             father.IsLeaf = false;
@@ -66,13 +68,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             Role WhoPlaying = node.LeadToThisStatus;
             Role winner;
             while (true) {
-                winner = CheckGameOver(currentBoard);
-                //已经结束直接跳出
-                if (winner != Role.Empty) break;
                 //获取可行点并模拟落子
                 List<Tuple<int, int>> moves = GetAvailableMoves(currentBoard);
                 Tuple<int, int> move = moves[rand.Next(moves.Count)];
                 currentBoard[move.Item1][move.Item2] = WhoPlaying;
+                winner = CheckGameOverByPiece(currentBoard, move.Item1, move.Item2);
+                //已经结束直接跳出
+                if (winner != Role.Empty) break;
                 if (WhoPlaying == Role.AI) WhoPlaying = Role.Player;
                 else WhoPlaying = Role.AI;
             }
