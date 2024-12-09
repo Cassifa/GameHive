@@ -12,7 +12,7 @@ using GameHive.Model.GameManager;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88DRL : DRL {
         /*****实现两个策略*****/
-        public override Role CheckGameOver(List<List<Role>> currentBoard) {
+        public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
             if (currentBoard[0][0] != Role.Empty) {
                 return currentBoard[0][0];
             }

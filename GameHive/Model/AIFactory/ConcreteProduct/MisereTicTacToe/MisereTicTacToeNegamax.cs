@@ -12,7 +12,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class MisereTicTacToeNegamax : Negamax {
         /*****实现两个策略*****/
         //检查游戏是否结束，并返回赢家（平局Draw 未结束Empty）
-        public override Role CheckGameOver(List<List<Role>> currentBoard) {
+        public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
             int boardSize = currentBoard.Count;
 
             // 检查行

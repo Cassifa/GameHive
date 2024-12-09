@@ -8,7 +8,6 @@
  * 创建时间：  2024/11/26 18:12
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
-using GameHive.Model.GameManager;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class Negamax : AbstractAIStrategy {
@@ -24,7 +23,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         private int EvalToGo(List<List<Role>> currentBoard, int depth) {
             Role currentPlayer = (depth & 1) == 1 ? Role.AI : Role.Player;
             // 检查当前局面的胜负情况
-            Role winner = CheckGameOver(currentBoard);
+            Role winner = CheckGameOverByPiece(currentBoard, -1, -1);
             if (winner == Role.Draw) return 0;
             if (winner == currentPlayer) return 1_000_000;
             if (winner != Role.Empty) return -1_000_000;

@@ -21,37 +21,34 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             InitBoard();
         }
         /*****实现两个博弈树策略*****/
-        public override Role CheckGameOver(List<List<Role>> currentBoard) {
-            int boardSize = currentBoard.Count;
-            // 检查行
-            for (int i = 0; i < boardSize; i++) {
-                if (currentBoard[i][0] != Role.Empty &&
-                    currentBoard[i][0] == currentBoard[i][1] &&
-                    currentBoard[i][1] == currentBoard[i][2]) {
-                    return currentBoard[i][0];
-                }
+        public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+            if (currentBoard[x][0] != Role.Empty &&
+                currentBoard[x][0] == currentBoard[x][1] &&
+                currentBoard[x][1] == currentBoard[x][2]) {
+                return currentBoard[x][0];
             }
-            // 检查列
-            for (int j = 0; j < boardSize; j++) {
-                if (currentBoard[0][j] != Role.Empty &&
-                    currentBoard[0][j] == currentBoard[1][j] &&
-                    currentBoard[1][j] == currentBoard[2][j]) {
-                    return currentBoard[0][j];
-                }
+            if (currentBoard[0][y] != Role.Empty &&
+                currentBoard[0][y] == currentBoard[1][y] &&
+                currentBoard[1][y] == currentBoard[2][y]) {
+                return currentBoard[0][y];
             }
             // 检查主对角线
-            if (currentBoard[0][0] != Role.Empty &&
+            if (x == y && currentBoard[0][0] != Role.Empty &&
                 currentBoard[0][0] == currentBoard[1][1] &&
                 currentBoard[1][1] == currentBoard[2][2]) {
                 return currentBoard[0][0];
             }
             // 检查副对角线
-            if (currentBoard[0][2] != Role.Empty &&
+            if (x + y == TotalPiecesCnt - 1 && currentBoard[0][2] != Role.Empty &&
                 currentBoard[0][2] == currentBoard[1][1] &&
                 currentBoard[1][1] == currentBoard[2][0]) {
                 return currentBoard[0][2];
             }
-            return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;
+            for (int i = 0; i < TotalPiecesCnt; i++)
+                for (int j = 0; j < TotalPiecesCnt; j++)
+                    if (currentBoard[i][j] == Role.Empty)
+                        return Role.Empty;
+            return Role.Draw;
         }
 
         // 获取所有可下棋点位

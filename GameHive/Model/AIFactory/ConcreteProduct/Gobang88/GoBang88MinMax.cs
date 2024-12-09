@@ -28,7 +28,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
         /*****实现七个博弈树策略*****/
         //判断游戏是否结束
-        public override Role CheckGameOver(List<List<Role>> currentBoard) {
+        public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
             if (EvalNowSituation(GetCurrentBoard(), Role.AI) >= 1_000_000) return Role.AI;
             if (EvalNowSituation(GetCurrentBoard(), Role.Player) >= 1_000_000) return Role.Player;
             return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;

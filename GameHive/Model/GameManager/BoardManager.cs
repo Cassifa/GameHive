@@ -54,7 +54,7 @@ namespace GameHive.Model.GameManager {
         private bool PlayChess(Role role, int x, int y) {
             board[x][y] = role;
             //处理落子结果
-            Role winner = runningAI.CheckGameOver(board);
+            Role winner = runningAI.CheckGameOverByPiece(board,x,y);
             //胜者不为空说明 AI胜利/玩家胜利/平局
             if (winner != Role.Empty) {
                 //处理结束后工作

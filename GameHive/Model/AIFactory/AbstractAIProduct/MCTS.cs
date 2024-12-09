@@ -16,11 +16,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //获取可行落子
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
         //根据落子事件检查游戏是否结束
-        public abstract Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y);
+        //public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y);
 
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
-            RootNode = new MCTSNode(currentBoard, null, -1, -1, Role.Player,
-                CheckGameOver(currentBoard), GetAvailableMoves(currentBoard));
+            RootNode = new MCTSNode(currentBoard, null, lastX, lastY, Role.Player,
+                CheckGameOverByPiece(currentBoard, lastX, lastY), GetAvailableMoves(currentBoard));
             return EvalToGo();
         }
 
