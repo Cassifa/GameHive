@@ -68,7 +68,15 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             Role role;
             if (IsAIFirst) role = Role.Player;
             else role = Role.AI;
-            RootNode = new MCTSNode(currentBoard, null, -1, -1, role, Role.Empty);
+            RootNode = new MCTSNode(currentBoard, null, -1, -1, role, Role.Empty,GetAvailableMoves(currentBoard));
+        }
+
+        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+            List<Tuple<int, int>> ans = new List<Tuple<int, int>>();
+            for (int i = 0; i < board.Count; i++)
+                for (int j = 0; j < board[i].Count; j++)
+                    if (board[i][j] == Role.Empty) ans.Add(new Tuple<int, int>(i, j));
+            return ans;
         }
     }
 }

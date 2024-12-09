@@ -9,7 +9,8 @@ using GameHive.Constants.RoleTypeEnum;
 
 namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
     internal class MCTSNode {
-        public MCTSNode(List<List<Role>> board, MCTSNode father, int x, int y, Role view, Role winner) {
+        public MCTSNode(List<List<Role>> board, MCTSNode father, int x, int y,
+                    Role view, Role winner, List<Tuple<int, int>> availablePiece) {
             //初始化参数 价值、访问次数、是否为叶子节点
             VisitedTimes = 0; TotalValue = 0;
             IsLeaf = true;
@@ -23,7 +24,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             //初始化数据结构
             NodeBoard = board;
             ChildrenMap = new Dictionary<Tuple<int, int>, MCTSNode>();
-            AvailablePiece = MCTSNode.getAvailableMoves(board);
+            AvailablePiece = availablePiece;
         }
         //当前视角下当前节点价值，胜利＋1，失败-1 平局0
         double TotalValue;
@@ -46,14 +47,6 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         //可落子地方
         public List<Tuple<int, int>> AvailablePiece { get; set; }
 
-        public static List<Tuple<int, int>> getAvailableMoves(List<List<Role>> board) {
-            List<Tuple<int, int>> ans = new List<Tuple<int, int>>();
-            for (int i = 0; i < board.Count; i++)
-                for (int j = 0; j < board[i].Count; j++)
-                    if (board[i][j] == Role.Empty) ans.Add(new Tuple<int, int>(i, j));
-            return ans;
-        }
-
         //反向传播,根据单次模拟的结果更新参数
         public void BackPropagation(Role winner) {
             MCTSNode currentPropagate = this;
@@ -61,7 +54,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
                 currentPropagate.VisitedTimes++;
                 if (winner != Role.Draw)
                     currentPropagate.TotalValue += winner == Role.AI ? 1 : -1;
-                    //currentPropagate.TotalValue += winner == currentPropagate.CurrentView ? 1 : -1;
+                //currentPropagate.TotalValue += winner == currentPropagate.CurrentView ? 1 : -1;
                 currentPropagate = currentPropagate.Father;
             }
         }
