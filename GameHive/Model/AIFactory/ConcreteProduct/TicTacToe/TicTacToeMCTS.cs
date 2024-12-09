@@ -7,9 +7,15 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class TicTacToeMCTS : MCTS {
+        private int TotalPiecesCnt;
+        public TicTacToeMCTS() {
+            TotalPiecesCnt = 3;
+            currentBoard = new List<List<Role>>(TotalPiecesCnt);
+        }
         /*****实现两个策略*****/
         public override Role CheckGameOver(List<List<Role>> currentBoard) {
             int boardSize = currentBoard.Count;
@@ -48,6 +54,21 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     if (currentBoard[i][j] == Role.Empty)
                         return Role.Empty;
             return Role.Draw;
+        }
+
+        //开始游戏，启动蒙特卡洛搜索线程，后台搜索
+        public override void GameStart(bool IsAIFirst) {
+            //初始化棋盘
+            for (int i = 0; i < TotalPiecesCnt; i++)
+                currentBoard.Add(new List<Role>(new Role[TotalPiecesCnt]));
+            for (int i = 0; i < TotalPiecesCnt; i++)
+                for (int j = 0; j < TotalPiecesCnt; j++)
+                    currentBoard[i][j] = Role.Empty;
+            //构造根节点
+            Role role;
+            if (IsAIFirst) role = Role.Player;
+            else role = Role.AI;
+            RootNode = new MCTSNode(currentBoard, null, -1, -1, role, Role.Empty);
         }
     }
 }

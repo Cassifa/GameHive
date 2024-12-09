@@ -20,9 +20,9 @@ namespace GameHive.Controller {
             boardManager.SetFirst(role);
         }
         //游戏开始
-        private void ModelMessageStartGame() {
+        private void ModelMessageStartGame(bool IsAIFirst) {
             //改变 boardManager状态，不允许再修改参数
-            boardManager.StartGame();
+            boardManager.StartGame(IsAIFirst);
         }
         //游戏终止
         private void ModelMessageEndGame() {

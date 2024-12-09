@@ -8,10 +8,12 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIUtils.MonteCarloTreeSearch;
+using GameHive.Model.GameManager;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
-        MCTSNode RootNode;
+        protected MCTSNode RootNode;
+        protected List<List<Role>> currentBoard;
         //检查游戏是否结束
         //public abstract Role CheckGameOver(List<List<Role>> currentBoard);
 
@@ -90,5 +92,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         public override void UserPlayPiece(int lastX, int lastY) { }
         //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
         public override void GameForcedEnd() { }
+        //游戏开始
+        public override void GameStart(bool IsAIFirst) { }
     }
 }

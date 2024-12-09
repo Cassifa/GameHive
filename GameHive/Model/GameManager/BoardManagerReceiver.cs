@@ -17,7 +17,7 @@ namespace GameHive.Model.GameManager {
         private Gobang88Factory gobang88Factory = null;
         private GobangFactory gobangFactory = null;
         private MisereTicTacToeFactory misere = null;
-        private ReversiFactory reversiFactory = null;
+        private AntiGoFactory antiGoFactory = null;
         private TicTacToeFactory ticTacToeFactory = null;
         //玩家终止游戏
         public void UserEndGame() {
@@ -27,7 +27,7 @@ namespace GameHive.Model.GameManager {
             runningAI.GameForcedEnd();
         }
         //玩家开始游戏
-        public void StartGame() {
+        public void StartGame(bool IsAIFirst) {
             Random random = new Random();
             RoundId = random.Next();
             //玩家开始游戏并且AI先手情况下，调用获取输入的逻辑由 controller 执行
@@ -41,6 +41,7 @@ namespace GameHive.Model.GameManager {
             }
             gameRunning = true;
             AIMoving = false;
+            runningAI.GameStart(IsAIFirst);
         }
 
         //检查此处落子是否有效
@@ -73,7 +74,7 @@ namespace GameHive.Model.GameManager {
                 GameType.Gobang88 => gobang88Factory ??= Gobang88Factory.Instance,
                 GameType.Gobang => gobangFactory ??= GobangFactory.Instance,
                 GameType.MisereTicTacToe => misere ??= MisereTicTacToeFactory.Instance,
-                GameType.Reversi => reversiFactory ??= ReversiFactory.Instance,
+                GameType.AntiGo => antiGoFactory ??= AntiGoFactory.Instance,
                 GameType.TicTacToe => ticTacToeFactory ??= TicTacToeFactory.Instance,
                 _ => throw new NotSupportedException($"Unsupported game type: {gameType}")
             };
@@ -93,6 +94,7 @@ namespace GameHive.Model.GameManager {
                 _ => throw new NotSupportedException($"Unsupported AI algorithm type: {type}")
             };
         }
+
 
     }
 }

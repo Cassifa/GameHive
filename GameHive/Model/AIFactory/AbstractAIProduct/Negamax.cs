@@ -8,6 +8,7 @@
  * 创建时间：  2024/11/26 18:12
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using GameHive.Model.GameManager;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class Negamax : AbstractAIStrategy {
@@ -55,5 +56,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
         public override void GameForcedEnd() {
         }
+        //游戏开始
+        public override void GameStart(bool IsAIFirst) { }
     }
 }

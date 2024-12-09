@@ -10,13 +10,13 @@ using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
 
 namespace GameHive.Model.AIFactory {
-    internal class ReversiFactory : AbstractFactory {
+    internal class AntiGoFactory : AbstractFactory {
         public override MCTS GetMCTSProduct() {
-            return new ReversiMCTS();
+            return new AntiGoMCTS();
         }
 
         public override MinMax GetMinMaxProduct() {
-            return new ReversiMinMax();
+            return new AntiGoMinMax();
         }
 
         /*——————————不可用———————————*/
@@ -29,24 +29,23 @@ namespace GameHive.Model.AIFactory {
         }
 
         //单例模式
-        private static ReversiFactory _instance;
-        private ReversiFactory() {
+        private static AntiGoFactory _instance;
+        private AntiGoFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
                 AIAlgorithmType.AlphaBetaPruning,
-                AIAlgorithmType.Negamax,
                 AIAlgorithmType.MCTS,
             };
-            boardInfo = new GameBoardInfo(5, true, aiTypes);
+            boardInfo = new GameBoardInfo(7, true, aiTypes);
         }
         // 公共静态属性，提供实例访问
-        public static ReversiFactory Instance {
+        public static AntiGoFactory Instance {
             get {
                 // 如果实例尚未创建，则创建实例
                 if (_instance == null) {
                     // 使用锁确保线程安全
-                    lock (typeof(ReversiFactory)) {
+                    lock (typeof(AntiGoFactory)) {
                         if (_instance == null) {
-                            _instance = new ReversiFactory();
+                            _instance = new AntiGoFactory();
                         }
                     }
                 }

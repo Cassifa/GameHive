@@ -8,8 +8,6 @@
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIUtils.AlgorithmUtils;
-using System.Collections.Generic;
-using System.Drawing;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88MinMax : MinMax {
@@ -164,8 +162,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         public override void UserPlayPiece(int lastX, int lastY) {
             PlayChess(lastX, lastY, Role.Player);
         }
-        //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
-        public override void GameForcedEnd() {
+        //开始游戏
+        public override void GameStart(bool IsAIFirst) {
             PlayedPiecesCnt = 0;
             InitBoards();
         }

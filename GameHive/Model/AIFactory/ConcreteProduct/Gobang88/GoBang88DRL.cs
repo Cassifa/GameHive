@@ -7,6 +7,7 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.GameManager;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88DRL : DRL {

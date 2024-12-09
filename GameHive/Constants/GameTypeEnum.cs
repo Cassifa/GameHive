@@ -11,7 +11,7 @@ namespace GameHive.Constants.GameTypeEnum {
         Gobang,
         Gobang88,
         MisereTicTacToe,
-        Reversi
+        AntiGo
     }
     public static class BoardGameExtensions {
         public static string GetChineseName(this GameType game) {
@@ -20,7 +20,7 @@ namespace GameHive.Constants.GameTypeEnum {
                 GameType.Gobang88 => "8*8五子棋",
                 GameType.TicTacToe => "井字棋",
                 GameType.MisereTicTacToe => "反井字棋",
-                GameType.Reversi => "黑白棋",
+                GameType.AntiGo => "不围棋",
                 _ => "未知"
             };
         }
@@ -31,7 +31,7 @@ namespace GameHive.Constants.GameTypeEnum {
                 GameType.Gobang88 => "8*8Gobang",
                 GameType.TicTacToe => "Tic-Tac-Toe",
                 GameType.MisereTicTacToe => "Misère Tic-Tac-Toe",
-                GameType.Reversi => "Reversi",
+                GameType.AntiGo => "ReverseGo",
                 _ => "Unknown"
             };
         }

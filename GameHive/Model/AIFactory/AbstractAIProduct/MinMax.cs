@@ -7,6 +7,7 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIUtils.AlgorithmUtils;
+using GameHive.Model.GameManager;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MinMax : AbstractAIStrategy {
@@ -91,5 +92,12 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //protected abstract int evalXYTRoundScore(List<List<Role>> currentBoard, int x,int y, Role role);
         ////计算 role 视角下在X,Y落子获得的攻击分数
         //protected abstract int calculateXY(List<List<Role>> currentBoard, int x,int y, Role role);
+
+
+        /*****博弈树非全部需要*****/
+        //游戏结束
+        public override void GameForcedEnd() { }
+        //游戏开始
+        public override void GameStart(bool IsAIFirst) { }
     }
 }

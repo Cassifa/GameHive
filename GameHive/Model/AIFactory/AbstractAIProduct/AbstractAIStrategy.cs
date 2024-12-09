@@ -6,7 +6,6 @@
  * 创建时间：  2024/11/26 18:49
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
-
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class AbstractAIStrategy {
         //获取下一步移动 棋盘 玩家上一次落子的X,上一次落子的Y
@@ -15,7 +14,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         public abstract Role CheckGameOver(List<List<Role>> currentBoard);
         //用户下棋
         public abstract void UserPlayPiece(int lastX, int lastY);
-        //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
+        //游戏开始
+        public abstract void GameStart(bool IsAIFirst);
+        //游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
         public abstract void GameForcedEnd();
 
     }
