@@ -1,6 +1,6 @@
 ﻿/*************************************************************************************
  * 文 件 名:   ReversiFactory.cs
- * 描    述: 黑白棋工厂
+ * 描    述: 不围棋工厂
  * 版    本：  V1.0
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 20:36
@@ -32,8 +32,8 @@ namespace GameHive.Model.AIFactory {
         private static AntiGoFactory _instance;
         private AntiGoFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
-                AIAlgorithmType.AlphaBetaPruning,
                 AIAlgorithmType.MCTS,
+                AIAlgorithmType.AlphaBetaPruning,
             };
             boardInfo = new GameBoardInfo(7, true, aiTypes);
         }

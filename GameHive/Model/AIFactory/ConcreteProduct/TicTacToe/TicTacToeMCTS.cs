@@ -14,6 +14,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         private int TotalPiecesCnt;
         public TicTacToeMCTS() {
             TotalPiecesCnt = 3;
+            SearchCount = 200000;
             currentBoard = new List<List<Role>>(TotalPiecesCnt);
         }
         /*****实现两个策略*****/

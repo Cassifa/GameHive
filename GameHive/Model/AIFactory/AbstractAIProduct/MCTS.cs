@@ -11,6 +11,8 @@ using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
+        //搜索轮数
+        protected int SearchCount;
         protected MCTSNode RootNode;
         protected List<List<Role>> currentBoard;
         //获取可行落子
@@ -85,7 +87,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //调用蒙特卡洛获取下一步
         private Tuple<int, int> EvalToGo() {
             //模拟两百轮
-            for (int i = 0; i < 200000; i++)
+            for (int i = 0; i < SearchCount; i++)
                 SimulationOnce();
             SimulationOnce();
             MCTSNode aim = RootNode.GetGreatestUCB();

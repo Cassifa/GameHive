@@ -7,11 +7,11 @@
 *************************************************************************************/
 namespace GameHive.Constants.GameTypeEnum {
     public enum GameType {
+        AntiGo,
         TicTacToe,
         Gobang,
         Gobang88,
         MisereTicTacToe,
-        AntiGo
     }
     public static class BoardGameExtensions {
         public static string GetChineseName(this GameType game) {
