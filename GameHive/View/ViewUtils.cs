@@ -37,7 +37,6 @@ namespace GameHive.View {
                 mainForm.AIType.Enabled = true;
             }));
             LogWin(role);
-            //GameOver(role);
         }
         //游戏结束
         public void GameOver(Role role) {

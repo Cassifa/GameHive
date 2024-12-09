@@ -32,7 +32,6 @@
             LogPanel = new Panel();
             LogListBox = new ListBox();
             ZJUTLogo = new PictureBox();
-            //保证不抖动
             LeftPanel = new MyPanel();
             BoardPanel = new MyPanel();
             rightPanel.SuspendLayout();
@@ -67,7 +66,8 @@
             // secondTurn
             // 
             secondTurn.AutoSize = true;
-            secondTurn.Location = new Point(180, 360);
+            secondTurn.Cursor = Cursors.Hand;
+            secondTurn.Location = new Point(179, 360);
             secondTurn.Name = "secondTurn";
             secondTurn.Size = new Size(71, 28);
             secondTurn.TabIndex = 6;
@@ -78,7 +78,8 @@
             // firstTurn
             // 
             firstTurn.AutoSize = true;
-            firstTurn.Location = new Point(69, 360);
+            firstTurn.Cursor = Cursors.Hand;
+            firstTurn.Location = new Point(50, 360);
             firstTurn.Name = "firstTurn";
             firstTurn.Size = new Size(71, 28);
             firstTurn.TabIndex = 5;
@@ -88,20 +89,23 @@
             // 
             // statusSwitch
             // 
-            statusSwitch.Location = new Point(69, 495);
+            statusSwitch.Cursor = Cursors.Hand;
+            statusSwitch.Font = new Font("Microsoft YaHei UI", 14F, FontStyle.Italic, GraphicsUnit.Point, 134);
+            statusSwitch.Location = new Point(50, 475);
             statusSwitch.Name = "statusSwitch";
-            statusSwitch.Size = new Size(182, 46);
+            statusSwitch.Size = new Size(200, 66);
             statusSwitch.TabIndex = 4;
             statusSwitch.Text = "开始";
             statusSwitch.UseVisualStyleBackColor = true;
             // 
             // AIType
             // 
+            AIType.Cursor = Cursors.Hand;
             AIType.DropDownStyle = ComboBoxStyle.DropDownList;
             AIType.FormattingEnabled = true;
-            AIType.Location = new Point(69, 420);
+            AIType.Location = new Point(50, 420);
             AIType.Name = "AIType";
-            AIType.Size = new Size(182, 32);
+            AIType.Size = new Size(200, 32);
             AIType.TabIndex = 3;
             // 
             // LogPanel
@@ -115,6 +119,7 @@
             // 
             // LogListBox
             // 
+            LogListBox.Cursor = Cursors.HSplit;
             LogListBox.Dock = DockStyle.Fill;
             LogListBox.FormattingEnabled = true;
             LogListBox.ItemHeight = 24;
@@ -127,6 +132,7 @@
             // 
             ZJUTLogo.BackgroundImage = Properties.Resources.logo;
             ZJUTLogo.BackgroundImageLayout = ImageLayout.Stretch;
+            ZJUTLogo.Cursor = Cursors.Hand;
             ZJUTLogo.Dock = DockStyle.Top;
             ZJUTLogo.Location = new Point(0, 0);
             ZJUTLogo.Name = "ZJUTLogo";
@@ -175,15 +181,15 @@
 
         private Panel rightPanel;
         private Panel LogPanel;
-        private Panel LeftPanel;
+        private MyPanel LeftPanel;
         //可交互组件:
         public MenuStrip menuStrip;
-        public Panel BoardPanel;
         public PictureBox ZJUTLogo;
         public RadioButton secondTurn;
         public RadioButton firstTurn;
         public ComboBox AIType;
         public Button statusSwitch;
         public ListBox LogListBox;
+        public Panel BoardPanel;
     }
 }

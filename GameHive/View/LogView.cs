@@ -13,6 +13,7 @@ namespace GameHive.View {
     //控制历史记录条目
     internal partial class View {
         public void AddLog(Color color, string logContext) {
+            logContext = " " + logContext;
             if (mainForm.LogListBox.InvokeRequired) {
                 // 跨线程更新控件
                 mainForm.LogListBox.Invoke(new Action(() => {
@@ -28,15 +29,20 @@ namespace GameHive.View {
         public void LogMove(Role role, int x, int y) {
             string name = role.GetChineseName();
             char colChar = (char)('A' + x);
-
+            if (name == "AI") name = "  AI  ";
             string logMessage = $"{name} 在 ({colChar}, {boardInfo.Column - 1 - y}) 下棋了";
             AddLog(Color.Black, logMessage);
         }
 
         //游戏结束
         private void LogWin(Role role) {
+            if (role == Role.Empty) {
+                string message = $"游戏终止";
+                AddLog(Color.Gray, message);
+                return;
+            }
             string logMessage = $"{role.GetChineseName()}获胜！";
-            if(role==Role.Draw)
+            if (role == Role.Draw)
                 logMessage = $"{role.GetChineseName()}！";
             AddLog(Color.Green, logMessage);
         }
