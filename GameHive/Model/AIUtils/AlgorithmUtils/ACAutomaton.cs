@@ -30,11 +30,7 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
         }
 
         // 计算一组序列对于 role 的价值
-        public int CalculateLineValue(List<Role> list, Role role) {
-            string mode = string.Join("", list.Select(item =>
-                item == Role.AI ? "A" :
-                item == Role.Player ? "P" :
-                "E"));
+        public int CalculateLineValue(string mode, Role role) {
             int score = 0;
             if (role == Role.AI) {
                 if (AIScoreTable.TryGetValue(mode, out score))

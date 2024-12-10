@@ -14,16 +14,18 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //AC自动机执行工具类
         protected ACAutomaton ACAutomaton;
         //四个变化坐标映射的棋盘，用于优化估值速度
-        private List<List<Role>> NormalBoard, XYReversedBoard;
-        private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
+        private List<List<Role>> Board;
+        private List<string> NormalBoard, XYReversedBoard;
+        private List<string> MainDiagonalBoard, AntiDiagonalBoard;
         public GoBang88MinMax(Dictionary<string, int> RewardTable) {
             maxDeep = 4; TotalPiecesCnt = 8;
             ACAutomaton = new ACAutomaton(RewardTable);
 
-            NormalBoard = new List<List<Role>>(TotalPiecesCnt);
-            XYReversedBoard = new List<List<Role>>(TotalPiecesCnt);
-            MainDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
-            AntiDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
+            Board = new List<List<Role>>(TotalPiecesCnt);
+            NormalBoard = new List<string>(TotalPiecesCnt);
+            XYReversedBoard = new List<string>(TotalPiecesCnt);
+            MainDiagonalBoard = new List<string>(TotalPiecesCnt * 2 - 1);
+            AntiDiagonalBoard = new List<string>(TotalPiecesCnt * 2 - 1);
         }
 
         /*****实现七个博弈树策略*****/
@@ -62,55 +64,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             int ans = 0;
             foreach (var row in NormalBoard)
                 ans += ACAutomaton.CalculateLineValue(row, role);
-            //foreach (var col in XYReversedBoard)
-            //    ans += ACAutomaton.CalculateLineValue(col, role);
-            //foreach (var mainDiagonal in MainDiagonalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(mainDiagonal, role);
-            //foreach (var antiDiagonal in AntiDiagonalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(antiDiagonal, role);
-            //return ans;
-            int n = TotalPiecesCnt;
-            for (int col = 0; col < n; col++) {
-                List<Role> column = new List<Role>();
-                for (int row = 0; row < n; row++) {
-                    column.Add(currentBoard[row][col]);
-                }
-                ans += ACAutomaton.CalculateLineValue(column, role);
-            }
-
-            // 估值主对角线
-            for (int start = 0; start <= n - 5; start++) { // 确保对角线长度 >= 5
-                List<Role> diag = new List<Role>();
-                for (int i = 0; i + start < n; i++) {
-                    diag.Add(currentBoard[i][i + start]);
-                }
-                ans += ACAutomaton.CalculateLineValue(diag, role);
-            }
-            for (int start = 1; start <= n - 5; start++) { // 主对角线另一半
-                List<Role> diag = new List<Role>();
-                for (int i = 0; i + start < n; i++) {
-                    diag.Add(currentBoard[i + start][i]);
-                }
-                ans += ACAutomaton.CalculateLineValue(diag, role);
-            }
-
-            // 估值副对角线
-            for (int start = 0; start <= n - 5; start++) { // 确保对角线长度 >= 5
-                List<Role> diag = new List<Role>();
-                for (int i = 0; i + start < n; i++) {
-                    diag.Add(currentBoard[i][n - 1 - (i + start)]);
-                }
-                ans += ACAutomaton.CalculateLineValue(diag, role);
-            }
-            for (int start = 1; start <= n - 5; start++) { // 副对角线另一半
-                List<Role> diag = new List<Role>();
-                for (int i = 0; i + start < n; i++) {
-                    diag.Add(currentBoard[i + start][n - 1 - i]);
-                }
-                ans += ACAutomaton.CalculateLineValue(diag, role);
-            }
-            if(ans>100)
-                return ans;
+            foreach (var col in XYReversedBoard)
+                ans += ACAutomaton.CalculateLineValue(col, role);
+            foreach (var mainDiagonal in MainDiagonalBoard)
+                ans += ACAutomaton.CalculateLineValue(mainDiagonal, role);
+            foreach (var antiDiagonal in AntiDiagonalBoard)
+                ans += ACAutomaton.CalculateLineValue(antiDiagonal, role);
             return ans;
         }
 
@@ -171,50 +130,69 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
 
-        //在x,y下棋 数组坐标
+        //在x,y下棋 数组坐标 这一步每一次改动四个字符串，且操作频繁，代价较大
         protected override void PlayChess(int x, int y, Role role) {
-            //if (x == -1 || (NormalBoard[x][y] != Role.Empty && role != Role.Empty)) return;
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
-            NormalBoard[x][y] = role;
-            XYReversedBoard[y][x] = role;
+            Board[x][y] = role;
+            char charRole = role == Role.Empty ? '_' : (role == Role.AI ? 'A' : 'P');
+
+            var normalRowChars = NormalBoard[x].ToCharArray();
+            normalRowChars[y] = charRole;
+            NormalBoard[x] = new string(normalRowChars);
+            var xyRowChars = XYReversedBoard[y].ToCharArray();
+            xyRowChars[x] = charRole;
+            XYReversedBoard[y] = new string(xyRowChars);
+
             //主对角线从左下到右上0~2*TotalPiecesCnt-1
-            MainDiagonalBoard[TotalPiecesCnt - (x - y) - 1][x - y > 0 ? y : x] = role;
+            int mainDiagonalIndex = TotalPiecesCnt - (x - y) - 1;
+            var mainDiagonalRowChars = MainDiagonalBoard[mainDiagonalIndex].ToCharArray();
+            mainDiagonalRowChars[x - y > 0 ? y : x] = charRole;
+            MainDiagonalBoard[mainDiagonalIndex] = new string(mainDiagonalRowChars);
             //反对角线从左上到右下0~2*TotalPiecesCnt-1
-            AntiDiagonalBoard[x + y][x + y < TotalPiecesCnt ? x : TotalPiecesCnt - y - 1] = role;
+            var antiDiagonalRowChars = AntiDiagonalBoard[x + y].ToCharArray();
+            antiDiagonalRowChars[x + y < TotalPiecesCnt ? x : TotalPiecesCnt - y - 1] = charRole;
+            AntiDiagonalBoard[x + y] = new string(antiDiagonalRowChars);
+
+            //NormalBoard[x][y] = role;
+            //XYReversedBoard[y][x] = role;
+            ////主对角线从左下到右上0~2*TotalPiecesCnt-1
+            //MainDiagonalBoard[TotalPiecesCnt - (x - y) - 1][x - y > 0 ? y : x] = role;
+            ////反对角线从左上到右下0~2*TotalPiecesCnt-1
+            //AntiDiagonalBoard[x + y][x + y < TotalPiecesCnt ? x : TotalPiecesCnt - y - 1] = role;
         }
 
         // 初始化所有维度的棋盘
         protected override void InitBoards() {
             int size = TotalPiecesCnt;
+            Board.Clear();
             NormalBoard.Clear(); XYReversedBoard.Clear();
             MainDiagonalBoard.Clear(); MainDiagonalBoard.Clear();
-            for (int i = 0; i < size; i++) {
-                NormalBoard.Add(new List<Role>(new Role[size]));
-                XYReversedBoard.Add(new List<Role>(new Role[size]));
-            }
             for (int i = 0; i < size; i++)
-                for (int j = 0; j < size; j++) {
-                    NormalBoard[i][j] = Role.Empty;
-                    XYReversedBoard[j][i] = Role.Empty;
-                }
-            for (int i = 0; i < 2 * size - 1; i++) {
-                // 计算每条对角线的长度
-                int diagonalLength = (i < size) ? (i + 1) : (2 * size - 1 - i);
-                MainDiagonalBoard.Add(new List<Role>(new Role[diagonalLength]));
-                AntiDiagonalBoard.Add(new List<Role>(new Role[diagonalLength]));
+                Board.Add(new List<Role>(new Role[size]));
+            NormalBoard = new List<string>(size);
+            XYReversedBoard = new List<string>(size);
+            MainDiagonalBoard = new List<string>(2 * size - 1);
+            AntiDiagonalBoard = new List<string>(2 * size - 1);
+
+            // 初始化 NormalBoard 和 XYReversedBoard
+            for (int i = 0; i < size; i++) {
+                NormalBoard.Add(new string('E', size)); // 'E' 表示 Role.Empty
+                XYReversedBoard.Add(new string('E', size));
             }
 
-            for (int i = 0; i < 2 * size - 1; i++)
-                for (int j = 0; j < (i < size ? i + 1 : 2 * size - 1 - i); j++) {
-                    MainDiagonalBoard[i][j] = Role.Empty;
-                    AntiDiagonalBoard[i][j] = Role.Empty;
-                }
+            // 初始化 MainDiagonalBoard 和 AntiDiagonalBoard
+            for (int i = 0; i < 2 * size - 1; i++) {
+                int diagonalLength = (i < size) ? (i + 1) : (2 * size - 1 - i);
+                MainDiagonalBoard.Add(new string('E', diagonalLength));
+                AntiDiagonalBoard.Add(new string('E', diagonalLength));
+            }
         }
+
 
         //获取当前的棋盘
         protected override List<List<Role>> GetCurrentBoard() {
-            return NormalBoard;
+            return Board;
         }
 
         //public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {

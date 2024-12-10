@@ -60,7 +60,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             else if (winner == Role.AI) return 1_000_000;
             else if (winner == Role.Player) return -1_000_000;
             if (depth == maxDeep)
-                //return EvalNowSituation(GetCurrentBoard(), Role.AI);
+            //return EvalNowSituation(GetCurrentBoard(), Role.AI);
             {
                 int attackScore = AttackBias * EvalNowSituation(GetCurrentBoard(), Role.AI);
                 int defendScore = DefendBias * EvalNowSituation(GetCurrentBoard(), Role.Player);
@@ -81,8 +81,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         nowDec = move;
                         alpha = Math.Max(alpha, nowRoundScore);
                     }
-                    if (alpha >= beta) 
-                        break;
+                    if (alpha >= beta) break;
                 }
             } else {
                 nowScore = int.MaxValue;
@@ -95,8 +94,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         nowDec = move;
                         beta = Math.Min(beta, nowRoundScore);
                     }
-                    if (alpha >= beta) 
-                        break;
+                    if (alpha >= beta) break;
                 }
 
             }
