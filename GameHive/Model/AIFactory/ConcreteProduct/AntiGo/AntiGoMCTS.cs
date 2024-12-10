@@ -13,32 +13,25 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         private int TotalPiecesCnt;
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            SearchCount = 1000;
+            SearchCount = 10000;
             currentBoard = new List<List<Role>>(TotalPiecesCnt);
         }
         /*****实现三个策略*****/
         //根据某次落子查看游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
-            //原棋盘备份，对其做修改表示已经搜过了
-            var boardCopy = currentBoard.Select(row => new List<Role>(row)).ToList();
-            int[] dx = { -1, 1, 0, 0 };
-            int[] dy = { 0, 0, -1, 1 };
-            for (int i = 0; i < 4; i++) {
-                int newX = x + dx[i];
-                int newY = y + dy[i];
-                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0)
-                    continue;
-                //这个节点不为空（搜过的认为等价空） 并且搜索发现对应连通块没有气
-                if (boardCopy[newX][newY] != Role.Empty && !IsAlive(currentBoard, boardCopy, newX, newY))
-                    return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
-            }
+            List<List<bool>> visitStatusBoard = new List<List<bool>>();
+            for (int i = 0; i < currentBoard.Count; i++)
+                visitStatusBoard.Add(new List<bool>(new bool[currentBoard[i].Count]));
+            if (!IsAlive(currentBoard, visitStatusBoard, x, y))
+                return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
             return Role.Empty;
         }
 
         //检测一个点所在连通块是否有气 搜过一块后会把所在连通块值为空，不需要重复搜索
-        private bool IsAlive(List<List<Role>> rawBoard, List<List<Role>> visitStatusBoard, int x, int y) {
+        private bool IsAlive(List<List<Role>> rawBoard, List<List<bool>> visitStatusBoard, int x, int y) {
             //标记这个节点已经搜过
-            visitStatusBoard[x][y] = Role.Empty;
+            visitStatusBoard[x][y] = true;
+            // 上 下 左 右
             int[] dx = { -1, 1, 0, 0 };
             int[] dy = { 0, 0, -1, 1 };
             for (int i = 0; i < 4; i++) {
@@ -46,10 +39,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 int newY = y + dy[i];
                 if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0)
                     continue;
-                //搜到一个有气的
+                //当前字旁边有气
                 if (rawBoard[newX][newY] == Role.Empty) return true;
                 //搜到同种且未被搜过节点 如果这个节点能搜到气则本连通块有气
-                if (visitStatusBoard[newX][newY] == rawBoard[x][y]
+                if (rawBoard[newX][newY] == rawBoard[x][y] && !visitStatusBoard[newX][newY]
                     && IsAlive(rawBoard, visitStatusBoard, newX, newY))
                     return true;
             }
