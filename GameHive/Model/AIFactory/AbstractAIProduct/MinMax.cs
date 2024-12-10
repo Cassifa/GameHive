@@ -59,7 +59,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             if (winner == Role.Draw) return 0;
             else if (winner == Role.AI) return 1_000_000;
             else if (winner == Role.Player) return -1_000_000;
-            if (depth == maxDeep) {
+            if (depth == maxDeep)
+                //return EvalNowSituation(GetCurrentBoard(), Role.AI);
+            {
                 int attackScore = AttackBias * EvalNowSituation(GetCurrentBoard(), Role.AI);
                 int defendScore = DefendBias * EvalNowSituation(GetCurrentBoard(), Role.Player);
                 return attackScore - defendScore;

@@ -17,7 +17,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
         public GoBangMinMax(Dictionary<List<Role>, int> RewardTable) {
-            maxDeep = 4;TotalPiecesCnt = 15;
+            maxDeep = 4; TotalPiecesCnt = 15;
             ACAutomaton = new ACAutomaton(RewardTable);
 
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
@@ -53,6 +53,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 }
                 if (count >= 5) return currentPlayer;
             }
+            if (TotalPiecesCnt * TotalPiecesCnt == PlayedPiecesCnt) return Role.Draw;
             return Role.Empty;
         }
 
@@ -66,7 +67,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //单次代价10(期望查找)*4*22(行列数量)=880次
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
             int ans = 0;
-            // 估值行
             foreach (var row in NormalBoard)
                 ans += ACAutomaton.CalculateLineValue(row, role);
             foreach (var col in XYReversedBoard)
@@ -80,44 +80,37 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         // 获取所有可下棋点位
         protected override HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
-            // 最终结果
             var usefulSteps = new HashSet<Tuple<int, int>>();
             int[] dx = { -2, -1, 0, 1, 2 };
             int[] dy = { -2, -1, 0, 1, 2 };
-
-            // 遍历棋盘，寻找所有落子点附近的可用位置
-            for (int i = 0; i < board.Count; i++)
-                for (int j = 0; j < board[i].Count; j++) {
+            //寻找所有落子点附近的可用位置
+            for (int i = 0; i < TotalPiecesCnt; i++)
+                for (int j = 0; j < TotalPiecesCnt; j++) {
                     if (board[i][j] == Role.Empty) continue;
                     // 在落子点周围扩展
-                    for (int a = 0; i < 5; i++) {
-                        for (int b = 0; j < 5; j++) {
+                    for (int a = 0; a < 5; a++) {
+                        for (int b = 0; b < 5; b++) {
                             int newX = i + dx[a];
                             int newY = j + dy[b];
-                            if (newX < 0 || newY < 0 || newX >= board.Count || newY >= board[0].Count || (i == newX && j == newY)) continue;
+                            if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt || (i == newX && j == newY)) continue;
                             if (board[newX][newY] == Role.Empty) {
                                 usefulSteps.Add(new Tuple<int, int>(newX, newY));
                             }
                         }
                     }
                 }
-            // 如果没有可行 随机生成中间九格之一
-            if (usefulSteps.Count == 0) {
-                var random = new Random();
-                int[] centerDx = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
-                int[] centerDy = { -1, 0, 1, 0, 0, 0, 1, 1, 1 };
-                int t = random.Next(100);
-                if (t < 80) {
-                    usefulSteps.Add(new Tuple<int, int>(board.Count / 2, board[0].Count / 2));
-                } else {
-                    int index = random.Next(centerDx.Length);
-                    usefulSteps.Add(new Tuple<int, int>(board.Count / 2 + centerDx[index], board[0].Count / 2 + centerDy[index]));
-                }
+            if (PlayedPiecesCnt == 0)
+                usefulSteps.Add(new Tuple<int, int>(board.Count / 2, board[0].Count / 2));
+            else {
+                for (int i = 0; i < board.Count; i++)
+                    for (int j = 0; j < board[i].Count; j++)
+                        if (board[i][j] == Role.Empty)
+                            usefulSteps.Add(new Tuple<int, int>(i, j));
             }
             return usefulSteps;
         }
 
-        //使用历史可用与最新落子获取最新可用-从历史可落子点位中移除已不可用的点，返回深拷贝
+        //使用历史可用与最新落子获取最新可用-从历史可落子点位中移除已不可用的点，添加新可用点，返回深拷贝
         protected override HashSet<Tuple<int, int>> GetAvailableMovesByNewPieces(
             List<List<Role>> currentBoard, HashSet<Tuple<int, int>> lastAvailableMoves,
             int lastX, int lastY) {
@@ -131,7 +124,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 for (int j = 0; j < 5; j++) {
                     int newX = lastX + dx[i];
                     int newY = lastY + dy[j];
-                    if (newX < 0 || newY < 0 || newX >= currentBoard.Count || newY >= currentBoard[0].Count || (lastX == newX && lastY == newY)) continue;
+                    if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt || (lastX == newX && lastY == newY)) continue;
                     if (currentBoard[newX][newY] == Role.Empty) {
                         newSet.Add(new Tuple<int, int>(newX, newY));
                     }

@@ -33,7 +33,7 @@ namespace GameHive.Model.AIFactory {
         private Dictionary<List<Role>, int> initRewardTable() {
             var rewardTable = new Dictionary<List<Role>, int>();
             //五子
-            rewardTable[new List<Role> { Role.AI, Role.AI, Role.AI, Role.AI, Role.AI }] = 1_000_000;
+            //rewardTable[new List<Role> { Role.AI, Role.AI, Role.AI, Role.AI, Role.AI }] = 1_000_000;
 
             // 四
             // 活四 _OOOO_
@@ -57,7 +57,7 @@ namespace GameHive.Model.AIFactory {
 
             // 二
             // 活二 __OO__ _O_O_ O__O
-            rewardTable[new List<Role> { Role.Empty, Role.AI, Role.AI, Role.Empty, Role.Empty }] = 50;
+            //rewardTable[new List<Role> { Role.Empty, Role.AI, Role.AI, Role.Empty, Role.Empty }] = 50;
             rewardTable[new List<Role> { Role.Empty, Role.Empty, Role.AI, Role.AI, Role.Empty, Role.Empty }] = 50;
             rewardTable[new List<Role> { Role.Empty, Role.AI, Role.Empty, Role.AI, Role.Empty }] = 20;
             rewardTable[new List<Role> { Role.AI, Role.Empty, Role.Empty, Role.AI }] = 20;
