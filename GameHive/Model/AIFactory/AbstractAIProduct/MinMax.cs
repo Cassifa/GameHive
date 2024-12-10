@@ -93,7 +93,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                     if (nowRoundScore < nowScore) {
                         nowScore = nowRoundScore;
                         nowDec = move;
-                        alpha = Math.Min(beta, nowRoundScore);
+                        beta = Math.Min(beta, nowRoundScore);
                     }
                     if (alpha >= beta) 
                         break;

@@ -109,7 +109,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 }
                 ans += ACAutomaton.CalculateLineValue(diag, role);
             }
-
+            if(ans>100)
+                return ans;
             return ans;
         }
 
