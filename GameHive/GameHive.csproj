@@ -27,4 +27,9 @@
     <Folder Include="Model\AIUtils\AlphaBetaPruning\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.20.1" />
+    <PackageReference Include="OnnxStack.Core" Version="0.39.0" />
+  </ItemGroup>
+
 </Project>

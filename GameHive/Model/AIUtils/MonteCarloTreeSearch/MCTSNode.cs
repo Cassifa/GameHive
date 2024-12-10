@@ -1,6 +1,8 @@
 ﻿/*************************************************************************************
  * 文 件 名:   MCTSNode.cs
- * 描    述: 
+ * 描    述: 蒙特卡洛节点类
+ *          负责：四过程中的反向传播
+ *          提供方法：1.反向传播 2.计算自身UCB 3.获取UCB最大的儿子节点 4.添加儿子节点 5.判断是否为新叶节点或终止点
  * 版    本：  V1.0
  * 创 建 者：  Cassifa
  * 创建时间：  2024/12/8 20:11
@@ -52,15 +54,16 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             MCTSNode currentPropagate = this;
             while (currentPropagate != null) {
                 currentPropagate.VisitedTimes++;
+                //如果结果使得导致下棋后导致本局面的玩家获胜则加一分
                 if (winner != Role.Draw)
-                    currentPropagate.TotalValue += winner == Role.AI ? 1 : -1;
-                //currentPropagate.TotalValue += winner == currentPropagate.CurrentView ? 1 : -1;
+                    currentPropagate.TotalValue += winner == currentPropagate.LeadToThisStatus ? 1 : -1;
                 currentPropagate = currentPropagate.Father;
             }
         }
 
         //获取UCB,被父节点调用，父子节点视角不同
-        private double GetUCB(int N) {
+        private double GetUCB() {
+            int N = Father.VisitedTimes;
             if (VisitedTimes == 0) return double.PositiveInfinity;
             double ans = 1.0 * TotalValue / (double)VisitedTimes
                 + 1.414 * Math.Sqrt(Math.Log2(N) / VisitedTimes);
@@ -73,7 +76,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             double maxValue = double.NegativeInfinity;
             foreach (KeyValuePair<Tuple<int, int>, MCTSNode> entry in ChildrenMap) {
                 MCTSNode node = entry.Value;
-                double t = node.GetUCB(VisitedTimes);
+                double t = node.GetUCB();
                 if (t > maxValue) {
                     maxValue = t;
                     chosenSon = node;

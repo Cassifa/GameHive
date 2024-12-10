@@ -29,11 +29,38 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         /*****实现七个博弈树策略*****/
         //判断游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
-            if (EvalNowSituation(GetCurrentBoard(), Role.AI) >= 1_000_000) return Role.AI;
-            if (EvalNowSituation(GetCurrentBoard(), Role.Player) >= 1_000_000) return Role.Player;
-            return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;
-
+            Role currentPlayer = currentBoard[x][y];
+            //水平、垂直、主对角线、副对角线
+            int[] dx = { 1, 0, 1, 1 };
+            int[] dy = { 0, 1, 1, -1 };
+            for (int direction = 0; direction < 4; direction++) {
+                int count = 1;
+                // 检查当前方向上的连续棋子，向正方向（dx[direction], dy[direction]）和反方向（-dx[direction], -dy[direction]）扩展
+                for (int step = 1; step <= 4; step++) {
+                    int nx = x + dx[direction] * step;
+                    int ny = y + dy[direction] * step;
+                    if (nx < 0 || ny < 0 || nx >= TotalPiecesCnt || ny >= TotalPiecesCnt || currentBoard[nx][ny] != currentPlayer)
+                        break;
+                    count++;
+                }
+                for (int step = 1; step <= 4; step++) {
+                    int nx = x - dx[direction] * step;
+                    int ny = y - dy[direction] * step;
+                    if (nx < 0 || ny < 0 || nx >= TotalPiecesCnt || ny >= TotalPiecesCnt || currentBoard[nx][ny] != currentPlayer)
+                        break;
+                    count++;
+                }
+                if (count >= 5) return currentPlayer;
+            }
+            return Role.Empty;
         }
+
+        //public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+        //    if (EvalNowSituation(GetCurrentBoard(), Role.AI) >= 1_000_000) return Role.AI;
+        //    if (EvalNowSituation(GetCurrentBoard(), Role.Player) >= 1_000_000) return Role.Player;
+        //    return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;
+
+        //}
 
         //单次代价10(期望查找)*4*22(行列数量)=880次
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
