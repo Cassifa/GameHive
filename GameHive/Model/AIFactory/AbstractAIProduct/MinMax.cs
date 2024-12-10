@@ -81,7 +81,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         nowDec = move;
                         alpha = Math.Max(alpha, nowRoundScore);
                     }
-                    if (alpha >= beta) break;
+                    if (alpha >= beta) 
+                        break;
                 }
             } else {
                 nowScore = int.MaxValue;
@@ -94,7 +95,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         nowDec = move;
                         alpha = Math.Min(beta, nowRoundScore);
                     }
-                    if (alpha >= beta) break;
+                    if (alpha >= beta) 
+                        break;
                 }
 
             }

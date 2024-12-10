@@ -16,7 +16,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //四个变化坐标映射的棋盘，用于优化估值速度
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
-        public GoBang88MinMax(Dictionary<List<Role>, int> RewardTable) {
+        public GoBang88MinMax(Dictionary<string, int> RewardTable) {
             maxDeep = 4; TotalPiecesCnt = 8;
             ACAutomaton = new ACAutomaton(RewardTable);
 

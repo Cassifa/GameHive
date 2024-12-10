@@ -32,8 +32,8 @@ namespace GameHive.Model.AIFactory {
         private static TicTacToeFactory _instance;
         private TicTacToeFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
-                AIAlgorithmType.MCTS,
                 AIAlgorithmType.AlphaBetaPruning,
+                AIAlgorithmType.MCTS,
                 AIAlgorithmType.Negamax,
             };
             boardInfo = new GameBoardInfo(3, true, aiTypes);
