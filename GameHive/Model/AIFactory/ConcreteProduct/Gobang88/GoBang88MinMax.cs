@@ -11,24 +11,25 @@ using GameHive.Model.AIUtils.AlgorithmUtils;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88MinMax : MinMax {
-        private int PlayedPiecesCnt;
-        private int TotalPiecesCnt;
+        //AC自动机执行工具类
+        protected ACAutomaton ACAutomaton;
+        //四个变化坐标映射的棋盘，用于优化估值速度
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
         public GoBang88MinMax(Dictionary<List<Role>, int> RewardTable) {
-            maxDeep = 4;
-            PlayedPiecesCnt = 0; TotalPiecesCnt = 8;
-            ACautomaton = new ACAutomaton(RewardTable);
+            maxDeep = 4;TotalPiecesCnt = 8;
+            ACAutomaton = new ACAutomaton(RewardTable);
 
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
             XYReversedBoard = new List<List<Role>>(TotalPiecesCnt);
             MainDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
             AntiDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
-            InitBoards();
         }
+
         /*****实现七个博弈树策略*****/
         //判断游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+            if (x == -1) return Role.Empty;
             Role currentPlayer = currentBoard[x][y];
             //水平、垂直、主对角线、副对角线
             int[] dx = { 1, 0, 1, 1 };
@@ -67,17 +68,17 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             int ans = 0;
             // 估值行
             foreach (var row in NormalBoard)
-                ans += ACautomaton.CalculateLineValue(row, role);
+                ans += ACAutomaton.CalculateLineValue(row, role);
             foreach (var col in XYReversedBoard)
-                ans += ACautomaton.CalculateLineValue(col, role);
+                ans += ACAutomaton.CalculateLineValue(col, role);
             foreach (var mainDiagonal in MainDiagonalBoard)
-                ans += ACautomaton.CalculateLineValue(mainDiagonal, role);
+                ans += ACAutomaton.CalculateLineValue(mainDiagonal, role);
             foreach (var antiDiagonal in AntiDiagonalBoard)
-                ans += ACautomaton.CalculateLineValue(antiDiagonal, role);
+                ans += ACAutomaton.CalculateLineValue(antiDiagonal, role);
             return ans;
         }
 
-        // 获取所有可下棋点位
+        // 获取所有可下棋点位-周围两格距离内有落子过
         protected override HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
             // 最终结果
             var usefulSteps = new HashSet<Tuple<int, int>>();
@@ -116,7 +117,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return usefulSteps;
         }
 
-        //使用历史可用与最新落子获取最新可用
+        //使用历史可用与最新落子获取最新可用-从历史可落子点位中移除已不可用的点，返回深拷贝
         protected override HashSet<Tuple<int, int>> GetAvailableMovesByNewPieces(
             List<List<Role>> currentBoard, HashSet<Tuple<int, int>> lastAvailableMoves,
             int lastX, int lastY) {
@@ -142,7 +143,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //在x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            if (x == -1 || (NormalBoard[x][y] != Role.Empty && role != Role.Empty)) return;
+            //if (x == -1 || (NormalBoard[x][y] != Role.Empty && role != Role.Empty)) return;
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
             NormalBoard[x][y] = role;
@@ -154,7 +155,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
         // 初始化所有维度的棋盘
-        private void InitBoards() {
+        protected override void InitBoards() {
             int size = TotalPiecesCnt;
             NormalBoard.Clear(); XYReversedBoard.Clear();
             MainDiagonalBoard.Clear(); MainDiagonalBoard.Clear();
@@ -184,15 +185,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //获取当前的棋盘
         protected override List<List<Role>> GetCurrentBoard() {
             return NormalBoard;
-        }
-        //用户下棋
-        public override void UserPlayPiece(int lastX, int lastY) {
-            PlayChess(lastX, lastY, Role.Player);
-        }
-        //开始游戏
-        public override void GameStart(bool IsAIFirst) {
-            PlayedPiecesCnt = 0;
-            InitBoards();
         }
     }
 }

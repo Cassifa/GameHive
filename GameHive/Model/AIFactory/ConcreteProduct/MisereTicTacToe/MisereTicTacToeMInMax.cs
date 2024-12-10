@@ -10,18 +10,15 @@ using GameHive.Model.AIFactory.AbstractAIProduct;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class MisereTicTacToeMinMax : MinMax {
-        private int PlayedPiecesCnt;
-        private int TotalPiecesCnt;
         private List<List<Role>> NormalBoard;
         public MisereTicTacToeMinMax() {
             //井字棋直接搜完
-            maxDeep = 11;
-            PlayedPiecesCnt = 0; TotalPiecesCnt = 3;
+            maxDeep = 11;TotalPiecesCnt = 3;
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
-            InitBoard();
         }
         /*****实现两个博弈树策略*****/
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+            if (x == -1) return Role.Empty;
             if (currentBoard[x][0] != Role.Empty &&
                 currentBoard[x][0] == currentBoard[x][1] &&
                 currentBoard[x][1] == currentBoard[x][2]) {
@@ -69,7 +66,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //在博弈树内部维护棋盘x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            if (x == -1 || (NormalBoard[x][y] != Role.Empty && role != Role.Empty)) return;
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
             NormalBoard[x][y] = role;
@@ -78,23 +74,13 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         protected override List<List<Role>> GetCurrentBoard() {
             return NormalBoard;
         }
-        private void InitBoard() {
+        protected override void InitBoards() {
             NormalBoard.Clear(); 
             for (int i = 0; i < TotalPiecesCnt; i++) {
                 NormalBoard.Add(new List<Role>(new Role[TotalPiecesCnt]));
                 for (int j = 0; j < TotalPiecesCnt; j++)
                     NormalBoard[i][j] = Role.Empty;
             }
-        }
-
-        //用户下棋
-        public override void UserPlayPiece(int lastX, int lastY) {
-            PlayChess(lastX, lastY, Role.Player);
-        }
-        //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
-        public override void GameForcedEnd() {
-            PlayedPiecesCnt = 0;
-            InitBoard();
         }
 
         /*****对于井字棋的搜索空间不需要*****/

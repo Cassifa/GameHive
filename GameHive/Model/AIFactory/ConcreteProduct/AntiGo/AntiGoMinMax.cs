@@ -60,6 +60,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             throw new NotImplementedException();
         }
 
+        protected override void InitBoards() {
+            throw new NotImplementedException();
+        }
+
         protected override void PlayChess(int x, int y, Role role) {
             throw new NotImplementedException();
         }
