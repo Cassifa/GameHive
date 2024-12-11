@@ -9,8 +9,8 @@ namespace GameHive.Constants.RoleTypeEnum {
     public enum Role {
         AI,
         Player,
-        Draw,
         Empty,
+        Draw,
     }
     public static class RoleExtensions {
         public static string GetChineseName(this Role game) {

@@ -63,12 +63,12 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             else if (winner == Role.AI) return 1_000_000;
             else if (winner == Role.Player) return -1_000_000;
             if (depth == maxDeep)
-            //return EvalNowSituation(GetCurrentBoard(), Role.AI);
-            {
-                int attackScore = AttackBias * EvalNowSituation(GetCurrentBoard(), Role.AI);
-                int defendScore = DefendBias * EvalNowSituation(GetCurrentBoard(), Role.Player);
-                return attackScore - defendScore;
-            }
+                return EvalNowSituation(GetCurrentBoard(), Role.AI);
+            //{
+            //    int attackScore = AttackBias * EvalNowSituation(GetCurrentBoard(), Role.AI);
+            //    int defendScore = DefendBias * EvalNowSituation(GetCurrentBoard(), Role.Player);
+            //    return attackScore - defendScore;
+            //}
             bool IsAi = ((depth % 2) == 0);
             int nowScore; Tuple<int, int>? nowDec = null;
             //根据上一步操作获取下一步可行点位
