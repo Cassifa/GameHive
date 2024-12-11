@@ -30,7 +30,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             throw new NotImplementedException();
         }
 
-        protected override void InitBoards() {
+        protected override void InitGame() {
             throw new NotImplementedException();
         }
 

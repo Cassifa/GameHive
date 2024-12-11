@@ -1,6 +1,15 @@
 ﻿/*************************************************************************************
 * 文 件 名:   GoBangMinMax.cs
 * 描    述: α-β剪枝博弈树8*8五子棋产品实例
+*           实现方法：
+*              影响算法效率：
+*                  1.通过新落子判断游戏是否结束 复杂度：常数
+*                  2.计算棋盘估值 复杂度：4*TotalPiecesCnt*单串匹配代价(命中字典O(length),未命中O(length))
+*                  3.根据当前最新落子获取可落子列表 复杂度： 上次列表长度
+*                  4.下棋,使用四个坐标轴映射后棋盘优化 复杂度：常数
+*              不影响算法效率：
+*                  1.根据棋盘获取可落子列表 2.初始化棋盘 3.获取当前棋盘
+*           定义方法：
 * 版    本：  V1.0
 * 创 建 者：  Cassifa
 * 创建时间：  2024/11/26 18:36
@@ -16,7 +25,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //四个变化坐标映射的棋盘，用于优化估值速度
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
-        public GoBang88MinMax(Dictionary<string, int> RewardTable) {
+        public GoBang88MinMax(Dictionary<List<Role>, int> RewardTable) {
             maxDeep = 4; TotalPiecesCnt = 8;
             ACAutomaton = new ACAutomaton(RewardTable);
 
@@ -62,55 +71,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             int ans = 0;
             foreach (var row in NormalBoard)
                 ans += ACAutomaton.CalculateLineValue(row, role);
-            //foreach (var col in XYReversedBoard)
-            //    ans += ACAutomaton.CalculateLineValue(col, role);
-            //foreach (var mainDiagonal in MainDiagonalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(mainDiagonal, role);
-            //foreach (var antiDiagonal in AntiDiagonalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(antiDiagonal, role);
-            //return ans;
-            int n = TotalPiecesCnt;
-            for (int col = 0; col < n; col++) {
-                List<Role> column = new List<Role>();
-                for (int row = 0; row < n; row++) {
-                    column.Add(currentBoard[row][col]);
-                }
-                ans += ACAutomaton.CalculateLineValue(column, role);
-            }
-
-            // 估值主对角线
-            for (int start = 0; start <= n - 5; start++) { // 确保对角线长度 >= 5
-                List<Role> diag = new List<Role>();
-                for (int i = 0; i + start < n; i++) {
-                    diag.Add(currentBoard[i][i + start]);
-                }
-                ans += ACAutomaton.CalculateLineValue(diag, role);
-            }
-            for (int start = 1; start <= n - 5; start++) { // 主对角线另一半
-                List<Role> diag = new List<Role>();
-                for (int i = 0; i + start < n; i++) {
-                    diag.Add(currentBoard[i + start][i]);
-                }
-                ans += ACAutomaton.CalculateLineValue(diag, role);
-            }
-
-            // 估值副对角线
-            for (int start = 0; start <= n - 5; start++) { // 确保对角线长度 >= 5
-                List<Role> diag = new List<Role>();
-                for (int i = 0; i + start < n; i++) {
-                    diag.Add(currentBoard[i][n - 1 - (i + start)]);
-                }
-                ans += ACAutomaton.CalculateLineValue(diag, role);
-            }
-            for (int start = 1; start <= n - 5; start++) { // 副对角线另一半
-                List<Role> diag = new List<Role>();
-                for (int i = 0; i + start < n; i++) {
-                    diag.Add(currentBoard[i + start][n - 1 - i]);
-                }
-                ans += ACAutomaton.CalculateLineValue(diag, role);
-            }
-            if (ans > 100)
-                return ans;
+            foreach (var col in XYReversedBoard)
+                ans += ACAutomaton.CalculateLineValue(col, role);
+            foreach (var mainDiagonal in MainDiagonalBoard)
+                ans += ACAutomaton.CalculateLineValue(mainDiagonal, role);
+            foreach (var antiDiagonal in AntiDiagonalBoard)
+                ans += ACAutomaton.CalculateLineValue(antiDiagonal, role);
             return ans;
         }
 
@@ -156,6 +122,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             foreach (var t in temp) {
                 usefulSteps.Add(t.Item2);
             }
+            //成功获取可行点
             if (usefulSteps.Count > 0) return usefulSteps;
 
             if (PlayedPiecesCnt == 0)
@@ -176,17 +143,15 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             List<List<Role>> currentBoard, List<Tuple<int, int>> lastAvailableMoves,
             int lastX, int lastY) {
             List<Tuple<int, int>> newAvailableMoves = new List<Tuple<int, int>>();
-            int[] dx = { -2, -1, 0, 1, 2 };
-            int[] dy = { -2, -1, 0, 1, 2 };
-            for (int i = 0; i < 5; i++) {
-                for (int j = 0; j < 5; j++) {
-                    int newX = lastX + dx[i];
-                    int newY = lastY + dy[j];
-                    if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt ||
-                        (lastX == newX && lastY == newY)) continue;
-                    if (currentBoard[newX][newY] == Role.Empty) {
-                        newAvailableMoves.Add(new Tuple<int, int>(newX, newY));
-                    }
+            int[] dx = { -1, -1, -1, 0, 0, 1, 1, 1, -2, -2, -2, -2, -1, -1, 0, 0, 1, 1, 2, 2, 2, 2, -1, 1 };
+            int[] dy = { -1, 0, 1, -1, 1, -1, 0, 1, -2, -1, 0, 1, -2, 2, -2, 2, -2, 2, -2, -1, 0, 1, -2, -2 };
+            for (int i = 0; i < 24; i++) {
+                int newX = lastX + dx[i];
+                int newY = lastY + dy[i];
+                if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt ||
+                    (lastX == newX && lastY == newY)) continue;
+                if (currentBoard[newX][newY] == Role.Empty) {
+                    newAvailableMoves.Add(new Tuple<int, int>(newX, newY));
                 }
             }
             //上次可用点加入新表，上次可用点为浅拷贝
@@ -212,7 +177,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
         // 初始化所有维度的棋盘
-        protected override void InitBoards() {
+        protected override void InitGame() {
             int size = TotalPiecesCnt;
             NormalBoard.Clear(); XYReversedBoard.Clear();
             MainDiagonalBoard.Clear(); MainDiagonalBoard.Clear();
@@ -243,13 +208,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         protected override List<List<Role>> GetCurrentBoard() {
             return NormalBoard;
         }
-
-        //public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
-        //    if (EvalNowSituation(GetCurrentBoard(), Role.AI) >= 1_000_000) return Role.AI;
-        //    if (EvalNowSituation(GetCurrentBoard(), Role.Player) >= 1_000_000) return Role.Player;
-        //    return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;
-
-        //}
 
     }
 }

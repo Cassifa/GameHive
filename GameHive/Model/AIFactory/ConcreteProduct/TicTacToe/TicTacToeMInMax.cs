@@ -76,7 +76,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return NormalBoard;
         }
 
-        protected override void InitBoards() {
+        protected override void InitGame() {
             NormalBoard.Clear();
             for (int i = 0; i < TotalPiecesCnt; i++) {
                 NormalBoard.Add(new List<Role>(new Role[TotalPiecesCnt]));

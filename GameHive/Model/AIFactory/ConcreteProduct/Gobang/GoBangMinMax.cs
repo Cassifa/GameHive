@@ -16,7 +16,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //四个变化坐标映射的棋盘，用于优化估值速度
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
-        public GoBangMinMax(Dictionary<string, int> RewardTable) {
+        public GoBangMinMax(Dictionary<List<Role>, int> RewardTable) {
             maxDeep = 4; TotalPiecesCnt = 15;
             ACAutomaton = new ACAutomaton(RewardTable);
 
@@ -24,8 +24,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             XYReversedBoard = new List<List<Role>>(TotalPiecesCnt);
             MainDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
             AntiDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
-            InitBoards();
         }
+
         /*****实现七个博弈树策略*****/
         //判断游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
@@ -57,8 +57,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return Role.Empty;
         }
 
-
-        //单次代价10(期望查找)*4*22(行列数量)=880次
+        //单次代价10(期望查找)*4(棋盘数量)*22(行列数量)=460次
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
             int ans = 0;
             foreach (var row in NormalBoard)
@@ -72,27 +71,51 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return ans;
         }
 
-        // 获取所有可下棋点位
+
+        // 获取所有可下棋点位-周围两格距离内有落子过
         protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
             var usefulSteps = new List<Tuple<int, int>>();
-            int[] dx = { -2, -1, 0, 1, 2 };
-            int[] dy = { -2, -1, 0, 1, 2 };
-            //寻找所有落子点附近的可用位置
-            for (int i = 0; i < TotalPiecesCnt; i++)
-                for (int j = 0; j < TotalPiecesCnt; j++) {
-                    if (board[i][j] == Role.Empty) continue;
-                    // 在落子点周围扩展
-                    for (int a = 0; a < 5; a++) {
-                        for (int b = 0; b < 5; b++) {
-                            int newX = i + dx[a];
-                            int newY = j + dy[b];
-                            if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt || (i == newX && j == newY)) continue;
-                            if (board[newX][newY] == Role.Empty) {
-                                usefulSteps.Add(new Tuple<int, int>(newX, newY));
-                            }
-                        }
+            int[,] priorityMap = new int[board.Count, board[0].Count];
+            // 初始化优先级表
+            for (int i = 0; i < board.Count; i++) {
+                for (int j = 0; j < board[i].Count; j++) {
+                    if (board[i][j] != Role.Empty) {
+                        priorityMap[i, j] = int.MinValue;
                     }
                 }
+            }
+            // 添加权重
+            int[] dx = { -1, -1, -1, 0, 0, 1, 1, 1,  // 内圈
+             -2, -2, -2, -2, -1, -1, 0, 0, 1, 1, 2, 2, 2, 2, -1, 1 }; // 外圈
+            int[] dy = { -1, 0, 1, -1, 1, -1, 0, 1,
+             -2, -1, 0, 1, -2, 2, -2, 2, -2, 2, -2, -1, 0, 1, -2, -2 };
+            for (int i = 0; i < board.Count; i++) {
+                for (int j = 0; j < board[i].Count; j++) {
+                    if (board[i][j] == Role.Empty) continue;
+                    for (int k = 0; k < 24; k++) {
+                        int x = i + dx[k], y = j + dy[k];
+                        if (x < 0 || y < 0 || x >= board.Count || y >= board[0].Count) continue;
+                        int power = (k < 8) ? 2 : 1; // 内圈权重更高
+                        priorityMap[x, y] += power;
+                    }
+                }
+            }
+            // 收集所有有效点位并排序
+            var temp = new List<Tuple<int, Tuple<int, int>>>();
+            for (int i = 0; i < board.Count; i++) {
+                for (int j = 0; j < board[i].Count; j++) {
+                    if (priorityMap[i, j] > 0) {
+                        temp.Add(new Tuple<int, Tuple<int, int>>(priorityMap[i, j], new Tuple<int, int>(i, j)));
+                    }
+                }
+            }
+            temp.Sort((a, b) => b.Item1.CompareTo(a.Item1));
+            foreach (var t in temp) {
+                usefulSteps.Add(t.Item2);
+            }
+            //成功获取可行点
+            if (usefulSteps.Count > 0) return usefulSteps;
+
             if (PlayedPiecesCnt == 0)
                 usefulSteps.Add(new Tuple<int, int>(board.Count / 2, board[0].Count / 2));
             else {
@@ -111,17 +134,15 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             List<List<Role>> currentBoard, List<Tuple<int, int>> lastAvailableMoves,
             int lastX, int lastY) {
             List<Tuple<int, int>> newAvailableMoves = new List<Tuple<int, int>>();
-            int[] dx = { -2, -1, 0, 1, 2 };
-            int[] dy = { -2, -1, 0, 1, 2 };
-            for (int i = 0; i < 5; i++) {
-                for (int j = 0; j < 5; j++) {
-                    int newX = lastX + dx[i];
-                    int newY = lastY + dy[j];
-                    if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt ||
-                        (lastX == newX && lastY == newY)) continue;
-                    if (currentBoard[newX][newY] == Role.Empty) {
-                        newAvailableMoves.Add(new Tuple<int, int>(newX, newY));
-                    }
+            int[] dx = { -1, -1, -1, 0, 0, 1, 1, 1, -2, -2, -2, -2, -1, -1, 0, 0, 1, 1, 2, 2, 2, 2, -1, 1 };
+            int[] dy = { -1, 0, 1, -1, 1, -1, 0, 1, -2, -1, 0, 1, -2, 2, -2, 2, -2, 2, -2, -1, 0, 1, -2, -2 };
+            for (int i = 0; i < 24; i++) {
+                int newX = lastX + dx[i];
+                int newY = lastY + dy[i];
+                if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt ||
+                    (lastX == newX && lastY == newY)) continue;
+                if (currentBoard[newX][newY] == Role.Empty) {
+                    newAvailableMoves.Add(new Tuple<int, int>(newX, newY));
                 }
             }
             //上次可用点加入新表，上次可用点为浅拷贝
@@ -132,8 +153,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
 
+
         //在x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
+            //if (x == -1 || (NormalBoard[x][y] != Role.Empty && role != Role.Empty)) return;
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
             NormalBoard[x][y] = role;
@@ -144,8 +167,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             AntiDiagonalBoard[x + y][x + y < TotalPiecesCnt ? x : TotalPiecesCnt - y - 1] = role;
         }
 
-        //初始化所有维度的棋盘
-        protected override void InitBoards() {
+        // 初始化所有维度的棋盘
+        protected override void InitGame() {
             int size = TotalPiecesCnt;
             NormalBoard.Clear(); XYReversedBoard.Clear();
             MainDiagonalBoard.Clear(); MainDiagonalBoard.Clear();

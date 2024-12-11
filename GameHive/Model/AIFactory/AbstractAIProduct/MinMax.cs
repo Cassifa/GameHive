@@ -25,7 +25,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected int DefendBias = 4, AttackBias = 6;
         private Tuple<int, int>? FinalDecide;
         //初始化棋盘
-        protected abstract void InitBoards();
+        protected abstract void InitGame();
         //获取可下棋点位
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
         //使用历史可用与最新落子获取最新可用
@@ -84,7 +84,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         nowDec = move;
                         alpha = Math.Max(alpha, nowRoundScore);
                     }
-                    if (alpha >= beta) break;
+                    if (alpha >= beta) 
+                        break;
                 }
             } else {
                 nowScore = int.MaxValue;
@@ -97,7 +98,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         nowDec = move;
                         beta = Math.Min(beta, nowRoundScore);
                     }
-                    if (alpha >= beta) break;
+                    if (alpha >= beta) 
+                        break;
                 }
 
             }
@@ -109,7 +111,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //游戏开始
         public override void GameStart(bool IsAIFirst) {
             PlayedPiecesCnt = 0;
-            InitBoards();
+            InitGame();
         }
 
         /*****博弈树不需要*****/
