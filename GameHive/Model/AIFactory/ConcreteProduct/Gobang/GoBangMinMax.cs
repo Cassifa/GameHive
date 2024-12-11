@@ -1,9 +1,9 @@
 ﻿/*************************************************************************************
- * 文 件 名:   GoBangMinMax.cs
- * 描    述: α-β剪枝博弈树五子棋产品实例
- * 版    本：  V1.0
- * 创 建 者：  Cassifa
- * 创建时间：  2024/11/26 18:36
+* 文 件 名:   GoBangMinMax.cs
+* 描    述: α-β剪枝博弈树五子棋产品实例
+* 版    本：  V1.0
+* 创 建 者：  Cassifa
+* 创建时间：  2024/11/26 18:36
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
@@ -14,18 +14,17 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //AC自动机执行工具类
         protected ACAutomaton ACAutomaton;
         //四个变化坐标映射的棋盘，用于优化估值速度
-        private List<List<Role>> Board;
-        private List<string> NormalBoard, XYReversedBoard;
-        private List<string> MainDiagonalBoard, AntiDiagonalBoard;
+        private List<List<Role>> NormalBoard, XYReversedBoard;
+        private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
         public GoBangMinMax(Dictionary<string, int> RewardTable) {
             maxDeep = 4; TotalPiecesCnt = 15;
             ACAutomaton = new ACAutomaton(RewardTable);
 
-            Board = new List<List<Role>>(TotalPiecesCnt);
-            NormalBoard = new List<string>(TotalPiecesCnt);
-            XYReversedBoard = new List<string>(TotalPiecesCnt);
-            MainDiagonalBoard = new List<string>(TotalPiecesCnt * 2 - 1);
-            AntiDiagonalBoard = new List<string>(TotalPiecesCnt * 2 - 1);
+            NormalBoard = new List<List<Role>>(TotalPiecesCnt);
+            XYReversedBoard = new List<List<Role>>(TotalPiecesCnt);
+            MainDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
+            AntiDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
+            InitBoards();
         }
         /*****实现七个博弈树策略*****/
         //判断游戏是否结束
@@ -58,12 +57,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return Role.Empty;
         }
 
-        //public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
-        //    if (EvalNowSituation(GetCurrentBoard(), Role.AI) >= 1_000_000) return Role.AI;
-        //    if (EvalNowSituation(GetCurrentBoard(), Role.Player) >= 1_000_000) return Role.Player;
-        //    return PlayedPiecesCnt == TotalPiecesCnt * TotalPiecesCnt ? Role.Draw : Role.Empty;
-
-        //}
 
         //单次代价10(期望查找)*4*22(行列数量)=880次
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
@@ -80,8 +73,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
         // 获取所有可下棋点位
-        protected override HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
-            var usefulSteps = new HashSet<Tuple<int, int>>();
+        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+            var usefulSteps = new List<Tuple<int, int>>();
             int[] dx = { -2, -1, 0, 1, 2 };
             int[] dy = { -2, -1, 0, 1, 2 };
             //寻找所有落子点附近的可用位置
@@ -111,27 +104,31 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return usefulSteps;
         }
 
-        //使用历史可用与最新落子获取最新可用-从历史可落子点位中移除已不可用的点，添加新可用点，返回深拷贝
-        protected override HashSet<Tuple<int, int>> GetAvailableMovesByNewPieces(
-            List<List<Role>> currentBoard, HashSet<Tuple<int, int>> lastAvailableMoves,
+        //使用历史可用与最新落子获取最新可用
+        //从历史可落子点位中移除本次落子点(若存在)
+        //添加新可用点至表头，老可用点引用传入，返回深拷贝列表(老可用点为浅拷贝)
+        protected override List<Tuple<int, int>> GetAvailableMovesByNewPieces(
+            List<List<Role>> currentBoard, List<Tuple<int, int>> lastAvailableMoves,
             int lastX, int lastY) {
-            HashSet<Tuple<int, int>> newSet = new HashSet<Tuple<int, int>>(lastAvailableMoves);
-            //移除
-            var lastMove = new Tuple<int, int>(lastX, lastY);
-            newSet.Remove(lastMove);
+            List<Tuple<int, int>> newAvailableMoves = new List<Tuple<int, int>>();
             int[] dx = { -2, -1, 0, 1, 2 };
             int[] dy = { -2, -1, 0, 1, 2 };
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
                     int newX = lastX + dx[i];
                     int newY = lastY + dy[j];
-                    if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt || (lastX == newX && lastY == newY)) continue;
+                    if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt ||
+                        (lastX == newX && lastY == newY)) continue;
                     if (currentBoard[newX][newY] == Role.Empty) {
-                        newSet.Add(new Tuple<int, int>(newX, newY));
+                        newAvailableMoves.Add(new Tuple<int, int>(newX, newY));
                     }
                 }
             }
-            return newSet;
+            //上次可用点加入新表，上次可用点为浅拷贝
+            foreach (var move in lastAvailableMoves)
+                if (move.Item1 != lastX || move.Item2 != lastY)
+                    newAvailableMoves.Add(move);
+            return newAvailableMoves;
         }
 
 
@@ -139,57 +136,45 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         protected override void PlayChess(int x, int y, Role role) {
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
-            Board[x][y] = role;
-            char charRole = role == Role.Empty ? '_' : (role == Role.AI ? 'A' : 'P');
-
-            var normalRowChars = NormalBoard[x].ToCharArray();
-            normalRowChars[y] = charRole;
-            NormalBoard[x] = new string(normalRowChars);
-            var xyRowChars = XYReversedBoard[y].ToCharArray();
-            xyRowChars[x] = charRole;
-            XYReversedBoard[y] = new string(xyRowChars);
-
+            NormalBoard[x][y] = role;
+            XYReversedBoard[y][x] = role;
             //主对角线从左下到右上0~2*TotalPiecesCnt-1
-            int mainDiagonalIndex = TotalPiecesCnt - (x - y) - 1;
-            var mainDiagonalRowChars = MainDiagonalBoard[mainDiagonalIndex].ToCharArray();
-            mainDiagonalRowChars[x - y > 0 ? y : x] = charRole;
-            MainDiagonalBoard[mainDiagonalIndex] = new string(mainDiagonalRowChars);
+            MainDiagonalBoard[TotalPiecesCnt - (x - y) - 1][x - y > 0 ? y : x] = role;
             //反对角线从左上到右下0~2*TotalPiecesCnt-1
-            var antiDiagonalRowChars = AntiDiagonalBoard[x + y].ToCharArray();
-            antiDiagonalRowChars[x + y < TotalPiecesCnt ? x : TotalPiecesCnt - y - 1] = charRole;
-            AntiDiagonalBoard[x + y] = new string(antiDiagonalRowChars);
+            AntiDiagonalBoard[x + y][x + y < TotalPiecesCnt ? x : TotalPiecesCnt - y - 1] = role;
         }
 
         //初始化所有维度的棋盘
         protected override void InitBoards() {
             int size = TotalPiecesCnt;
-            Board.Clear();
             NormalBoard.Clear(); XYReversedBoard.Clear();
             MainDiagonalBoard.Clear(); MainDiagonalBoard.Clear();
-            for (int i = 0; i < size; i++) 
-                Board.Add(new List<Role>(new Role[size]));
-            NormalBoard = new List<string>(size);
-            XYReversedBoard = new List<string>(size);
-            MainDiagonalBoard = new List<string>(2 * size - 1);
-            AntiDiagonalBoard = new List<string>(2 * size - 1);
-
-            // 初始化 NormalBoard 和 XYReversedBoard
             for (int i = 0; i < size; i++) {
-                NormalBoard.Add(new string('E', size)); // 'E' 表示 Role.Empty
-                XYReversedBoard.Add(new string('E', size));
+                NormalBoard.Add(new List<Role>(new Role[size]));
+                XYReversedBoard.Add(new List<Role>(new Role[size]));
+            }
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++) {
+                    NormalBoard[i][j] = Role.Empty;
+                    XYReversedBoard[j][i] = Role.Empty;
+                }
+            for (int i = 0; i < 2 * size - 1; i++) {
+                // 计算每条对角线的长度
+                int diagonalLength = (i < size) ? (i + 1) : (2 * size - 1 - i);
+                MainDiagonalBoard.Add(new List<Role>(new Role[diagonalLength]));
+                AntiDiagonalBoard.Add(new List<Role>(new Role[diagonalLength]));
             }
 
-            // 初始化 MainDiagonalBoard 和 AntiDiagonalBoard
-            for (int i = 0; i < 2 * size - 1; i++) {
-                int diagonalLength = (i < size) ? (i + 1) : (2 * size - 1 - i);
-                MainDiagonalBoard.Add(new string('E', diagonalLength));
-                AntiDiagonalBoard.Add(new string('E', diagonalLength));
-            }
+            for (int i = 0; i < 2 * size - 1; i++)
+                for (int j = 0; j < (i < size ? i + 1 : 2 * size - 1 - i); j++) {
+                    MainDiagonalBoard[i][j] = Role.Empty;
+                    AntiDiagonalBoard[i][j] = Role.Empty;
+                }
         }
 
         //获取当前的棋盘
         protected override List<List<Role>> GetCurrentBoard() {
-            return Board;
+            return NormalBoard;
         }
     }
 }

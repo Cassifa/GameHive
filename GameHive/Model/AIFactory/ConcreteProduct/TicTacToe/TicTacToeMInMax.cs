@@ -49,8 +49,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
         // 获取所有可下棋点位
-        protected override HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
-            var moves = new HashSet<Tuple<int, int>>();
+        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+            var moves = new List<Tuple<int, int>>();
             for (int i = 0; i < board.Count; i++) {
                 for (int j = 0; j < board[i].Count; j++) {
                     if (board[i][j] == Role.Empty) {
@@ -60,7 +60,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             return moves;
         }
-        protected override HashSet<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard, HashSet<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+        protected override List<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             return GetAvailableMoves(currentBoard);
         }
 

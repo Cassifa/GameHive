@@ -1,9 +1,9 @@
 ﻿/*************************************************************************************
- * 文 件 名:   ACAutomaton.cs
- * 描    述: AC自动机工具类，通过得分规则构造自动机，并且提供估值方法
- * 版    本：  V1.0
- * 创 建 者：  Cassifa
- * 创建时间：  2024/12/6 15:15
+* 文 件 名:   ACAutomaton.cs
+* 描    述: AC自动机工具类，通过得分规则构造自动机，并且提供估值方法
+* 版    本：  V1.0
+* 创 建 者：  Cassifa
+* 创建时间：  2024/12/6 15:15
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using System.Text.RegularExpressions;
@@ -30,7 +30,11 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
         }
 
         // 计算一组序列对于 role 的价值
-        public int CalculateLineValue(string mode, Role role) {
+        public int CalculateLineValue(List<Role> list, Role role) {
+            string mode = string.Join("", list.Select(item =>
+                item == Role.AI ? "A" :
+                item == Role.Player ? "P" :
+                "E"));
             int score = 0;
             if (role == Role.AI) {
                 if (AIScoreTable.TryGetValue(mode, out score))

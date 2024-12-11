@@ -27,10 +27,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //初始化棋盘
         protected abstract void InitBoards();
         //获取可下棋点位
-        protected abstract HashSet<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
-        //使用上次局面可落子点与本次落子信息获取当前可落子点，返回的是深拷贝
-        protected abstract HashSet<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard,
-                    HashSet<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY);
+        protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
+        //使用历史可用与最新落子获取最新可用
+        //从历史可落子点位中移除本次落子点(若存在)
+        //添加新可用点至表头，老可用点引用传入，返回深拷贝列表(老可用点为浅拷贝)
+        protected abstract List<Tuple<int, int>> GetAvailableMovesByNewPieces(
+            List<List<Role>> currentBoard, List<Tuple<int, int>> lastAvailableMoves,
+            int lastX, int lastY);
         protected abstract int EvalNowSituation(List<List<Role>> currentBoard, Role role);
         //在算法备份的棋盘上落子
         protected abstract void PlayChess(int x, int y, Role role);
@@ -42,7 +45,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             //收到玩家移动，更新棋盘
             if (lastX != -1)
                 PlayChess(lastX, lastY, Role.Player);
-            HashSet<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
+            List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
             //计算最优值
             EvalToGo(0, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
             //AI下棋
@@ -53,7 +56,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //执行博弈树搜索
         private int EvalToGo(int depth, int alpha, int beta,
-                HashSet<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+                List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             // 检查当前局面的胜负情况
             Role winner = CheckGameOverByPiece(GetCurrentBoard(), lastX, lastY);
             if (winner == Role.Draw) return 0;
