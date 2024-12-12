@@ -12,7 +12,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            SearchCount = 1000;
+            SearchCount = 10000;
         }
         /*****实现三个策略*****/
         //根据某次落子查看游戏是否结束
