@@ -8,6 +8,7 @@
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
+using GameHive.Model.AIFactory.ConcreteProduct.AntiGo;
 
 namespace GameHive.Model.AIFactory {
     internal class AntiGoFactory : AbstractFactory {
@@ -25,15 +26,15 @@ namespace GameHive.Model.AIFactory {
             throw new NotImplementedException();
         }
         public override MinMax GetMinMaxProduct() {
-            throw new NotImplementedException();
+            return new AntiGoMinMax();
         }
 
         //单例模式
         private static AntiGoFactory _instance;
         private AntiGoFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
-                AIAlgorithmType.MCTS,
                 AIAlgorithmType.MinMaxMCTS,
+                AIAlgorithmType.MCTS,
             };
             boardInfo = new GameBoardInfo(7, true, aiTypes);
         }

@@ -62,7 +62,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         }
 
         //获取UCB,被父节点调用，父子节点视角不同
-        private double GetUCB() {
+        public double GetUCB() {
             int N = Father.VisitedTimes;
             if (VisitedTimes == 0) return double.PositiveInfinity;
             double ans = 1.0 * TotalValue / (double)VisitedTimes
