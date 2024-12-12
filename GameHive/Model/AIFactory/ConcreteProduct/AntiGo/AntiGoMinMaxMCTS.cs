@@ -12,9 +12,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMinMaxMCTS : MinMaxMCTS {
         private List<List<Role>> board;
         public AntiGoMinMaxMCTS() {
-            maxDeep = 2;
+            maxDeep = 10;
             TotalPiecesCnt = 7;
-            SearchCount = 500;
+            SearchCount = 300;
+            OnlyMCTSSearchCount = 7000;
             board = new List<List<Role>>(TotalPiecesCnt);
         }
         //根据某次落子查看游戏是否结束
@@ -76,6 +77,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
         protected override void PlayChess(int x, int y, Role role) {
+            if (role == Role.Empty) PlayedPiecesCnt--;
+            else PlayedPiecesCnt++;
             board[x][y] = role;
         }
 

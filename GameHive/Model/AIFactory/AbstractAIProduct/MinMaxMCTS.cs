@@ -14,6 +14,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected int maxDeep;
         //搜索轮数
         protected int SearchCount;
+        protected int OnlyMCTSSearchCount;
         protected MCTSNode? RootNode;
         private Tuple<int, int>? FinalDecide;
         //当前已经落子数量
@@ -37,12 +38,21 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             if (lastX != -1)
                 PlayChess(lastX, lastY, Role.Player);
             List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
-            //计算最优值
-            EvalToGo(0, double.NegativeInfinity, double.PositiveInfinity, lastAvailableMoves, lastX, lastY);
-            //AI下棋
-            PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
-            //计算出AI移动，跟新棋盘
-            return FinalDecide;
+            if (PlayedPiecesCnt < TotalPiecesCnt * TotalPiecesCnt / 2) {
+                //起步时规模时只用蒙特卡洛
+                RootNode = new MCTSNode(GetCurrentBoard(), null, lastX, lastY, Role.Player, Role.Empty, lastAvailableMoves);
+                for (int i = 0; i < OnlyMCTSSearchCount; i++)
+                    SimulationOnce();
+                MCTSNode aim = RootNode.GetGreatestUCB();
+                return aim.PieceSelectedCompareToFather;
+            } else {
+                //后期使用博弈树提升精度
+                EvalToGo(0, double.NegativeInfinity, double.PositiveInfinity, lastAvailableMoves, lastX, lastY);
+                //AI下棋
+                PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
+                //计算出AI移动，跟新棋盘
+                return FinalDecide;
+            }
         }
 
         //执行博弈树搜索
@@ -54,7 +64,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             else if (winner == Role.AI) return 1_000_000;
             else if (winner == Role.Player) return -1_000_000;
             if (depth == maxDeep)
-                return EvalNowSituation(GetCurrentBoard(), lastX, lastY, Role.AI, GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY));
+                return EvalNowSituation(GetCurrentBoard(), lastX, lastY, Role.Player, GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY));
             bool IsAi = ((depth % 2) == 0);
             double nowScore; Tuple<int, int>? nowDec = null;
             //根据上一步操作获取下一步可行点位
