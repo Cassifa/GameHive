@@ -15,32 +15,80 @@ using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
-        //搜索轮数
+        //游戏搜索轮数
         protected int SearchCount;
+        //单次线程最小搜索次数，达到后释放一次锁
+        private int MinSearchCount = 1000;
+        //互斥期间搜索次数
+        private int AIMoveSearchCount;
+        //互斥锁
+        Mutex mutex = new Mutex();
+        //游戏结束信号
+        private volatile bool end = false;
+        protected int TotalPiecesCnt;
         protected MCTSNode RootNode;
-        protected List<List<Role>> currentBoard;
+
         //获取可行落子
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
 
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
-            Role winner;
-            //AI先手会根据(-1,-1)构造初始棋盘
-            if (lastX == -1) winner = Role.Empty;
-            else winner = CheckGameOverByPiece(currentBoard, lastX, lastY);
-            RootNode = new MCTSNode(currentBoard, null, lastX, lastY, Role.Player,
-                winner, GetAvailableMoves(currentBoard));
-            return EvalToGo();
+            //争夺锁，换根
+            lock (mutex) {
+                Role winner;
+                //AI先手会根据(-1,-1)构造初始棋盘
+                if (lastX == -1) winner = Role.Empty;
+                else winner = CheckGameOverByPiece(currentBoard, lastX, lastY);
+                RootNode = RootNode.MoveRoot(lastX, lastY);
+                AIMoveSearchCount = 0;
+                //释放锁并等待搜索线程通知-收到通知后判断是否达标
+                while (AIMoveSearchCount < SearchCount)
+                    Monitor.Wait(mutex);
+                Tuple<int, int> AIDecision = RootNode.GetGreatestUCB().PieceSelectedCompareToFather;
+                RootNode = RootNode.MoveRoot(AIDecision.Item1, AIDecision.Item2);
+                return AIDecision;
+            }
         }
 
-        //调用蒙特卡洛获取下一步
-        private Tuple<int, int> EvalToGo() {
-            //模拟两百轮
-            for (int i = 0; i < SearchCount; i++)
-                SimulationOnce();
-            SimulationOnce();
-            MCTSNode aim = RootNode.GetGreatestUCB();
-            return aim.PieceSelectedCompareToFather;
+        //执行一次搜索任务
+        private void EvalToGo() {
+            //一直执行直到结束
+            while (!end) {
+                lock (mutex) {
+                    //搜最小单元后释放一次锁
+                    for (int i = 0; i < MinSearchCount; i++)
+                        SimulationOnce();
+                    AIMoveSearchCount += MinSearchCount;
+                    Monitor.Pulse(mutex);
+                }
+            }
         }
+
+        //游戏开始-初始化根节点，启动搜索线程
+        public override void GameStart(bool IsAIFirst) {
+            //创建根节点
+            List<List<Role>> board = new List<List<Role>>(TotalPiecesCnt);
+            List<Tuple<int, int>> moves = new List<Tuple<int, int>>();
+            for (int i = 0; i < TotalPiecesCnt; i++) {
+                List<Role> row = new List<Role>(TotalPiecesCnt);
+                for (int j = 0; j < TotalPiecesCnt; j++) {
+                    moves.Add(new Tuple<int, int>(i, j));
+                    row.Add(Role.Empty);
+                }
+                board.Add(row);
+            }
+            Role WhoLeadTo = Role.AI;
+            if (IsAIFirst) WhoLeadTo = Role.Player;
+            RootNode = new MCTSNode(board, null, -1, -1, WhoLeadTo, Role.Empty, moves);
+            //启动搜索任务
+            Task.Run(() => EvalToGo());
+        }
+
+
+        //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
+        public override void GameForcedEnd() {
+            end = true;
+        }
+
         //运行一次蒙特卡洛过程
         private void SimulationOnce() {
             MCTSNode SimulationAim = Selection(RootNode);
@@ -100,11 +148,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
 
 
+
         //用户下棋
         public override void UserPlayPiece(int lastX, int lastY) { }
-        //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
-        public override void GameForcedEnd() { }
-        //游戏开始
-        public override void GameStart(bool IsAIFirst) { }
     }
 }

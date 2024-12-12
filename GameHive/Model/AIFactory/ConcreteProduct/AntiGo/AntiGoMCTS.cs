@@ -7,14 +7,12 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
-
+using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
-        private int TotalPiecesCnt;
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            SearchCount = 10000;
-            currentBoard = new List<List<Role>>(TotalPiecesCnt);
+            SearchCount = 1000;
         }
         /*****实现三个策略*****/
         //根据某次落子查看游戏是否结束
@@ -66,6 +64,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 availableMoves.Add(emptyMoves[0]);
             return availableMoves;
         }
+
 
     }
 }

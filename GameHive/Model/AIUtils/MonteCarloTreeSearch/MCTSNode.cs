@@ -25,7 +25,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
 
             //初始化数据结构
             NodeBoard = board;
-            ChildrenMap = new Dictionary<Tuple<int, int>, MCTSNode>();
+            ChildrenMap = new Dictionary<int, MCTSNode>();
             AvailablePiece = availablePiece;
         }
         //当前视角下当前节点价值，胜利＋1，失败-1 平局0
@@ -43,9 +43,9 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         //相比与父节点哪里落子了
         public Tuple<int, int> PieceSelectedCompareToFather { get; set; }
         //父节点
-        MCTSNode Father;
+        MCTSNode? Father;
         //落子-孩子的地图
-        public Dictionary<Tuple<int, int>, MCTSNode> ChildrenMap { get; set; }
+        public Dictionary<int, MCTSNode> ChildrenMap { get; set; }
         //可落子地方
         public List<Tuple<int, int>> AvailablePiece { get; set; }
 
@@ -60,7 +60,13 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
                 currentPropagate = currentPropagate.Father;
             }
         }
-
+        //换根
+        public MCTSNode MoveRoot(int x, int y) {
+            MCTSNode son = ChildrenMap[x * 100 + y];
+            //释放父节点内存
+            son.Father = null;
+            return son;
+        }
         //获取UCB,被父节点调用，父子节点视角不同
         public double GetUCB() {
             int N = Father.VisitedTimes;
@@ -74,7 +80,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         public MCTSNode GetGreatestUCB() {
             MCTSNode chosenSon = null;
             double maxValue = double.NegativeInfinity;
-            foreach (KeyValuePair<Tuple<int, int>, MCTSNode> entry in ChildrenMap) {
+            foreach (var entry in ChildrenMap) {
                 MCTSNode node = entry.Value;
                 double t = node.GetUCB();
                 if (t > maxValue) {
@@ -95,7 +101,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
 
         //加入一个子节点
         public void AddSon(MCTSNode son, int x, int y) {
-            ChildrenMap[new Tuple<int, int>(x, y)] = son;
+            ChildrenMap[x * 100 + y] = son;
         }
     }
 }

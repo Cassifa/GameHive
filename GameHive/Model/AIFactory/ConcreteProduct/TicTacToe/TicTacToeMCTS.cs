@@ -11,11 +11,9 @@ using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class TicTacToeMCTS : MCTS {
-        private int TotalPiecesCnt;
         public TicTacToeMCTS() {
             TotalPiecesCnt = 3;
             SearchCount = 200000;
-            currentBoard = new List<List<Role>>(TotalPiecesCnt);
         }
         /*****实现两个策略*****/
         //根据某次落子查看游戏是否结束
@@ -58,20 +56,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return ans;
         }
 
-        //开始游戏，启动蒙特卡洛搜索线程，后台搜索
-        public override void GameStart(bool IsAIFirst) {
-            //初始化棋盘
-            for (int i = 0; i < TotalPiecesCnt; i++)
-                currentBoard.Add(new List<Role>(new Role[TotalPiecesCnt]));
-            for (int i = 0; i < TotalPiecesCnt; i++)
-                for (int j = 0; j < TotalPiecesCnt; j++)
-                    currentBoard[i][j] = Role.Empty;
-            //构造根节点
-            Role role;
-            if (IsAIFirst) role = Role.Player;
-            else role = Role.AI;
-            RootNode = new MCTSNode(currentBoard, null, -1, -1, role, Role.Empty, GetAvailableMoves(currentBoard));
-        }
 
     }
 }

@@ -33,8 +33,8 @@ namespace GameHive.Model.AIFactory {
         private static AntiGoFactory _instance;
         private AntiGoFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
-                AIAlgorithmType.MinMaxMCTS,
                 AIAlgorithmType.MCTS,
+                AIAlgorithmType.MinMaxMCTS,
             };
             boardInfo = new GameBoardInfo(7, true, aiTypes);
         }

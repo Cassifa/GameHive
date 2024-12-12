@@ -14,7 +14,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         public MisereTicTacToeMCTS() {
             TotalPiecesCnt = 3;
             SearchCount = 200000;
-            currentBoard = new List<List<Role>>(TotalPiecesCnt);
         }
         /*****实现两个策略*****/
         //根据某次落子查看游戏是否结束
