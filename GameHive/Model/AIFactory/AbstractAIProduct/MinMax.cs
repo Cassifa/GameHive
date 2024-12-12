@@ -8,6 +8,7 @@
  *                    3.PlayChess下棋，更新本地保存的棋盘
  *                    4.GetCurrentBoard获取当前棋盘
  *                    5.GetAvailableMovesByNewPieces使用上次局面、上次可落子点、本次落子点获取本次可落子点
+ *                    6.计算是否可杀棋(提供默认空实现)
  * 版    本：  V1.0
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:11
@@ -17,7 +18,7 @@ using GameHive.Constants.RoleTypeEnum;
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MinMax : AbstractAIStrategy {
         //最大搜索深度；
-        protected int maxDeep;
+        protected int maxDeep, killingMaxDeep;
         //当前已经落子数量
         protected int PlayedPiecesCnt;
         protected int TotalPiecesCnt;
@@ -39,13 +40,25 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected abstract void PlayChess(int x, int y, Role role);
         //获取当前棋盘
         protected abstract List<List<Role>> GetCurrentBoard();
-
+        //计算VCT杀棋
+        protected virtual Tuple<int, int>? VCT(Role type, int depth, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+            return null;
+        }
         //获取下一步移动
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //收到玩家移动，更新棋盘
             if (lastX != -1)
                 PlayChess(lastX, lastY, Role.Player);
             List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
+            //总共已经落子的大于5则考虑杀棋
+            if (PlayedPiecesCnt > 5) {
+                Tuple<int, int>? KillingMove = VCT(Role.AI, 0, lastAvailableMoves, lastX, lastY);
+                if (KillingMove != null) {
+                    PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
+                    return KillingMove;
+                }
+            }
+
             //计算最优值
             EvalToGo(0, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
             //AI下棋
@@ -84,7 +97,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         nowDec = move;
                         alpha = Math.Max(alpha, nowRoundScore);
                     }
-                    if (alpha >= beta) 
+                    if (alpha >= beta)
                         break;
                 }
             } else {
@@ -98,7 +111,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         nowDec = move;
                         beta = Math.Min(beta, nowRoundScore);
                     }
-                    if (alpha >= beta) 
+                    if (alpha >= beta)
                         break;
                 }
 

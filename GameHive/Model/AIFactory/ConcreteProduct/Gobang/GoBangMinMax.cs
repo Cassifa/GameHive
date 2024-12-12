@@ -8,8 +8,10 @@
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIUtils.AlgorithmUtils;
+using GameHive.Model.AIUtils.AlphaBetaPruning;
 
-namespace GameHive.Model.AIFactory.ConcreteProduct {
+namespace GameHive.Model.AIFactory.ConcreteProduct
+{
     internal class GoBangMinMax : MinMax {
         //AC自动机执行工具类
         protected ACAutomaton ACAutomaton;
@@ -60,24 +62,24 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //单次代价10(期望查找)*4(棋盘数量)*22(行列数量)=460次
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
             int ans = 0;
-            foreach (var row in NormalBoard)
-                ans += ACAutomaton.CalculateLineValue(row);
-            foreach (var col in XYReversedBoard)
-                ans += ACAutomaton.CalculateLineValue(col);
-            foreach (var mainDiagonal in MainDiagonalBoard)
-                ans += ACAutomaton.CalculateLineValue(mainDiagonal);
-            foreach (var antiDiagonal in AntiDiagonalBoard)
-                ans += ACAutomaton.CalculateLineValue(antiDiagonal);
-            return ans;
             //foreach (var row in NormalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(row, role);
+            //    ans += ACAutomaton.CalculateLineValue(row);
             //foreach (var col in XYReversedBoard)
-            //    ans += ACAutomaton.CalculateLineValue(col, role);
+            //    ans += ACAutomaton.CalculateLineValue(col);
             //foreach (var mainDiagonal in MainDiagonalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(mainDiagonal, role);
+            //    ans += ACAutomaton.CalculateLineValue(mainDiagonal);
             //foreach (var antiDiagonal in AntiDiagonalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(antiDiagonal, role);
+            //    ans += ACAutomaton.CalculateLineValue(antiDiagonal);
             //return ans;
+            foreach (var row in NormalBoard)
+                ans += ACAutomaton.CalculateLineValue(row, role);
+            foreach (var col in XYReversedBoard)
+                ans += ACAutomaton.CalculateLineValue(col, role);
+            foreach (var mainDiagonal in MainDiagonalBoard)
+                ans += ACAutomaton.CalculateLineValue(mainDiagonal, role);
+            foreach (var antiDiagonal in AntiDiagonalBoard)
+                ans += ACAutomaton.CalculateLineValue(antiDiagonal, role);
+            return ans;
         }
 
 

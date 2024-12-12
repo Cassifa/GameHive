@@ -6,10 +6,9 @@
  * 创建时间：  2024/11/26 20:35
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
-using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
-using GameHive.Model.AIUtils.AlgorithmUtils;
+using GameHive.Model.AIUtils.AlphaBetaPruning;
 
 namespace GameHive.Model.AIFactory {
     internal class Gobang88Factory : AbstractFactory {
@@ -19,7 +18,7 @@ namespace GameHive.Model.AIFactory {
         }
 
         public override MinMax GetMinMaxProduct() {
-            return new GoBang88MinMax(RewardTableUtil.GetGOBangRewardTable());
+            return new GoBang88MinMax(RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
         }
 
         /*——————————不可用———————————*/

@@ -9,9 +9,10 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
-using GameHive.Model.AIUtils.AlgorithmUtils;
+using GameHive.Model.AIUtils.AlphaBetaPruning;
 
-namespace GameHive.Model.AIFactory {
+namespace GameHive.Model.AIFactory
+{
     internal class GobangFactory : AbstractFactory {
 
         public override MinMax GetMinMaxProduct() {
