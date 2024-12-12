@@ -52,7 +52,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
             //总共已经落子的大于5则考虑杀棋
             if (PlayedPiecesCnt > 5) {
-                Tuple<int, int>? KillingMove = VCT(Role.AI, 0, lastAvailableMoves, lastX, lastY);
+                Tuple<int, int>? KillingMove = null;
+                //Tuple<int, int>? KillingMove = VCT(Role.AI, 0, lastAvailableMoves, lastX, lastY);
+                //杀棋命中直接返回杀棋
                 if (KillingMove != null) {
                     PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
                     return KillingMove;

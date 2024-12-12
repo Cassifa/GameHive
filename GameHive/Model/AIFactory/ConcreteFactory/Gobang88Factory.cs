@@ -13,10 +13,6 @@ using GameHive.Model.AIUtils.AlphaBetaPruning;
 namespace GameHive.Model.AIFactory {
     internal class Gobang88Factory : AbstractFactory {
 
-        public override DRL GetDRLProduct() {
-            return new GoBang88DRL();
-        }
-
         public override MinMax GetMinMaxProduct() {
             return new GoBang88MinMax(RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
         }
@@ -29,12 +25,19 @@ namespace GameHive.Model.AIFactory {
         public override MCTS GetMCTSProduct() {
             throw new NotImplementedException();
         }
+
+        //暂不实现
+        public override MinMaxMCTS GetMinMaxMCTSProduct() {
+            throw new NotImplementedException();
+        }
+
         //单例模式
         private static Gobang88Factory _instance;
         private Gobang88Factory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
                 AIAlgorithmType.AlphaBetaPruning,
-                AIAlgorithmType.DRL
+                //暂不实现
+                //AIAlgorithmType.DRL
             };
             boardInfo = new GameBoardInfo(8, false, aiTypes);
         }

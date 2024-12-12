@@ -28,7 +28,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
         public GoBang88MinMax(Dictionary<List<Role>, int> RewardTable, Dictionary<List<Role>, KillTypeEnum> killingTable) {
-            maxDeep = 4; TotalPiecesCnt = 8;
+            maxDeep = 4; killingMaxDeep = 12;
+            TotalPiecesCnt = 8;
             ACAutomaton = new ACAutomaton(RewardTable);
             KillingBoardACAutomaton = new KillingBoardACAutomaton(killingTable);
 
@@ -234,8 +235,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             int three = killingBoard.typeRecord[KillTypeEnum.ThreeAlive];
             int four = killingBoard.typeRecord[KillTypeEnum.FourBlocked];
             KillingBoardACAutomaton.CalculateLineValue(board[rowId], role, killingBoard);
+            //有活三更新活三值
             if (killingBoard.typeRecord[KillTypeEnum.ThreeAlive] > three) {
                 threeAliveCount++;
+                //同时活三冲四更新活三
                 if (killingBoard.typeRecord[KillTypeEnum.FourBlocked] > four) ThreeAliveWithFourBlockedCount++;
             } else if (killingBoard.typeRecord[KillTypeEnum.FourBlocked] > four) fourBlockedCount++;
         }
@@ -257,8 +260,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             UpdateKillingBoard(killingBoard, role, AntiDiagonalBoard, t.Item3, ref threeAliveCount, ref fourBlockedCount, ref ThreeAliveWithFourBlockedCount);
 
             //风险级别计算并更新得分
+            // 冲四数大于1，+高风险评分
             if (fourBlockedCount > 1 || ThreeAliveWithFourBlockedCount > 1) {
-                // 冲四数大于1，+高风险评分
                 killingBoard.type = KillingRiskEnum.High;
                 killingBoard.score += (int)KillingRiskEnum.High;
             }//冲四又活三，+中风险评分
@@ -274,7 +277,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
             return killingBoard;
         }
-        //获取可杀气列表
+        //获取可杀气列表 第三项为此点的杀棋估值
         private List<Tuple<int, int, int>> GetVctPoints(Role type, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             bool isAI = type == Role.AI;
             // 进攻点列表
@@ -293,77 +296,66 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
                 // 考虑自己的落子情况
                 KillingBoard killingBoard = EvaluateKill(new Tuple<int, int>(i, j), type);
-                if (killingBoard.type == KillingRiskEnum.High) {
+                if (killingBoard.type == KillingRiskEnum.High)
                     // 自己可以连五，直接返回
                     return new List<Tuple<int, int, int>> { new Tuple<int, int, int>(i, j, killingBoard.score) };
-                }
 
-                if (isDanger) {
-                    // 存在危险只找可以连五的棋子
-                    continue;
-                }
+                //存在危险只找可以连五的棋子，尝试连续冲四防御
+                if (isDanger) continue;
 
-                // 考虑对手的落子情况
-                KillingBoard foeKillingBoard = EvaluateKill(new Tuple<int, int>(i, j),
-                    type == Role.AI ? Role.Player : Role.AI);
+                //考虑对手的落子情况
+                KillingBoard foeKillingBoard = EvaluateKill(new Tuple<int, int>(i, j), type == Role.AI ? Role.Player : Role.AI);
 
                 if (foeKillingBoard.typeRecord[KillTypeEnum.Five] > 0) {
-                    // 对手连五了，局势很危险！！赶紧找自己可以连五的点位，不行就防守
+                    //地方落子直接导致连五，必须防御
                     isDanger = true;
                     defensePointList.Clear();
                     defensePointList.Add(new Tuple<int, int, int>(i, j, killingBoard.score));
                     continue;
                 }
 
-                // 看看自己有没有大于等于中风险分值的点位
+                //看看自己有没有大于等于中风险分值的点位
                 if (killingBoard.type >= KillingRiskEnum.Middle) {
                     attackPointList.Add(new Tuple<int, int, int>(i, j, killingBoard.score));
                     continue;
                 }
 
                 if (isAI) {
-                    // AI进攻VCT-找冲四、活三
-                    if (foeKillingBoard.typeRecord[KillTypeEnum.FourBlocked] > 0 ||
-                        foeKillingBoard.typeRecord[KillTypeEnum.ThreeAlive] > 0) {
+                    //AI进攻VCT-找冲四、活三
+                    if (killingBoard.typeRecord[KillTypeEnum.FourBlocked] > 0 ||
+                        killingBoard.typeRecord[KillTypeEnum.ThreeAlive] > 0)
                         vctPointList.Add(new Tuple<int, int, int>(i, j, killingBoard.score));
-                    }
                 } else {
-                    // 人类防守VCT-拦截连五、活四、找冲四反击
-                    if (foeKillingBoard.typeRecord[KillTypeEnum.FourBlocked] > 0 ||
-                        foeKillingBoard.typeRecord[KillTypeEnum.FourAlive] > 0) {
-                        // 选择冲四或防守对方的活四
+                    //人类防守VCT-拦截连五、活四、找冲四反击
+                    //选择冲四或防守对方的活四
+                    if (killingBoard.typeRecord[KillTypeEnum.FourBlocked] > 0 ||
+                        foeKillingBoard.typeRecord[KillTypeEnum.FourAlive] > 0)
                         defensePointList.Add(new Tuple<int, int, int>(i, j, killingBoard.score));
-                    }
                 }
             }
 
 
             List<Tuple<int, int, int>> pointList = new List<Tuple<int, int, int>>();
-            // 没风险就进攻
+            //没风险就进攻
             if (!isDanger) {
-                // 优先强进攻
+                //优先强进攻
                 if (attackPointList.Count > 0) {
-                    // 按分数从大到小排序
+                    //按分数从大到小排序
                     attackPointList.Sort((p1, p2) => p2.Item3.CompareTo(p1.Item3));
-                    if (isAI)
-                        // AI有强进攻点位了，就不用考虑后面的点位了
-                        return attackPointList;
-
-                    // 对手可以选择进攻和防守
+                    //AI有强进攻点位,不考虑后面的点位
+                    if (isAI) return attackPointList;
+                    //对手可以选择进攻和防守
                     pointList.AddRange(attackPointList);
                 }
-                // VCT进攻
+                //VCT进攻
                 pointList.AddRange(vctPointList);
             }
             if (defensePointList.Count > 0) {
-                // 进行防守
-                if (isAI) {
-                    // AI优先选择进攻，把防守点位放后面
-                    pointList.AddRange(defensePointList);
-                } else {
-                    // 对手优先考虑防守，把防守点位放前面
-                    pointList.InsertRange(0, defensePointList);
-                }
+                //进行防守
+                //AI优先选择进攻，把防守点位放后面
+                if (isAI) pointList.AddRange(defensePointList);
+                //对手优先考虑防守，把防守点位放前面
+                else pointList.InsertRange(0, defensePointList);
             }
             return pointList;
         }

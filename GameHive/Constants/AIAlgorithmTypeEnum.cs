@@ -12,7 +12,7 @@ namespace GameHive.Constants.AIAlgorithmTypeEnum {
         AlphaBetaPruning,
         Negamax,
         MCTS,
-        DRL
+        MinMaxMCTS,
     }
     public static class AIAlgorithmTypeExtensions {
         public static string GetChineseName(this AIAlgorithmType algorithm) {
@@ -20,7 +20,7 @@ namespace GameHive.Constants.AIAlgorithmTypeEnum {
                 AIAlgorithmType.AlphaBetaPruning => "α-β剪枝博弈树",
                 AIAlgorithmType.Negamax => "负极大值搜索",
                 AIAlgorithmType.MCTS => "蒙特卡洛搜索",
-                AIAlgorithmType.DRL => "深度强化学习",
+                AIAlgorithmType.MinMaxMCTS => "蒙特卡洛博弈树",
                 _ => "未知"
             };
         }
@@ -30,7 +30,7 @@ namespace GameHive.Constants.AIAlgorithmTypeEnum {
                 AIAlgorithmType.AlphaBetaPruning => "Alpha-Beta Pruning",
                 AIAlgorithmType.Negamax => "Negamax",
                 AIAlgorithmType.MCTS => "MonteCarloTreeSearch",
-                AIAlgorithmType.DRL => "DeepReinforcementLearning",
+                AIAlgorithmType.MinMaxMCTS => "MinMax-MonteCarloTreeSearch",
                 _ => "Unknown"
             };
         }

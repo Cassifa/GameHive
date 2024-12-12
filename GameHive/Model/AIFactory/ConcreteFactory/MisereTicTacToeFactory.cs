@@ -24,7 +24,7 @@ namespace GameHive.Model.AIFactory {
         }
 
         /*——————————不可用———————————*/
-        public override DRL GetDRLProduct() {
+        public override MinMaxMCTS GetMinMaxMCTSProduct() {
             throw new NotImplementedException();
         }
 

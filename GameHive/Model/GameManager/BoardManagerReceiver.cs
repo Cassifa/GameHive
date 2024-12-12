@@ -87,7 +87,7 @@ namespace GameHive.Model.GameManager {
             this.aIAlgorithmType = type;
             // 根据 AI 类型从工厂获取对应的实例
             runningAI = type switch {
-                AIAlgorithmType.DRL => factory.GetDRLProduct(),
+                AIAlgorithmType.MinMaxMCTS => factory.GetMinMaxMCTSProduct(),
                 AIAlgorithmType.MCTS => factory.GetMCTSProduct(),
                 AIAlgorithmType.AlphaBetaPruning => factory.GetMinMaxProduct(),
                 AIAlgorithmType.Negamax => factory.GetNegamaxProduct(),

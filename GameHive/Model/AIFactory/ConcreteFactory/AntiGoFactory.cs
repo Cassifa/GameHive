@@ -15,8 +15,8 @@ namespace GameHive.Model.AIFactory {
             return new AntiGoMCTS();
         }
 
-        public override MinMax GetMinMaxProduct() {
-            return new AntiGoMinMax();
+        public override MinMaxMCTS GetMinMaxMCTSProduct() {
+            return new AntiGoMinMaxMCTS();
         }
 
         /*——————————不可用———————————*/
@@ -24,7 +24,7 @@ namespace GameHive.Model.AIFactory {
         public override Negamax GetNegamaxProduct() {
             throw new NotImplementedException();
         }
-        public override DRL GetDRLProduct() {
+        public override MinMax GetMinMaxProduct() {
             throw new NotImplementedException();
         }
 
@@ -33,7 +33,7 @@ namespace GameHive.Model.AIFactory {
         private AntiGoFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
                 AIAlgorithmType.MCTS,
-                AIAlgorithmType.AlphaBetaPruning,
+                AIAlgorithmType.MinMaxMCTS,
             };
             boardInfo = new GameBoardInfo(7, true, aiTypes);
         }

@@ -9,7 +9,7 @@ using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
-    internal class GoBang88DRL : DRL {
+    internal class GoBang88DRL : MinMaxMCTS {
         private int TotalPiecesCnt;
         public GoBang88DRL() {
             TotalPiecesCnt = 8;
