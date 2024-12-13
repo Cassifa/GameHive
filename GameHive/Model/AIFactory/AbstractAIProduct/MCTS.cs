@@ -20,6 +20,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
         //游戏搜索轮数
         protected int SearchCount, baseCount;
+        //是否更新搜索次数(小规模棋盘无需更新)
+        protected bool NeedUpdateSearchCount = false;
         //单次线程最小搜索次数，达到后释放一次锁
         private int MinSearchCount = 1000;
         //互斥期间搜索次数
@@ -28,7 +30,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         Mutex mutex = new Mutex();
         //游戏结束信号
         private volatile bool end = false;
+        //已经落子的数量
         protected int TotalPiecesCnt;
+        //根节点
         protected MCTSNode RootNode;
 
         //获取可行落子
@@ -55,7 +59,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 Tuple<int, int> AIDecision = RootNode.GetGreatestUCB().PieceSelectedCompareToFather;
                 RootNode = RootNode.MoveRoot(AIDecision.Item1, AIDecision.Item2, NodeExpansion);
                 PlayedPiecesCnt++;
-                UpdateSearchCount(baseCount, TotalPiecesCnt * TotalPiecesCnt, PlayedPiecesCnt, ref SearchCount);
+                if (NeedUpdateSearchCount)
+                    UpdateSearchCount(baseCount, TotalPiecesCnt * TotalPiecesCnt, PlayedPiecesCnt, ref SearchCount);
                 return AIDecision;
             }
         }

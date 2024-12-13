@@ -12,6 +12,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
             baseCount = 50000;
+            NeedUpdateSearchCount = true;
         }
         /*****实现三个策略*****/
         //根据某次落子查看游戏是否结束
