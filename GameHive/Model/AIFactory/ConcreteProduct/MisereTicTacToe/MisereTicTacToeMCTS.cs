@@ -10,10 +10,9 @@ using GameHive.Model.AIFactory.AbstractAIProduct;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class MisereTicTacToeMCTS : MCTS {
-        private int TotalPiecesCnt;
         public MisereTicTacToeMCTS() {
             TotalPiecesCnt = 3;
-            SearchCount = 200000;
+            baseCount = 200000;
         }
         /*****实现两个策略*****/
         //根据某次落子查看游戏是否结束

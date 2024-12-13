@@ -4,7 +4,7 @@
  *          选择->模拟/拓展->反向传播
  *          负责：选择、模拟、拓展三个步骤
  *          提供方法：1.获取AI下一步（实现抽象方法） 2.调用一定次数蒙特卡洛计算决策 3.执行一次蒙特卡洛过程
- *                  4.根据根节点选择节点 5.从当前节点开始模拟 6.拓展当前节点 7.获取所有Empty点，保证换根成功
+ *                  4.根据根节点选择节点 5.从当前节点开始模拟 6.拓展当前节点 7.获取所有Empty点，保证换根成功 8.更新模拟次数
  *             多线程：1.开启游戏，构建根节点，开启搜索线程
  *                    2.估值一次，会执行 MinSearchCount次，然后检查是否有要求过输入
  *                    3.获取AI下一步 收到玩家决策/AI做出决策会进行换根并返回当前根节点最优决策
@@ -19,11 +19,11 @@ using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
         //游戏搜索轮数
-        protected int SearchCount;
+        protected int SearchCount, baseCount;
         //单次线程最小搜索次数，达到后释放一次锁
         private int MinSearchCount = 1000;
         //互斥期间搜索次数
-        private int AIMoveSearchCount;
+        private int AIMoveSearchCount, PlayedPiecesCnt;
         //互斥锁
         Mutex mutex = new Mutex();
         //游戏结束信号
@@ -42,7 +42,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 if (lastX == -1) winner = Role.Empty;
                 else winner = CheckGameOverByPiece(currentBoard, lastX, lastY);
                 //根据玩家决策换根
-                RootNode = RootNode.MoveRoot(lastX, lastY, NodeExpansion);
+                if (lastX != -1) {
+                    PlayedPiecesCnt++;
+                    RootNode = RootNode.MoveRoot(lastX, lastY, NodeExpansion);
+                }
                 AIMoveSearchCount = 0;
 
                 //释放锁并等待搜索线程通知-收到通知后判断是否达标
@@ -51,6 +54,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 //根据AI决策换根
                 Tuple<int, int> AIDecision = RootNode.GetGreatestUCB().PieceSelectedCompareToFather;
                 RootNode = RootNode.MoveRoot(AIDecision.Item1, AIDecision.Item2, NodeExpansion);
+                PlayedPiecesCnt++;
+                UpdateSearchCount(baseCount, TotalPiecesCnt * TotalPiecesCnt, PlayedPiecesCnt, ref SearchCount);
                 return AIDecision;
             }
         }
@@ -71,6 +76,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //游戏开始-初始化根节点，启动搜索线程
         public override void GameStart(bool IsAIFirst) {
+            end = false; PlayedPiecesCnt = 0; SearchCount = baseCount;
             //创建根节点
             List<List<Role>> board = new List<List<Role>>(TotalPiecesCnt);
             List<Tuple<int, int>> moves = new List<Tuple<int, int>>();
@@ -167,6 +173,19 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             return moves;
         }
 
+        //更新模拟次数
+        protected void UpdateSearchCount(int BaseCount, int TotalCnt, int NowCount, ref int SearchCount) {
+            int LeftCount = TotalCnt - NowCount;
+            if (LeftCount == 0) return;
+            int t = 0;
+            //未下棋数量越少搜索次数越高
+            while (TotalCnt / LeftCount >= 1.5) {
+                t++;
+                TotalCnt /= LeftCount;
+            }
+            t = Math.Min(t, 5);
+            SearchCount = BaseCount * (int)Math.Pow(10, t);
+        }
         //用户下棋
         public override void UserPlayPiece(int lastX, int lastY) { }
     }

@@ -7,25 +7,53 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
-using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            SearchCount = 10000;
+            baseCount = 50000;
         }
         /*****实现三个策略*****/
         //根据某次落子查看游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+            int[] dx = { 0, -1, 1, 0, 0 };
+            int[] dy = { 0, 0, 0, -1, 1 };
+            //一半情况快速判断
+            int notFind = 0;
+            for (int i = 0; i < 4; i++) {
+                int newX = x + dx[i];
+                int newY = y + dy[i];
+                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0) {
+                    notFind++; continue;
+                }
+                if (currentBoard[newX][newY] == Role.Empty) return Role.Empty;
+                //四面敌人或碰壁必死棋
+                if (currentBoard[x][y] != currentBoard[newX][newY]) notFind++;
+            }
+            if (notFind == 4) return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
+
             List<List<bool>> visitStatusBoard = new List<List<bool>>();
             for (int i = 0; i < currentBoard.Count; i++)
                 visitStatusBoard.Add(new List<bool>(new bool[currentBoard[i].Count]));
-            if (!IsAlive(currentBoard, visitStatusBoard, x, y))
-                return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
+            for (int i = 0; i < 4; i++) {
+                int newX = x + dx[i];
+                int newY = y + dy[i];
+                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0 || currentBoard[newX][newY] == Role.Empty)
+                    continue;
+                Clear(ref visitStatusBoard);
+                if (!IsAlive(currentBoard, visitStatusBoard, x, y))
+                    return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
+            }
             return Role.Empty;
         }
+        //重置状态
+        private void Clear(ref List<List<bool>> bools) {
+            for (int i = 0; i < bools.Count; i++)
+                for (int j = 0; j < bools[i].Count; j++)
+                    bools[i][j] = false;
+        }
 
-        //检测一个点所在连通块是否有气 搜过一块后会把所在连通块值为空，不需要重复搜索
+        //检测一个点所在连通块是否有气 搜过一块后会把所在连通块标记，不需要重复搜索
         private bool IsAlive(List<List<Role>> rawBoard, List<List<bool>> visitStatusBoard, int x, int y) {
             //标记这个节点已经搜过
             visitStatusBoard[x][y] = true;

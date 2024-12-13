@@ -7,13 +7,12 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
-using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class TicTacToeMCTS : MCTS {
         public TicTacToeMCTS() {
             TotalPiecesCnt = 3;
-            SearchCount = 200000;
+            baseCount = 200000;
         }
         /*****实现两个策略*****/
         //根据某次落子查看游戏是否结束
