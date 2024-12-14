@@ -10,16 +10,18 @@ namespace GameHive.Model.AIUtils.AlphaBetaPruning {
         High = 40_000,//小与活四1/5
         Middle = 25_000,//活四一半，大于活三
         Low = 8_000,//大于活三10小于活四
+        None=0,
     }
     public enum KillTypeEnum {
         Five = 1_000_000,
         FourAlive = 50_000,
         ThreeAlive = 800,
         FourBlocked = 700,
+        Empty
     }
     public class KillingBoard {
         public int score = 0;
-        public KillingRiskEnum type = KillingRiskEnum.Low;
+        public KillingRiskEnum type = KillingRiskEnum.None;
         public Dictionary<KillTypeEnum, int> typeRecord = new Dictionary<KillTypeEnum, int>();
         public KillingBoard() {
             typeRecord = new Dictionary<KillTypeEnum, int>{

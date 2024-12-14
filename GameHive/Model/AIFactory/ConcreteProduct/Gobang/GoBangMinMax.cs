@@ -14,15 +14,17 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBangMinMax : MinMax {
         //AC自动机执行工具类
         protected ACAutomaton ACAutomaton;
+        protected ACAutomaton PlayerACAutomaton;
         protected KillingBoardACAutomaton AIKillingBoardACAutomaton;
         protected KillingBoardACAutomaton PlayerAIKillingBoardACAutomaton;
         //四个变化坐标映射的棋盘，用于优化估值速度
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
         public GoBangMinMax(Dictionary<List<Role>, int> RewardTable, Dictionary<List<Role>, KillTypeEnum> killingTable) {
-            maxDeep = 4; killingMaxDeep = 12;
+            maxDeep = 10; killingMaxDeep = 12;
             TotalPiecesCnt = 15;
             ACAutomaton = new ACAutomaton(RewardTable);
+            PlayerACAutomaton = new ACAutomaton(RewardTableUtil.SwitchAIPlayerRewardTable(RewardTable));
             AIKillingBoardACAutomaton = new KillingBoardACAutomaton(killingTable);
             PlayerAIKillingBoardACAutomaton = new KillingBoardACAutomaton(RewardTableUtil.SwitchAIPlayer(killingTable));
 
@@ -77,66 +79,96 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return ans;
         }
 
-        //获取在此点落子的局面估值
-        private int GetPointScore(int x, int y) {
+        //获取AI在此点落子的局面估值增益,不考虑人类在这里会怎样
+        private int GetAIPointDeltaScore(int x, int y) {
             int score = 0;
             var t = GetMainAndAntiDiagonalCoordinates(x, y);
+            PlayChess(x, y, Role.AI);
             score += ACAutomaton.CalculateLineValue(NormalBoard[x]);
             score += ACAutomaton.CalculateLineValue(XYReversedBoard[y]);
             score += ACAutomaton.CalculateLineValue(MainDiagonalBoard[t.Item1]);
             score += ACAutomaton.CalculateLineValue(AntiDiagonalBoard[t.Item3]);
+            PlayChess(x, y, Role.Empty);
+            score -= ACAutomaton.CalculateLineValue(NormalBoard[x]);
+            score -= ACAutomaton.CalculateLineValue(XYReversedBoard[y]);
+            score -= ACAutomaton.CalculateLineValue(MainDiagonalBoard[t.Item1]);
+            score -= ACAutomaton.CalculateLineValue(AntiDiagonalBoard[t.Item3]);
             return score;
         }
+        //获取人类在此点落子的局面估值增益，考虑自身收益同时考虑考虑此字对AI增益,阻挠AI增益视为自身增益
+        private int GetPlayerPointDeltaScore(int x, int y) {
+            int score = 0;
+            PlayChess(x, y, Role.Player);
+            var t = GetMainAndAntiDiagonalCoordinates(x, y);
+            score += PlayerACAutomaton.CalculateLineValue(NormalBoard[x]);
+            score += PlayerACAutomaton.CalculateLineValue(XYReversedBoard[y]);
+            score += PlayerACAutomaton.CalculateLineValue(MainDiagonalBoard[t.Item1]);
+            score += PlayerACAutomaton.CalculateLineValue(AntiDiagonalBoard[t.Item3]);
+            PlayChess(x, y, Role.Empty);
+            score -= PlayerACAutomaton.CalculateLineValue(NormalBoard[x]);
+            score -= PlayerACAutomaton.CalculateLineValue(XYReversedBoard[y]);
+            score -= PlayerACAutomaton.CalculateLineValue(MainDiagonalBoard[t.Item1]);
+            score -= PlayerACAutomaton.CalculateLineValue(AntiDiagonalBoard[t.Item3]);
+            return score + GetAIPointDeltaScore(x, y);
+        }
 
-        //对可行点进行排序：在AI-Max层有限搜估值高或危险的点位，Player-Min层搜人类杀棋或估值低的点。由于运行MinMax已经计算过AI杀棋，所以不考虑AI杀情况
-        //如果是AI-将可行点位从大到小排序，并加入AI杀棋点。若存在有价值点则不考虑无价值点
-        //如果是人类 将杀棋点前置并将可行点位从小到大排序，不考虑价值大于KillTypeEnum.Low(十倍活3，说明有活4)
+        //对可行点进行排序：在AI-Max层有限搜估值高或危险的点位，Player-Min层搜人类增益最高的点
+        //AI要防人杀棋同时贪心的搜当前价值最高点，人要贪心的走价值增益最大的点 由于运行MinMax前已经计算过AI杀棋，所以不考虑AI杀情况
+        //如果是AI-将落子点位对AI增益从大到小，并加入人类VCT杀棋点。若存在有价值点则不考虑无价值点
+        //如果是人类 落子点增益最大的10个点(考虑了AI的增益)
         private void SortAvailableMoves(List<Tuple<int, int>> moves, Role role) {
             bool isAI = (role == Role.AI);
-            //暂存队列，item1为点位，item2为对于AI估值和玩家杀棋价值
-            var scoredMoves = new List<Tuple<Tuple<int, int>, Tuple<int, KillingBoard>>>();
-            foreach (var move in moves) {
-                int score = GetPointScore(move.Item1, move.Item2);
-                scoredMoves.Add(Tuple.Create(move, Tuple.Create(score, EvaluateKill(move, Role.Player))));
-            }
-            //清空原来可行点
-            moves.Clear();
-            if (isAI) {
-                //将可行点位从大到小排序，前置AI杀棋点
+
+            if (isAI) { //将可行点位按增益从大到小排序，前置人类VCT杀棋点
+                //暂存队列，item1为点位，item2为对于AI估值增益和玩家杀棋价值
+                var scoredMoves = new List<Tuple<Tuple<int, int>, Tuple<int, KillingBoard>>>();
+                foreach (var move in moves)
+                    scoredMoves.Add(Tuple.Create(move, Tuple.Create(GetAIPointDeltaScore(move.Item1, move.Item2),
+                        EvaluateKill(move, Role.Player))));
+                moves.Clear();
                 scoredMoves.Sort((a, b) => {
                     int scoreA = a.Item2.Item1;
                     int scoreB = b.Item2.Item1;
-                    // 如果杀棋价值不同，优先考虑杀棋->AI可杀棋的全部前置
+                    // 如果杀棋价值不同，优先考虑杀棋->人类有潜力VCT的全部前置,防止被VCT
                     int killA = a.Item2.Item2.score;
                     int killB = b.Item2.Item2.score;
                     if (killA != killB)
                         return killB.CompareTo(killA);
                     return scoreB.CompareTo(scoreA);
                 });
-                bool hasValue = scoredMoves[0].Item2.Item1 > 0;
-                foreach (var t in scoredMoves) {
-                    if (hasValue && t.Item2.Item1 <= 0) continue;
-                    else moves.Add(t.Item1);
+                //如果存在有分数的且人类无法形成VCT那么不考虑没分数的，若有分数点已经8个或者VCT＋有分数已经15个，拒绝价值更低点位
+                int hasScore = 0;
+                for (int i= 0;i<scoredMoves.Count;i++) {
+                    var t=scoredMoves[i];
+                    if (moves.Count!=0 && t.Item2.Item1 <= 0 && t.Item2.Item2.score <= 0) break;
+                    if (t.Item2.Item1 != 0) hasScore++;
+                     moves.Add(t.Item1);
+                    if (hasScore > 8 || i > 12) break;
                 }
+                if (moves.Count == 0)
+                    return;
             } else {
-                //人类在下棋，将杀棋点前置并将可行点位按AI估值从小到大排序，不考虑AI估值大于KillTypeEnum.Low
+                //人类在下棋，优先搜可下棋后人类增益最大的点（考虑了阻碍AI增益）
+                var scoredMoves = new List<Tuple<Tuple<int, int>, int>>();
+                foreach (var move in moves)
+                    scoredMoves.Add(Tuple.Create(move, GetPlayerPointDeltaScore(move.Item1, move.Item2)));
+                moves.Clear();
+                //将杀棋点前置并将可行点位按AI增益估值从小到大排序，不考虑AI估值大于KillTypeEnum.Low
                 scoredMoves.Sort((a, b) => {
-                    int scoreA = a.Item2.Item1;
-                    int scoreB = b.Item2.Item1;
-
-                    //杀棋价值不同，优先考虑杀棋,可杀棋的前置
-                    int killA = a.Item2.Item2.score;
-                    int killB = b.Item2.Item2.score;
-                    if (killA != killB)
-                        return killB.CompareTo(killA);
                     //杀棋值相同，按估值从小到大排序
-                    return scoreA.CompareTo(scoreB);
+                    return b.Item2.CompareTo(a.Item2);
                 });
+                //如果已经有大量有增益的，不考虑毫无增益的
+                //如果大于10个有增益的直接终止
                 foreach (var t in scoredMoves) {
-                    if (t.Item2.Item1 >= (int)KillingRiskEnum.Low && moves.Count > 0)
-                        moves.Add(t.Item1);
+                    if ((moves.Count > 5 && t.Item2 == 0) || moves.Count >= 8) break;
+                    moves.Add(t.Item1);
                 }
+                if (moves.Count == 0)
+                    return;
             }
+            if (moves.Count == 0)
+                return;
         }
 
         // 获取所有可下棋点位-周围两格距离内有落子过
@@ -192,7 +224,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                         if (board[i][j] == Role.Empty)
                             usefulSteps.Add(new Tuple<int, int>(i, j));
             }
-            SortAvailableMoves(usefulSteps, Role.AI);
             return usefulSteps;
         }
 
@@ -208,8 +239,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             for (int i = 0; i < 24; i++) {
                 int newX = lastX + dx[i];
                 int newY = lastY + dy[i];
-                if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt ||
-                    (lastX == newX && lastY == newY)) continue;
+                if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt) continue;
                 if (currentBoard[newX][newY] == Role.Empty) {
                     newAvailableMoves.Add(new Tuple<int, int>(newX, newY));
                 }
@@ -217,16 +247,18 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             int newSize = newAvailableMoves.Count;
             //上次可用点加入新表，上次可用点为浅拷贝,不存重复点
             foreach (var move in lastAvailableMoves) {
-                bool flag = false;
+                if (move.Item1 == lastX && move.Item2 == lastY) continue;
+                bool flag = true;
+                //搜当前点是否在新加入点中出现过
                 for (int i = 0; i < newSize; i++) {
                     var t = newAvailableMoves[i];
                     if (move.Item1 == t.Item1 && move.Item2 == t.Item2) {
-                        flag = true; break;
+                        flag = false; break;
                     }
                 }
                 if (flag) newAvailableMoves.Add(move);
             }
-            SortAvailableMoves(newAvailableMoves, currentBoard[lastX][lastY]);
+            SortAvailableMoves(newAvailableMoves, currentBoard[lastX][lastY] == Role.AI ? Role.Player : Role.AI);
             return newAvailableMoves;
         }
 
@@ -315,10 +347,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             int i = point.Item1, j = point.Item2;
             var t = GetMainAndAntiDiagonalCoordinates(i, j);
             //分别计算四个角度
+            PlayChess(i, j, role);
             UpdateKillingBoard(killingBoard, role, NormalBoard, i, ref threeAliveCount, ref fourBlockedCount, ref ThreeAliveWithFourBlockedCount);
             UpdateKillingBoard(killingBoard, role, XYReversedBoard, j, ref threeAliveCount, ref fourBlockedCount, ref ThreeAliveWithFourBlockedCount);
             UpdateKillingBoard(killingBoard, role, MainDiagonalBoard, t.Item1, ref threeAliveCount, ref fourBlockedCount, ref ThreeAliveWithFourBlockedCount);
             UpdateKillingBoard(killingBoard, role, AntiDiagonalBoard, t.Item3, ref threeAliveCount, ref fourBlockedCount, ref ThreeAliveWithFourBlockedCount);
+            PlayChess(i, j, Role.Empty);
 
             //风险级别计算并更新得分
             // 冲四数大于1，+高风险评分

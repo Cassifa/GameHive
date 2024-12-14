@@ -6,12 +6,10 @@
  * 创建时间：  2024/12/6 15:15
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
-namespace GameHive.Model.AIUtils.AlgorithmUtils
-{
+namespace GameHive.Model.AIUtils.AlgorithmUtils {
     public class Node {
         public int[] Children = new int[3];
         public int Fail = 0;
-        public int Count = 0;
         public int Value = 0;
         public Node() {
             Array.Fill(Children, -1); // 初始化为 -1 表示无效索引
@@ -42,10 +40,9 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils
                 p = tree[p].Children[index] == -1 ? tree[tree[p].Fail].Children[index] : tree[p].Children[index];
                 for (int temp = p; temp > 0; temp = tree[temp].Fail) {
                     score += tree[temp].Value;
-                    tree[temp].Count++;
                 }
             }
-
+            
             return score;
         }
         //插入一个估值表
@@ -85,12 +82,6 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils
                         tree[t].Children[i] = tree[tree[t].Fail].Children[i] == -1 ? 0 : tree[tree[t].Fail].Children[i];
                     }
                 }
-            }
-        }
-        private void Dfs(int u) {
-            foreach (var v in adjList[u]) {
-                Dfs(v);
-                tree[u].Count += tree[v].Count;
             }
         }
     }

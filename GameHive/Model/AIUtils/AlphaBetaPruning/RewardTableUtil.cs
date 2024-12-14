@@ -17,6 +17,7 @@ using GameHive.Constants.RoleTypeEnum;
 
 namespace GameHive.Model.AIUtils.AlphaBetaPruning {
     class RewardTableUtil {
+        //获取AI估值表
         public static Dictionary<List<Role>, int> GetGOBangRewardTable() {
             var rewardTable = new Dictionary<string, int>();
             //五
@@ -78,16 +79,37 @@ namespace GameHive.Model.AIUtils.AlphaBetaPruning {
             return convertedList;
         }
 
+        //反转估值表身份
+        public static Dictionary<List<Role>, int> SwitchAIPlayerRewardTable(Dictionary<List<Role>, int> RewardTable) {
+            Dictionary<List<Role>, int> NewRewardTable = new Dictionary<List<Role>, int>();
 
+            foreach (var entry in RewardTable) {
+                List<Role> roles = entry.Key;
+                List<Role> swappedRoles = new List<Role>(roles.Count);
+                foreach (var role in roles) {
+                    // 交换 Player 和 AI
+                    if (role == Role.Player)
+                        swappedRoles.Add(Role.AI);
+                    else if (role == Role.AI)
+                        swappedRoles.Add(Role.Player);
+                    else
+                        swappedRoles.Add(Role.Empty);
+                }
+                NewRewardTable[swappedRoles] = entry.Value;
+            }
+            return NewRewardTable;
+        }
+
+        //获取AI杀棋分数表
         public static Dictionary<List<Role>, KillTypeEnum> GetGOBangKillingTable() {
             var rewardTable = new Dictionary<string, KillTypeEnum>();
             //活五
-            rewardTable["AAAAAA"] = KillTypeEnum.Five;
+            rewardTable["AAAAA"] = KillTypeEnum.Five;
             //活四
             rewardTable["EAAAAE"] = KillTypeEnum.FourAlive;
             //冲四
-            rewardTable["AAAAE"] = KillTypeEnum.FourBlocked;
-            rewardTable["EAAAA"] = KillTypeEnum.FourBlocked;
+            rewardTable["EAAAAP"] = KillTypeEnum.FourBlocked;
+            rewardTable["PAAAAE"] = KillTypeEnum.FourBlocked;
             rewardTable["AEAAA"] = KillTypeEnum.FourBlocked;
             rewardTable["AAEAA"] = KillTypeEnum.FourBlocked;
             rewardTable["AAAEA"] = KillTypeEnum.FourBlocked;
@@ -111,6 +133,7 @@ namespace GameHive.Model.AIUtils.AlphaBetaPruning {
             }
             return convertedList;
         }
+
         //将KillingTable键中的Player和AI互换
         public static Dictionary<List<Role>, KillTypeEnum> SwitchAIPlayer(Dictionary<List<Role>, KillTypeEnum> KillingTable) {
             Dictionary<List<Role>, KillTypeEnum> NewKillingTable = new Dictionary<List<Role>, KillTypeEnum>();
@@ -131,6 +154,7 @@ namespace GameHive.Model.AIUtils.AlphaBetaPruning {
             }
             return NewKillingTable;
         }
+
 
 
     }
