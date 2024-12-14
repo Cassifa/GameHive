@@ -19,12 +19,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MinMax : AbstractAIStrategy {
         //最大搜索深度；
         protected int maxDeep, killingMaxDeep;
+        protected bool RunKillBoard = false;
         //当前已经落子数量
         protected int PlayedPiecesCnt;
         protected int TotalPiecesCnt;
         //决定Ai的风格偏好,加起来权重为10
         protected int DefendBias = 4, AttackBias = 6;
-        private Tuple<int, int>? FinalDecide;
+        private Tuple<int, int> FinalDecide = new Tuple<int, int>(0, 0);
         //初始化棋盘
         protected abstract void InitGame();
         //获取可下棋点位
@@ -41,28 +42,52 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //获取当前棋盘
         protected abstract List<List<Role>> GetCurrentBoard();
         //计算VCT杀棋
-        protected virtual Tuple<int, int>? VCT(Role type, int depth, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+        protected virtual Tuple<int, int>? VCT(Role type, int leftDepth,
+                                    List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             return null;
         }
+
+        //迭代加深算杀
+        protected virtual Tuple<int, int>? DeepeningKillBoard(int maxDepth, int lastX, int lastY) {
+            List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(GetCurrentBoard());
+            Tuple<int, int>? result = null;
+            for (int i = 2; i <= maxDepth; i += 2) {
+                result = VCT(Role.AI, maxDepth, lastAvailableMoves, lastX, lastY);
+                if (result != null)
+                    break;
+            }
+            return result;
+        }
+        //迭代加深下棋-对于有算杀的无效因为此处能找到解一定被算杀找到过了
+        protected virtual void DeepeningMinMax(int maxDepth, int lastX, int lastY) {
+            List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(GetCurrentBoard());
+            //逐步下棋，直到在最大层搜或者得分表示已经胜利
+            for (int i = 2; i <= maxDepth; i += 2) {
+                int value = EvalToGo(i, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
+                if (value >= 1_000_000 - i) 
+                    return;
+            }
+        }
+
         //获取下一步移动
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //收到玩家移动，更新棋盘
             if (lastX != -1)
                 PlayChess(lastX, lastY, Role.Player);
-            List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
             //总共已经落子的大于5则考虑杀棋
-            //if (PlayedPiecesCnt > 5) {
-            //    Tuple<int, int>? KillingMove = null;
-            //    //Tuple<int, int>? KillingMove = VCT(Role.AI, 0, lastAvailableMoves, lastX, lastY);
-            //    //杀棋命中直接返回杀棋
-            //    if (KillingMove != null) {
-            //        PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
-            //        return KillingMove;
-            //    }
-            //}
-            lastAvailableMoves = GetAvailableMoves(currentBoard);
+            if (RunKillBoard && PlayedPiecesCnt > 5) {
+                Tuple<int, int>? KillingMove = DeepeningKillBoard(killingMaxDeep, lastX, lastY);
+                //杀棋命中直接返回杀棋
+                if (KillingMove != null) {
+                    PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
+                    return KillingMove;
+                }
+            }
+            DeepeningMinMax(maxDeep, lastX, lastY);
+
+            List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
             //计算最优值
-            EvalToGo(0, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
+            //EvalToGo(0, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
             //AI下棋
             PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
             //计算出AI移动，跟新棋盘
@@ -75,12 +100,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             // 检查当前局面的胜负情况
             Role winner = CheckGameOverByPiece(GetCurrentBoard(), lastX, lastY);
             if (winner == Role.Draw) return 0;
-            else if (winner == Role.AI) return 1_000_000;
+            else if (winner == Role.AI) return 1_000_000;//- depth;//防止AI调戏玩家
             else if (winner == Role.Player) return -1_000_000;
-            if (depth == maxDeep)
-                return EvalNowSituation(GetCurrentBoard(), Role.AI);
+            if (depth == 0)  return EvalNowSituation(GetCurrentBoard(), Role.AI);
             bool IsAi = ((depth % 2) == 0);
-            int nowScore; Tuple<int, int>? nowDec = null;
+            int nowScore; Tuple<int, int> nowDec = new Tuple<int, int>(0, 0);
             //根据上一步操作获取下一步可行点位
             var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
             if (IsAi) {
@@ -88,7 +112,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 nowScore = int.MinValue;
                 foreach (var move in availableMoves) {
                     PlayChess(move.Item1, move.Item2, Role.AI);
-                    int nowRoundScore = EvalToGo(depth + 1, alpha, beta, availableMoves, move.Item1, move.Item2);
+                    int nowRoundScore = EvalToGo(depth - 1, alpha, beta, availableMoves, move.Item1, move.Item2);
                     PlayChess(move.Item1, move.Item2, Role.Empty);
                     if (nowRoundScore > nowScore) {
                         nowScore = nowRoundScore;
@@ -103,7 +127,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 nowScore = int.MaxValue;
                 foreach (var move in availableMoves) {
                     PlayChess(move.Item1, move.Item2, Role.Player);
-                    int nowRoundScore = EvalToGo(depth + 1, alpha, beta, availableMoves, move.Item1, move.Item2);
+                    int nowRoundScore = EvalToGo(depth - 1, alpha, beta, availableMoves, move.Item1, move.Item2);
                     PlayChess(move.Item1, move.Item2, Role.Empty);
                     if (nowRoundScore < nowScore) {
                         nowScore = nowRoundScore;

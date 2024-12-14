@@ -21,13 +21,16 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
         public GoBangMinMax(Dictionary<List<Role>, int> RewardTable, Dictionary<List<Role>, KillTypeEnum> killingTable) {
-            maxDeep = 10; killingMaxDeep = 12;
+            //初始化搜索深度
+            maxDeep = 8; killingMaxDeep = 16;
             TotalPiecesCnt = 15;
+            RunKillBoard = true;
+            //初始化自动机工具类
             ACAutomaton = new ACAutomaton(RewardTable);
             PlayerACAutomaton = new ACAutomaton(RewardTableUtil.SwitchAIPlayerRewardTable(RewardTable));
             AIKillingBoardACAutomaton = new KillingBoardACAutomaton(killingTable);
             PlayerAIKillingBoardACAutomaton = new KillingBoardACAutomaton(RewardTableUtil.SwitchAIPlayer(killingTable));
-
+            //初始化棋盘对象
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
             XYReversedBoard = new List<List<Role>>(TotalPiecesCnt);
             MainDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
@@ -112,13 +115,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return score + GetAIPointDeltaScore(x, y);
         }
 
-        //对可行点进行排序：在AI-Max层有限搜估值高或危险的点位，Player-Min层搜人类增益最高的点
+        //关键函数✨将底数限制为8,不超过12 对可行点进行排序：在AI-Max层有限搜估值高或危险的点位，Player-Min层搜人类增益最高的点
         //AI要防人杀棋同时贪心的搜当前价值最高点，人要贪心的走价值增益最大的点 由于运行MinMax前已经计算过AI杀棋，所以不考虑AI杀情况
-        //如果是AI-将落子点位对AI增益从大到小，并加入人类VCT杀棋点。若存在有价值点则不考虑无价值点
+        //如果是AI-将落子点位对AI增益从大到小，并加入人类VCT杀棋点,预防人类连续冲三攻击。若存在有价值点则不考虑无价值点
         //如果是人类 落子点增益最大的10个点(考虑了AI的增益)
         private void SortAvailableMoves(List<Tuple<int, int>> moves, Role role) {
             bool isAI = (role == Role.AI);
-
             if (isAI) { //将可行点位按增益从大到小排序，前置人类VCT杀棋点
                 //暂存队列，item1为点位，item2为对于AI估值增益和玩家杀棋价值
                 var scoredMoves = new List<Tuple<Tuple<int, int>, Tuple<int, KillingBoard>>>();
@@ -138,11 +140,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 });
                 //如果存在有分数的且人类无法形成VCT那么不考虑没分数的，若有分数点已经8个或者VCT＋有分数已经15个，拒绝价值更低点位
                 int hasScore = 0;
-                for (int i= 0;i<scoredMoves.Count;i++) {
-                    var t=scoredMoves[i];
-                    if (moves.Count!=0 && t.Item2.Item1 <= 0 && t.Item2.Item2.score <= 0) break;
+                for (int i = 0; i < scoredMoves.Count; i++) {
+                    var t = scoredMoves[i];
+                    if (moves.Count != 0 && t.Item2.Item1 <= 0 && t.Item2.Item2.score <= 0) break;
                     if (t.Item2.Item1 != 0) hasScore++;
-                     moves.Add(t.Item1);
+                    moves.Add(t.Item1);
                     if (hasScore > 8 || i > 12) break;
                 }
                 if (moves.Count == 0)
@@ -167,8 +169,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 if (moves.Count == 0)
                     return;
             }
-            if (moves.Count == 0)
-                return;
         }
 
         // 获取所有可下棋点位-周围两格距离内有落子过
@@ -457,10 +457,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
 
         //计算VCT杀棋
-        protected override Tuple<int, int>? VCT(Role type, int depth,
-            List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+        protected override Tuple<int, int>? VCT(Role type, int leftDepth,
+                    List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             // 算杀失败
-            if (depth == killingMaxDeep) return null;
+            if (leftDepth == 0) return null;
             bool isAI = type == Role.AI;
 
             Tuple<int, int>? best = null;
@@ -472,7 +472,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     return isAI ? new Tuple<int, int>(point.Item1, point.Item2) : null;
 
                 PlayChess(point.Item1, point.Item2, type);
-                best = VCT(type == Role.AI ? Role.Player : Role.AI, depth + 1, lastAvailableMoves, point.Item1, point.Item2);
+                best = VCT(type == Role.AI ? Role.Player : Role.AI, leftDepth - 1,
+                                       lastAvailableMoves, point.Item1, point.Item2);
                 PlayChess(point.Item1, point.Item2, Role.Empty);
 
                 if (best == null) {
