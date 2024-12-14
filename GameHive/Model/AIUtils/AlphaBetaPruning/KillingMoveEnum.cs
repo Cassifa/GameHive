@@ -7,15 +7,15 @@
 *************************************************************************************/
 namespace GameHive.Model.AIUtils.AlphaBetaPruning {
     public enum KillingRiskEnum {
-        High = 80_000,
-        Middle = 50_000,
-        Low = 10_000,
+        High = 40_000,//小与活四1/5
+        Middle = 25_000,//活四一半，大于活三
+        Low = 8_000,//大于活三10小于活四
     }
     public enum KillTypeEnum {
         Five = 1_000_000,
-        FourAlive = 100_000,
-        ThreeAlive = 1_000,
-        FourBlocked = 900,
+        FourAlive = 50_000,
+        ThreeAlive = 800,
+        FourBlocked = 700,
     }
     public class KillingBoard {
         public int score = 0;

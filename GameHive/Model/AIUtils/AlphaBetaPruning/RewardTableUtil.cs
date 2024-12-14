@@ -19,9 +19,11 @@ namespace GameHive.Model.AIUtils.AlphaBetaPruning {
     class RewardTableUtil {
         public static Dictionary<List<Role>, int> GetGOBangRewardTable() {
             var rewardTable = new Dictionary<string, int>();
+            //五
+            rewardTable["AAAAA"] = 1_000_000;
             // 四
             // 活四 _OOOO_
-            rewardTable["EAAAAE"] = 5000;
+            rewardTable["EAAAAE"] = 50_000;
             // 冲四 O_OOO _OOOOX OO_OO
             rewardTable["AEAAA"] = 700;
             rewardTable["EAAAAP"] = 1000;
@@ -109,5 +111,27 @@ namespace GameHive.Model.AIUtils.AlphaBetaPruning {
             }
             return convertedList;
         }
+        //将KillingTable键中的Player和AI互换
+        public static Dictionary<List<Role>, KillTypeEnum> SwitchAIPlayer(Dictionary<List<Role>, KillTypeEnum> KillingTable) {
+            Dictionary<List<Role>, KillTypeEnum> NewKillingTable = new Dictionary<List<Role>, KillTypeEnum>();
+
+            foreach (var entry in KillingTable) {
+                List<Role> roles = entry.Key;
+                List<Role> swappedRoles = new List<Role>(roles.Count);
+                foreach (var role in roles) {
+                    // 交换 Player 和 AI
+                    if (role == Role.Player)
+                        swappedRoles.Add(Role.AI);
+                    else if (role == Role.AI)
+                        swappedRoles.Add(Role.Player);
+                    else
+                        swappedRoles.Add(Role.Empty);
+                }
+                NewKillingTable[swappedRoles] = entry.Value;
+            }
+            return NewKillingTable;
+        }
+
+
     }
 }

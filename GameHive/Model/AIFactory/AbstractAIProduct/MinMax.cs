@@ -60,7 +60,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                     return KillingMove;
                 }
             }
-
+            lastAvailableMoves = GetAvailableMoves(currentBoard);
             //计算最优值
             EvalToGo(0, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
             //AI下棋
@@ -79,16 +79,12 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             else if (winner == Role.Player) return -1_000_000;
             if (depth == maxDeep)
                 return EvalNowSituation(GetCurrentBoard(), Role.AI);
-            //{
-            //    int attackScore = AttackBias * EvalNowSituation(GetCurrentBoard(), Role.AI);
-            //    int defendScore = DefendBias * EvalNowSituation(GetCurrentBoard(), Role.Player);
-            //    return attackScore - defendScore;
-            //}
             bool IsAi = ((depth % 2) == 0);
             int nowScore; Tuple<int, int>? nowDec = null;
             //根据上一步操作获取下一步可行点位
             var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
             if (IsAi) {
+                //AI Max层，寻找Min层返回的价值最大的
                 nowScore = int.MinValue;
                 foreach (var move in availableMoves) {
                     PlayChess(move.Item1, move.Item2, Role.AI);
@@ -103,6 +99,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                         break;
                 }
             } else {
+                //人类 Min层，寻找价值最小的局面
                 nowScore = int.MaxValue;
                 foreach (var move in availableMoves) {
                     PlayChess(move.Item1, move.Item2, Role.Player);

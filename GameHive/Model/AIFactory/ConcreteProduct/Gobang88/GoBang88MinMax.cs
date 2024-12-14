@@ -23,7 +23,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88MinMax : MinMax {
         //AC自动机执行工具类
         protected ACAutomaton ACAutomaton;
-        protected KillingBoardACAutomaton KillingBoardACAutomaton;
+        protected KillingBoardACAutomaton AIKillingBoardACAutomaton;
+        protected KillingBoardACAutomaton PlayerAIKillingBoardACAutomaton;
         //四个变化坐标映射的棋盘，用于优化估值速度
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
@@ -31,7 +32,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             maxDeep = 4; killingMaxDeep = 12;
             TotalPiecesCnt = 8;
             ACAutomaton = new ACAutomaton(RewardTable);
-            KillingBoardACAutomaton = new KillingBoardACAutomaton(killingTable);
+            AIKillingBoardACAutomaton = new KillingBoardACAutomaton(killingTable);
+            PlayerAIKillingBoardACAutomaton = new KillingBoardACAutomaton(RewardTableUtil.SwitchAIPlayer(killingTable));
 
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
             XYReversedBoard = new List<List<Role>>(TotalPiecesCnt);
@@ -73,23 +75,14 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //单次代价10(期望查找)*4(棋盘数量)*22(行列数量)=460次
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
             int ans = 0;
-            //foreach (var row in NormalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(row);
-            //foreach (var col in XYReversedBoard)
-            //    ans += ACAutomaton.CalculateLineValue(col);
-            //foreach (var mainDiagonal in MainDiagonalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(mainDiagonal);
-            //foreach (var antiDiagonal in AntiDiagonalBoard)
-            //    ans += ACAutomaton.CalculateLineValue(antiDiagonal);
-            //return ans;
             foreach (var row in NormalBoard)
-                ans += ACAutomaton.CalculateLineValue(row, role);
+                ans += ACAutomaton.CalculateLineValue(row);
             foreach (var col in XYReversedBoard)
-                ans += ACAutomaton.CalculateLineValue(col, role);
+                ans += ACAutomaton.CalculateLineValue(col);
             foreach (var mainDiagonal in MainDiagonalBoard)
-                ans += ACAutomaton.CalculateLineValue(mainDiagonal, role);
+                ans += ACAutomaton.CalculateLineValue(mainDiagonal);
             foreach (var antiDiagonal in AntiDiagonalBoard)
-                ans += ACAutomaton.CalculateLineValue(antiDiagonal, role);
+                ans += ACAutomaton.CalculateLineValue(antiDiagonal);
             return ans;
         }
 
@@ -178,7 +171,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //在x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            //if (x == -1 || (NormalBoard[x][y] != Role.Empty && role != Role.Empty)) return;
             if (role == Role.Empty) PlayedPiecesCnt--;
             else PlayedPiecesCnt++;
             NormalBoard[x][y] = role;
@@ -234,7 +226,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             ref int threeAliveCount, ref int fourBlockedCount, ref int ThreeAliveWithFourBlockedCount) {
             int three = killingBoard.typeRecord[KillTypeEnum.ThreeAlive];
             int four = killingBoard.typeRecord[KillTypeEnum.FourBlocked];
-            KillingBoardACAutomaton.CalculateLineValue(board[rowId], role, killingBoard);
+            if (role == Role.AI)
+                AIKillingBoardACAutomaton.CalculateLineValue(board[rowId], killingBoard);
+            else
+                PlayerAIKillingBoardACAutomaton.CalculateLineValue(board[rowId], killingBoard);
             //有活三更新活三值
             if (killingBoard.typeRecord[KillTypeEnum.ThreeAlive] > three) {
                 threeAliveCount++;

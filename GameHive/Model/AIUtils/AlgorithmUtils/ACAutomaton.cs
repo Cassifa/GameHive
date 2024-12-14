@@ -33,8 +33,8 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils
             Build();
         }
 
-        //提供计算列表估值方法
-        public int CalculateLineValue(List<Role> sequence, Role currentRole) {
+        //提供计算列表对于AI估值方法
+        public int CalculateLineValue(List<Role> sequence) {
             int score = 0;
             int p = 0;
             foreach (var role in sequence) {

@@ -33,7 +33,7 @@ namespace GameHive.Model.AIUtils.AlphaBetaPruning {
         }
 
         //提供计算列表估值方法
-        public int CalculateLineValue(List<Role> sequence, Role currentRole, KillingBoard killingBoard) {
+        public int CalculateLineValue(List<Role> sequence, KillingBoard killingBoard) {
             int score = 0;
             int p = 0;
             foreach (var role in sequence) {
