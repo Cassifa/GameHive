@@ -6,6 +6,7 @@
  * 创建时间：  2024/11/26 1:30
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using GameHive.Model.AIUtils;
 using System.Threading;
 namespace GameHive.Controller {
     //用于注册棋盘点击事件事件
@@ -34,6 +35,12 @@ namespace GameHive.Controller {
                     double centerY = center.Item2;
                     // 判断是否在合法范围内
                     if (Math.Pow(clickX - centerX, 2) + Math.Pow(clickY - centerY, 2) <= r * r) {
+                        //启用模拟，修改下棋点位
+                        if (RecordSimulateUtil.ActiveSimulate) {
+                            RecordSimulateUtil.SimulateKillBoardController(ref x,ref y);
+                            centerX = chessCenters[x][y].Item1;
+                            centerY = chessCenters[x][y].Item2;
+                        }
                         //已经被下过棋则忽略
                         if (!ModelMessageCheckValid(x,y)) return;
                         //给显示层发消息

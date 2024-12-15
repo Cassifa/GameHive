@@ -372,6 +372,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
             return killingBoard;
         }
+        
         //获取可杀气列表 第三项为此点的杀棋估值
         private List<Tuple<int, int, int>> GetVctPoints(Role type, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             bool isAI = type == Role.AI;

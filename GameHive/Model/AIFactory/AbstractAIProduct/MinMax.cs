@@ -14,6 +14,7 @@
  * 创建时间：  2024/11/26 18:11
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using GameHive.Model.AIUtils;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MinMax : AbstractAIStrategy {
@@ -64,13 +65,22 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             //逐步下棋，直到在最大层搜或者得分表示已经胜利
             for (int i = 2; i <= maxDepth; i += 2) {
                 int value = EvalToGo(i, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
-                if (value >= 1_000_000 - i) 
+                if (value >= 1_000_000 - i)
                     return;
             }
         }
 
         //获取下一步移动
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
+            //如果在模拟杀棋管辖部署内执行模拟杀棋逻辑,修改了上次玩家落子和决策
+            if (RecordSimulateUtil.SimulateKillBoard( ref lastX, ref lastY,ref FinalDecide)) {
+                //如果是AI先手传来的上一步是-1，-1
+                if (lastX != -1)
+                    PlayChess(lastX, lastY, Role.Player);
+                //下模拟步
+                PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
+                return FinalDecide;
+            }
             //收到玩家移动，更新棋盘
             if (lastX != -1)
                 PlayChess(lastX, lastY, Role.Player);
@@ -95,14 +105,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         }
 
         //执行博弈树搜索
-        private int EvalToGo(int depth, int alpha, int beta,
+        private int EvalToGo(int depth, int alpha, int beta, //List<Tuple<int, int>> lastUsedMoves,
                 List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             // 检查当前局面的胜负情况
             Role winner = CheckGameOverByPiece(GetCurrentBoard(), lastX, lastY);
             if (winner == Role.Draw) return 0;
             else if (winner == Role.AI) return 1_000_000;//- depth;//防止AI调戏玩家
             else if (winner == Role.Player) return -1_000_000;
-            if (depth == 0)  return EvalNowSituation(GetCurrentBoard(), Role.AI);
+            if (depth == 0) return EvalNowSituation(GetCurrentBoard(), Role.AI);
             bool IsAi = ((depth % 2) == 0);
             int nowScore; Tuple<int, int> nowDec = new Tuple<int, int>(0, 0);
             //根据上一步操作获取下一步可行点位
