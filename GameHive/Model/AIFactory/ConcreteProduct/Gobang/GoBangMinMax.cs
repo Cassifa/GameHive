@@ -25,6 +25,9 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             maxDeep = 8; killingMaxDeep = 16;
             TotalPiecesCnt = 15;
             RunKillBoard = true;
+            //初始缓存表
+            MinMaxCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
+            BoardValueCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
             //初始化自动机工具类
             ACAutomaton = new ACAutomaton(RewardTable);
             PlayerACAutomaton = new ACAutomaton(RewardTableUtil.SwitchAIPlayerRewardTable(RewardTable));
@@ -71,14 +74,23 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //单次代价10(期望查找)*4(棋盘数量)*22(行列数量)=460次
         protected override int EvalNowSituation(List<List<Role>> currentBoard, Role role) {
             int ans = 0;
+            //尝试从缓存中查值
+            if (BoardValueCache.GetValue(ref ans) != -1)
+                return ans;
             foreach (var row in NormalBoard)
                 ans += ACAutomaton.CalculateLineValue(row);
             foreach (var col in XYReversedBoard)
                 ans += ACAutomaton.CalculateLineValue(col);
-            foreach (var mainDiagonal in MainDiagonalBoard)
+            foreach (var mainDiagonal in MainDiagonalBoard) {
+                if (mainDiagonal.Count < 5) continue;
                 ans += ACAutomaton.CalculateLineValue(mainDiagonal);
-            foreach (var antiDiagonal in AntiDiagonalBoard)
+            }
+            foreach (var antiDiagonal in AntiDiagonalBoard) {
+                if (antiDiagonal.Count < 5) continue;
                 ans += ACAutomaton.CalculateLineValue(antiDiagonal);
+            }
+            //记录缓存值
+            BoardValueCache.Log(ans);
             return ans;
         }
 
@@ -266,8 +278,14 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //在x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            if (role == Role.Empty) PlayedPiecesCnt--;
-            else PlayedPiecesCnt++;
+            //更新缓存表
+            if (role == Role.Empty) {
+                BoardValueCache.UpdateCurrentBoardHash(x, y, NormalBoard[x][y]);
+                PlayedPiecesCnt--;
+            } else {
+                BoardValueCache.UpdateCurrentBoardHash(x, y, role);
+                PlayedPiecesCnt++;
+            }
             NormalBoard[x][y] = role;
             XYReversedBoard[y][x] = role;
             var t = GetMainAndAntiDiagonalCoordinates(x, y);
@@ -372,7 +390,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
             return killingBoard;
         }
-        
+
         //获取可杀气列表 第三项为此点的杀棋估值
         private List<Tuple<int, int, int>> GetVctPoints(Role type, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             bool isAI = type == Role.AI;

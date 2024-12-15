@@ -24,8 +24,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //当前已经落子数量
         protected int PlayedPiecesCnt;
         protected int TotalPiecesCnt;
-        //决定Ai的风格偏好,加起来权重为10
-        protected int DefendBias = 4, AttackBias = 6;
+        //MinMax缓存表 和 局面估值缓存表
+        protected ZobristHashingCache<int> MinMaxCache;
+        protected ZobristHashingCache<int> BoardValueCache;
         private Tuple<int, int> FinalDecide = new Tuple<int, int>(0, 0);
         //初始化棋盘
         protected abstract void InitGame();
@@ -72,15 +73,16 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //获取下一步移动
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
-            //如果在模拟杀棋管辖部署内执行模拟杀棋逻辑,修改了上次玩家落子和决策
-            if (RecordSimulateUtil.SimulateKillBoard( ref lastX, ref lastY,ref FinalDecide)) {
-                //如果是AI先手传来的上一步是-1，-1
-                if (lastX != -1)
-                    PlayChess(lastX, lastY, Role.Player);
-                //下模拟步
-                PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
-                return FinalDecide;
-            }
+            if (RecordSimulateUtil.ActiveSimulate)
+                //如果在模拟杀棋管辖部署内执行模拟杀棋逻辑,修改了上次玩家落子和决策
+                if (RecordSimulateUtil.SimulateKillBoard(ref lastX, ref lastY, ref FinalDecide)) {
+                    //如果是AI先手传来的上一步是-1，-1
+                    if (lastX != -1)
+                        PlayChess(lastX, lastY, Role.Player);
+                    //下模拟步
+                    PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
+                    return FinalDecide;
+                }
             //收到玩家移动，更新棋盘
             if (lastX != -1)
                 PlayChess(lastX, lastY, Role.Player);
@@ -107,6 +109,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //执行博弈树搜索
         private int EvalToGo(int depth, int alpha, int beta, //List<Tuple<int, int>> lastUsedMoves,
                 List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+            int nowScore = 0; Tuple<int, int> nowDec = new Tuple<int, int>(0, 0);
+            //查缓存
+            if (MinMaxCache.GetValue(ref nowScore) >= depth) 
+                return nowScore;
+
             // 检查当前局面的胜负情况
             Role winner = CheckGameOverByPiece(GetCurrentBoard(), lastX, lastY);
             if (winner == Role.Draw) return 0;
@@ -114,7 +121,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             else if (winner == Role.Player) return -1_000_000;
             if (depth == 0) return EvalNowSituation(GetCurrentBoard(), Role.AI);
             bool IsAi = ((depth % 2) == 0);
-            int nowScore; Tuple<int, int> nowDec = new Tuple<int, int>(0, 0);
+
             //根据上一步操作获取下一步可行点位
             var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
             if (IsAi) {
@@ -150,6 +157,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
             }
             FinalDecide = nowDec;
+            //更新缓存
+            MinMaxCache.Log(nowScore, depth);
             return nowScore;
         }
 
