@@ -7,8 +7,11 @@
 *************************************************************************************/
 namespace GameHive.Model.AIUtils.AlphaBetaPruning {
     public enum KillingRiskEnum {
+        //多冲四
         High = 40_000,//小与活四1/5
+        //冲四加活三
         Middle = 25_000,//活四一半，大于活三
+        //多活三
         Low = 8_000,//大于活三10小于活四
         None=0,
     }

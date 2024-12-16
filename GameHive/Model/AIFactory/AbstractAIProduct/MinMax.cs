@@ -32,7 +32,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //MinMax缓存表、局面估值缓存表、算杀估值表
         protected ZobristHashingCache<int> MinMaxCache;
         protected ZobristHashingCache<int> BoardValueCache;
-        protected ZobristHashingCache<Tuple<int,int>> KillingCache;
+        protected ZobristHashingCache<Tuple<int, int>> KillingCache;
         private Tuple<int, int> FinalDecide = new Tuple<int, int>(0, 0);
         //初始化棋盘
         protected abstract void InitGame();
@@ -49,6 +49,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected abstract void PlayChess(int x, int y, Role role);
         //获取当前棋盘
         protected abstract List<List<Role>> GetCurrentBoard();
+        //启发式搜索
+        protected virtual void HeuristicSort(ref List<Tuple<int, int>> moves, int lastX, int lastY) { }
         //计算VCT杀棋
         protected virtual Tuple<int, int> VCT(Role type, int leftDepth) {
             return null;
@@ -57,10 +59,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //迭代加深算杀
         protected virtual Tuple<int, int> DeepeningKillBoard(int maxDepth, int lastX, int lastY) {
             List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(GetCurrentBoard());
-            Tuple<int, int>? result = Tuple.Create(-1,-1);
+            Tuple<int, int>? result = Tuple.Create(-1, -1);
             for (int i = 2; i <= maxDepth; i += 2) {
                 result = VCT(Role.AI, i);
-                if (result.Item1!=-1)
+                if (result.Item1 != -1)
                     break;
             }
             return result;
@@ -95,7 +97,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             if (RunKillBoard && PlayedPiecesCnt > 5) {
                 Tuple<int, int> KillingMove = DeepeningKillBoard(killingMaxDeep, lastX, lastY);
                 //杀棋命中直接返回杀棋
-                if (KillingMove.Item1!=-1) {
+                if (KillingMove.Item1 != -1) {
                     PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
                     return KillingMove;
                 }
@@ -130,6 +132,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
             //根据上一步操作获取下一步可行点位
             var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
+            HeuristicSort(ref availableMoves, lastX, lastY);
             if (IsAi) {
                 //AI Max层，寻找Min层返回的价值最大的
                 nowScore = int.MinValue;

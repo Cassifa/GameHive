@@ -10,7 +10,7 @@ namespace GameHive.Model.AIUtils {
         //已经运行轮数
         private static int RoundCount = 0;
         //是否启用模拟
-        public static bool ActiveSimulate = true;
+        public static bool ActiveSimulate = false;
         //是否为VCF模拟
         public static bool IsVCF = false;
         private static List<Tuple<int, int>> VCFSimulate() {

@@ -133,8 +133,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //AI要防人杀棋同时贪心的搜当前价值最高点，人要贪心的走价值增益最大的点 由于运行MinMax前已经计算过AI杀棋，所以不考虑AI杀情况
         //如果是AI-将落子点位对AI增益从大到小，并加入人类VCT杀棋点,预防人类连续冲三攻击。若存在有价值点则不考虑无价值点
         //如果是人类 落子点增益最大的10个点(考虑了AI的增益)
-        private void SortAvailableMoves(List<Tuple<int, int>> moves, Role role) {
-            bool isAI = (role == Role.AI);
+        protected override void HeuristicSort(ref List<Tuple<int, int>> moves, int lastX, int lastY) {
+            bool isAI = (lastX == -1 || NormalBoard[lastX][lastY] == Role.AI) ? false : true;
             if (isAI) { //将可行点位按增益从大到小排序，前置人类VCT杀棋点
                 //暂存队列，item1为点位，item2为对于AI估值增益和玩家杀棋价值
                 var scoredMoves = new List<Tuple<Tuple<int, int>, Tuple<int, KillingBoard>>>();
@@ -272,9 +272,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 }
                 if (flag) newAvailableMoves.Add(move);
             }
-            if (lastX == -1 || currentBoard[lastX][lastY] == Role.AI)
-                SortAvailableMoves(newAvailableMoves, Role.Player);
-            else SortAvailableMoves(newAvailableMoves, Role.AI);
             return newAvailableMoves;
         }
 
