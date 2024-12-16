@@ -7,20 +7,24 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.AIUtils.AlgorithmUtils;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            baseCount = 1000;
-            NeedUpdateSearchCount = true;
+            baseCount = 10_000;
+            //NeedUpdateSearchCount = true;
             CheckGameOverCache = new ZobristHashingCache<Role>(TotalPiecesCnt, TotalPiecesCnt);
         }
         /*****实现三个策略*****/
-        //根据某次落子查看游戏是否结束
+        //根据某次落子查看游戏是否结束-要求这个点已经被下棋
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+            if (currentBoard[x][y] == Role.Empty)
+                throw new Exception("该点未下棋！");
             //判断是否命中
             Role result = Role.Empty;
-            //if (CheckGameOverCache.GetValue(ref result) != -1) return result;
+            //if (CheckGameOverCache.GetValue(ref result) != -1)
+            //    return result;
             int[] dx = { 0, -1, 1, 0, 0 };
             int[] dy = { 0, 0, 0, -1, 1 };
 
@@ -33,9 +37,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0 || currentBoard[newX][newY] == Role.Empty)
                     continue;
                 Clear(ref visitStatusBoard);
-                for (int k = 0; k < visitStatusBoard.Count; k++)
-                    for (int j = 0; j < visitStatusBoard[k].Count; j++)
-                        visitStatusBoard[i][j] = false;
                 if (!IsAlive(currentBoard, visitStatusBoard, x, y)) {
                     result = currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
                     break;
@@ -74,8 +75,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return false;
         }
 
-        //获取所有可行移动点位，如果没有可行那么返回一个会导致失败的点位
-        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
+        //获取所有可行移动点位，如果没有可行那么返回一个会导致失败的空点位
+        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board, Role WhoPlaying) {
             List<Tuple<int, int>> emptyMoves = new List<Tuple<int, int>>();
             List<Tuple<int, int>> availableMoves = new List<Tuple<int, int>>();
             for (int i = 0; i < TotalPiecesCnt; i++)
@@ -84,9 +85,18 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                         emptyMoves.Add(new Tuple<int, int>(i, j));
                     }
                 }
-            foreach (var t in emptyMoves)
+            foreach (var t in emptyMoves) {
+                //模拟落子
+                PlayChess(t.Item1, t.Item2, WhoPlaying);
+                //在调用CheckGameOverByPiece前保证已经落子
+                board[t.Item1][t.Item2] = WhoPlaying;
                 if (CheckGameOverByPiece(board, t.Item1, t.Item2) == Role.Empty)
                     availableMoves.Add(t);
+                //撤销落子
+                board[t.Item1][t.Item2] = Role.Empty;
+                //撤销模拟落子
+                PlayChess(t.Item1, t.Item2, WhoPlaying);
+            }
             if (availableMoves.Count == 0)
                 availableMoves.Add(emptyMoves[0]);
             return availableMoves;

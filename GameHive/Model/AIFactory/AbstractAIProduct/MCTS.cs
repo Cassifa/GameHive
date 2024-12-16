@@ -14,6 +14,7 @@
  * 创建时间：  2024/11/26 18:11
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using GameHive.Model.AIUtils.AlgorithmUtils;
 using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
@@ -34,28 +35,22 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected int TotalPiecesCnt;
         //根节点
         protected MCTSNode RootNode;
-        //线程当前使用棋盘
-        protected List<List<Role>> CurrentBoard;
         //缓存表
         protected ZobristHashingCache<Role> CheckGameOverCache;
         //获取可行落子
-        protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
+        protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board, Role WhoPlaying);
 
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //争夺锁，换根
             lock (mutex) {
-                Role winner;
-                //AI先手会根据(-1,-1)构造初始棋盘
-                if (lastX == -1) winner = Role.Empty;
-                else winner = CheckGameOverByPiece(currentBoard, lastX, lastY);
                 //根据玩家决策换根
                 if (lastX != -1) {
                     PlayedPiecesCnt++;
+                    //玩家移动后换根
                     RootNode = RootNode.MoveRoot(lastX, lastY, NodeExpansion);
-
+                    PlayChess(lastX, lastY,Role.Player);
                 }
                 AIMoveSearchCount = 0;
-
                 //释放锁并等待搜索线程通知-收到通知后判断是否达标
                 while (AIMoveSearchCount < SearchCount)
                     Monitor.Wait(mutex);
@@ -64,6 +59,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 var tt = RootNode.GetGreatestUCB();
                 Tuple<int, int> AIDecision = tt.PieceSelectedCompareToFather;
                 RootNode = RootNode.MoveRoot(AIDecision.Item1, AIDecision.Item2, NodeExpansion);
+                PlayChess(AIDecision.Item1, AIDecision.Item2, Role.AI);
                 PlayedPiecesCnt++;
                 if (NeedUpdateSearchCount)
                     UpdateSearchCount(baseCount, TotalPiecesCnt * TotalPiecesCnt, PlayedPiecesCnt, ref SearchCount);
@@ -89,12 +85,6 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         public override void GameStart(bool IsAIFirst) {
             end = false; PlayedPiecesCnt = 0; SearchCount = baseCount;
             CheckGameOverCache.RefreshLog();
-            CurrentBoard = new List<List<Role>>(TotalPiecesCnt);
-            for (int i = 0; i < TotalPiecesCnt; i++)
-                CurrentBoard.Add(new List<Role>(new Role[TotalPiecesCnt]));
-            foreach (var row in CurrentBoard)
-                for (int i = 0; i < TotalPiecesCnt; i++)
-                    row[i] = Role.Empty;
             //创建根节点
             List<List<Role>> board = new List<List<Role>>(TotalPiecesCnt);
             List<Tuple<int, int>> moves = new List<Tuple<int, int>>();
@@ -137,7 +127,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             while (true) {
                 if (currentSelected.IsLeaf) break;
                 currentSelected = currentSelected.GetGreatestUCB();
-                //更新缓存表
+                //更新缓存表棋盘至当前选择儿子的棋盘
                 PlayChess(currentSelected.PieceSelectedCompareToFather.Item1,
                     currentSelected.PieceSelectedCompareToFather.Item2, currentSelected.LeadToThisStatus);
             }
@@ -154,16 +144,16 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             Role winner;
             while (true) {
                 //获取可行点并模拟落子
-                List<Tuple<int, int>> moves = GetAvailableMoves(currentBoard);
+                List<Tuple<int, int>> moves = GetAvailableMoves(currentBoard, WhoPlaying);
                 Tuple<int, int> move = moves[rand.Next(moves.Count)];
-                currentBoard[move.Item1][move.Item2] = WhoPlaying;
                 //更新缓存表
                 PlayChess(move.Item1, move.Item2, WhoPlaying);
+                currentBoard[move.Item1][move.Item2] = WhoPlaying;
+                //假设在此落子游戏是否结束
                 winner = CheckGameOverByPiece(currentBoard, move.Item1, move.Item2);
                 //已经结束直接跳出
                 if (winner != Role.Empty) break;
-                if (WhoPlaying == Role.AI) WhoPlaying = Role.Player;
-                else WhoPlaying = Role.AI;
+                WhoPlaying = WhoPlaying == Role.AI ? Role.Player : Role.AI;
             }
             return winner;
         }
@@ -179,16 +169,28 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             if (father.LeadToThisStatus == Role.AI) sonPlayerView = Role.Player;
             else sonPlayerView = Role.AI;
             foreach (var move in moves) {
+                //缓存更新到当前儿子的棋盘
+                PlayChess(move.Item1, move.Item2, sonPlayerView);
+                //子节点棋盘为父节点的深拷贝
                 List<List<Role>> currentBoard = father.NodeBoard.Select(row => new List<Role>(row)).ToList();
                 currentBoard[move.Item1][move.Item2] = sonPlayerView;
+
                 MCTSNode nowSon = new MCTSNode(currentBoard, father, move.Item1, move.Item2,
                     sonPlayerView, CheckGameOverByPiece(currentBoard, move.Item1, move.Item2),
-                    GetAvailableMoves(currentBoard));
+                    GetAvailableMoves(currentBoard,sonPlayerView));
                 father.AddSon(nowSon, move.Item1, move.Item2);
+                //缓存回到父棋盘局面
+                PlayChess(move.Item1, move.Item2, sonPlayerView);
             }
             father.IsLeaf = false;
         }
 
+
+
+        //下棋，更新当前棋局记录表,如果是撤销也直接传入被撤销的角色及坐标
+        protected void PlayChess(int x, int y, Role role) {
+            CheckGameOverCache.UpdateCurrentBoardHash(x, y, role);
+        }
 
         //防止对于AI而言无可行点导致换根失败
         private List<Tuple<int, int>> GetAllEmptyPlace(List<List<Role>> board) {
@@ -216,11 +218,6 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //用户下棋
         public override void UserPlayPiece(int lastX, int lastY) { }
-
-        //下棋，更新当前棋局记录表,蒙特卡洛不会撤销移动
-        public void PlayChess(int x, int y, Role role) {
-            CheckGameOverCache.UpdateCurrentBoardHash(x, y, role);
-        }
 
     }
 }

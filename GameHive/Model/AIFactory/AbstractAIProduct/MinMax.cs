@@ -15,6 +15,7 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIUtils;
+using GameHive.Model.AIUtils.AlgorithmUtils;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MinMax : AbstractAIStrategy {
