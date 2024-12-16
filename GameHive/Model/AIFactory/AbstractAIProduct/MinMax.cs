@@ -22,6 +22,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //最大搜索深度；
         protected int maxDeep, killingMaxDeep;
         protected bool RunKillBoard = false;
+        //是否需要迭代加深计算
+        protected bool DeepeningKillingActivated = false;
+        //游戏是否结束
+        private bool GameOver;
         //当前已经落子数量
         protected int PlayedPiecesCnt;
         protected int TotalPiecesCnt;
@@ -65,7 +69,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected virtual void DeepeningMinMax(int maxDepth, int lastX, int lastY) {
             List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(GetCurrentBoard());
             //逐步下棋，直到在最大层搜或者得分表示已经胜利
-            for (int i = 2; i <= maxDepth; i += 2) {
+            for (int i = DeepeningKillingActivated ? 2 : maxDepth; i <= maxDepth; i += 2) {
                 int value = EvalToGo(i, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
                 if (value >= 1_000_000 - i)
                     return;
@@ -98,9 +102,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             //}
             DeepeningMinMax(maxDeep, lastX, lastY);
 
-            List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
-            //计算最优值
-            //EvalToGo(0, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
+            //List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
+            ////计算最优值
+            //EvalToGo(maxDeep, int.MinValue, int.MaxValue, lastAvailableMoves, lastX, lastY);
             //AI下棋
             PlayChess(FinalDecide.Item1, FinalDecide.Item2, Role.AI);
             //计算出AI移动，跟新棋盘
@@ -110,9 +114,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //执行博弈树搜索
         private int EvalToGo(int depth, int alpha, int beta, //List<Tuple<int, int>> lastUsedMoves,
                 List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+            if (GameOver) return 1_000_000;
             int nowScore = 0; Tuple<int, int> nowDec = new Tuple<int, int>(0, 0);
             //不是顶层则查缓存-顶层需要搜决策节点价值
-            if (depth!=maxDeep&&MinMaxCache.GetValue(ref nowScore) >= depth)
+            if (depth != maxDeep && MinMaxCache.GetValue(ref nowScore) >= depth)
                 return nowScore;
 
             // 检查当前局面的胜负情况
@@ -157,6 +162,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 }
 
             }
+            //只有顶层更新FinalDecide有意义
             FinalDecide = nowDec;
             //更新缓存
             MinMaxCache.Log(nowScore, depth);
@@ -166,14 +172,17 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //游戏开始
         public override void GameStart(bool IsAIFirst) {
+            GameOver = false;
             PlayedPiecesCnt = 0;
             InitGame();
             MinMaxCache.RefreshLog();
         }
+        //游戏结束
+        public override void GameForcedEnd() {
+            GameOver = true;
+        }
 
         /*****博弈树不需要*****/
-        //游戏结束
-        public override void GameForcedEnd() { }
         //用户下棋
         public override void UserPlayPiece(int lastX, int lastY) {
         }

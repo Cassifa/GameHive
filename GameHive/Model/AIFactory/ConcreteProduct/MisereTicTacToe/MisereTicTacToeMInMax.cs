@@ -7,13 +7,16 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.AIUtils.AlgorithmUtils;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class MisereTicTacToeMinMax : MinMax {
         private List<List<Role>> NormalBoard;
         public MisereTicTacToeMinMax() {
             //井字棋直接搜完
-            maxDeep = 11;TotalPiecesCnt = 3;
+            maxDeep = 12;TotalPiecesCnt = 3;
+            //初始缓存表
+            MinMaxCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
         }
         /*****实现两个博弈树策略*****/
@@ -66,10 +69,17 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //在博弈树内部维护棋盘x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            if (role == Role.Empty) PlayedPiecesCnt--;
-            else PlayedPiecesCnt++;
+            //更新缓存表
+            if (role == Role.Empty) {
+                MinMaxCache.UpdateCurrentBoardHash(x, y, NormalBoard[x][y]);
+                PlayedPiecesCnt--;
+            } else {
+                MinMaxCache.UpdateCurrentBoardHash(x, y, role);
+                PlayedPiecesCnt++;
+            }
             NormalBoard[x][y] = role;
         }
+
 
         protected override List<List<Role>> GetCurrentBoard() {
             return NormalBoard;

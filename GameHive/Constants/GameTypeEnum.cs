@@ -7,8 +7,8 @@
 *************************************************************************************/
 namespace GameHive.Constants.GameTypeEnum {
     public enum GameType {
-        AntiGo,
         Gobang,
+        AntiGo,
         Gobang88,
         TicTacToe,
         MisereTicTacToe,

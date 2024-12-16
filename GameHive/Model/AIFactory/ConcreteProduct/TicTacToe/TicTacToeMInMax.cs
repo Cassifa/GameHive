@@ -7,13 +7,16 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.AIUtils.AlgorithmUtils;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class TicTacToeMinMax : MinMax {
         private List<List<Role>> NormalBoard;
         public TicTacToeMinMax() {
             //井字棋直接搜完
-            maxDeep = 10;TotalPiecesCnt = 3;
+            maxDeep = 12; TotalPiecesCnt = 3;
+            //初始缓存表
+            MinMaxCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
         }
         /*****实现两个博弈树策略*****/
@@ -60,6 +63,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             return moves;
         }
+        
         protected override List<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             return GetAvailableMoves(currentBoard);
         }
@@ -67,8 +71,14 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //在博弈树内部维护棋盘x,y下棋 数组坐标
         protected override void PlayChess(int x, int y, Role role) {
-            if (role == Role.Empty) PlayedPiecesCnt--;
-            else PlayedPiecesCnt++;
+            //更新缓存表
+            if (role == Role.Empty) {
+                MinMaxCache.UpdateCurrentBoardHash(x, y, NormalBoard[x][y]);
+                PlayedPiecesCnt--;
+            } else {
+                MinMaxCache.UpdateCurrentBoardHash(x, y, role);
+                PlayedPiecesCnt++;
+            }
             NormalBoard[x][y] = role;
         }
 

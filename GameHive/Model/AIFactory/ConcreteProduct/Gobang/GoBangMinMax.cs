@@ -25,6 +25,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             maxDeep = 8; killingMaxDeep = 16;
             TotalPiecesCnt = 15;
             RunKillBoard = true;
+            DeepeningKillingActivated = true;
             //初始缓存表
             MinMaxCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
             BoardValueCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
@@ -270,7 +271,9 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 }
                 if (flag) newAvailableMoves.Add(move);
             }
-            SortAvailableMoves(newAvailableMoves, currentBoard[lastX][lastY] == Role.AI ? Role.Player : Role.AI);
+            if (lastX == -1 || currentBoard[lastX][lastY] == Role.AI)
+                SortAvailableMoves(newAvailableMoves, Role.Player);
+            else SortAvailableMoves(newAvailableMoves, Role.AI);
             return newAvailableMoves;
         }
 

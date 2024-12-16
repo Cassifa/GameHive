@@ -9,6 +9,7 @@ using GameHive.Constants.RoleTypeEnum;
 using System.Security.Cryptography;
 namespace GameHive.Model.AIUtils.AlgorithmUtils {
     public class ZobristHashingCache<T> {
+        private int LengthX, lengthY;
         // 已记录的估值与深度映射表，合并为一个字典
         private Dictionary<long, (T value, int deep)> Cache = new Dictionary<long, (T, int)>();
         // 当前记录棋盘状态
@@ -26,23 +27,11 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
         // 根据传入大小初始化 Cache 表
         public ZobristHashingCache(int x, int y) {
             CurrentBoardHash = 0;
+            LengthX = x; lengthY = y;
             DiscardMoveActivated = false;
-            PlayerCache = new List<List<long>>(x);
-            AICache = new List<List<long>>(x);
-            for (int i = 0; i < x; i++) {
-                List<long> row = new List<long>(y);
-                for (int j = 0; j < y; j++) {
-                    row.Add(GenerateHighQualityRandomLong());
-                }
-                PlayerCache.Add(row);
-            }
-            for (int i = 0; i < x; i++) {
-                List<long> row = new List<long>(y);
-                for (int j = 0; j < y; j++) {
-                    row.Add(GenerateHighQualityRandomLong());
-                }
-                AICache.Add(row);
-            }
+            PlayerCache = new List<List<long>>(LengthX);
+            AICache = new List<List<long>>(LengthX);
+            InitBoard();
         }
 
         // 落子-只能接受 Role.AI 或 Role.Player
@@ -73,6 +62,7 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
         // 刷新缓存 - 重置当前局面
         public void RefreshLog() {
             CurrentBoardHash = 0;
+            //InitBoard();
         }
 
         // 启动自动忽略变动
@@ -86,6 +76,26 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
                 throw new KeyNotFoundException("未启用回溯!");
             DiscardMoveActivated = false;
             CurrentBoardHash = LastBoardHash;
+        }
+
+        //初始化棋盘
+        private void InitBoard() {
+            PlayerCache.Clear(); AICache.Clear();
+            for (int i = 0; i < LengthX; i++) {
+                List<long> row = new List<long>(lengthY);
+                for (int j = 0; j < lengthY; j++) {
+                    row.Add(GenerateHighQualityRandomLong());
+                }
+                PlayerCache.Add(row);
+            }
+
+            for (int i = 0; i < LengthX; i++) {
+                List<long> row = new List<long>(lengthY);
+                for (int j = 0; j < lengthY; j++) {
+                    row.Add(GenerateHighQualityRandomLong());
+                }
+                AICache.Add(row);
+            }
         }
         // 生成高质量随机 long 类型数
         private long GenerateHighQualityRandomLong() {
