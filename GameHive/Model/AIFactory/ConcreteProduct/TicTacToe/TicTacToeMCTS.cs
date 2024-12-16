@@ -47,7 +47,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
         //获取可行落子点位
-        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board, Role lastPlayed) {
+        protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
             List<Tuple<int, int>> ans = new List<Tuple<int, int>>();
             for (int i = 0; i < board.Count; i++)
                 for (int j = 0; j < board[i].Count; j++)
