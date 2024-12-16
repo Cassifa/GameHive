@@ -281,9 +281,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             //更新缓存表
             if (role == Role.Empty) {
                 BoardValueCache.UpdateCurrentBoardHash(x, y, NormalBoard[x][y]);
+                MinMaxCache.UpdateCurrentBoardHash(x, y, NormalBoard[x][y]);
                 PlayedPiecesCnt--;
             } else {
                 BoardValueCache.UpdateCurrentBoardHash(x, y, role);
+                MinMaxCache.UpdateCurrentBoardHash(x, y, role);
                 PlayedPiecesCnt++;
             }
             NormalBoard[x][y] = role;
@@ -508,6 +510,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
             }
             return best;
+        }
+
+        public override void GameStart(bool IsAIFirst) {
+            base.GameStart(IsAIFirst);
+            BoardValueCache.RefreshLog();
         }
     }
 }

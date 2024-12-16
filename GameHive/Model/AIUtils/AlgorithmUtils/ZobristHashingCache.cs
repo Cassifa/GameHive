@@ -39,6 +39,7 @@ public class ZobristHashingCache<T> {
             AICache.Add(row);
         }
     }
+    
     //落子-只能接受Role.AI Role.Player
     public void UpdateCurrentBoardHash(int x, int y, Role role) {
         if (role == Role.Empty)
@@ -66,6 +67,10 @@ public class ZobristHashingCache<T> {
         return -1;
     }
 
+    //刷新缓存-重置当前局面
+    public void RefreshLog() {
+        CurrentBoardHash = 0;
+    }
     // 生成高质量随机 long 类型数
     private long GenerateHighQualityRandomLong() {
         byte[] buffer = new byte[8]; // 8字节表示一个 long

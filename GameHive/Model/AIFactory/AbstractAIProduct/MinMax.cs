@@ -87,14 +87,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             if (lastX != -1)
                 PlayChess(lastX, lastY, Role.Player);
             //总共已经落子的大于5则考虑杀棋
-            if (RunKillBoard && PlayedPiecesCnt > 5) {
-                Tuple<int, int>? KillingMove = DeepeningKillBoard(killingMaxDeep, lastX, lastY);
-                //杀棋命中直接返回杀棋
-                if (KillingMove != null) {
-                    PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
-                    return KillingMove;
-                }
-            }
+            //if (RunKillBoard && PlayedPiecesCnt > 5) {
+            //    Tuple<int, int>? KillingMove = DeepeningKillBoard(killingMaxDeep, lastX, lastY);
+            //    //杀棋命中直接返回杀棋
+            //    if (KillingMove != null) {
+            //        PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
+            //        return KillingMove;
+            //    }
+            //}
             DeepeningMinMax(maxDeep, lastX, lastY);
 
             List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
@@ -110,8 +110,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         private int EvalToGo(int depth, int alpha, int beta, //List<Tuple<int, int>> lastUsedMoves,
                 List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             int nowScore = 0; Tuple<int, int> nowDec = new Tuple<int, int>(0, 0);
-            //查缓存
-            if (MinMaxCache.GetValue(ref nowScore) >= depth) 
+            //不是顶层则查缓存-顶层需要搜决策节点价值
+            if (depth!=maxDeep&&MinMaxCache.GetValue(ref nowScore) >= depth)
                 return nowScore;
 
             // 检查当前局面的胜负情况
@@ -167,6 +167,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         public override void GameStart(bool IsAIFirst) {
             PlayedPiecesCnt = 0;
             InitGame();
+            MinMaxCache.RefreshLog();
         }
 
         /*****博弈树不需要*****/
