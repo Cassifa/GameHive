@@ -29,9 +29,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //当前已经落子数量
         protected int PlayedPiecesCnt;
         protected int TotalPiecesCnt;
-        //MinMax缓存表 和 局面估值缓存表
+        //MinMax缓存表、局面估值缓存表、算杀估值表
         protected ZobristHashingCache<int> MinMaxCache;
         protected ZobristHashingCache<int> BoardValueCache;
+        protected ZobristHashingCache<Tuple<int,int>> KillingCache;
         private Tuple<int, int> FinalDecide = new Tuple<int, int>(0, 0);
         //初始化棋盘
         protected abstract void InitGame();
@@ -49,17 +50,17 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //获取当前棋盘
         protected abstract List<List<Role>> GetCurrentBoard();
         //计算VCT杀棋
-        protected virtual Tuple<int, int>? VCT(Role type, int leftDepth) {
+        protected virtual Tuple<int, int> VCT(Role type, int leftDepth) {
             return null;
         }
 
         //迭代加深算杀
-        protected virtual Tuple<int, int>? DeepeningKillBoard(int maxDepth, int lastX, int lastY) {
+        protected virtual Tuple<int, int> DeepeningKillBoard(int maxDepth, int lastX, int lastY) {
             List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(GetCurrentBoard());
-            Tuple<int, int>? result = null;
+            Tuple<int, int>? result = Tuple.Create(-1,-1);
             for (int i = 2; i <= maxDepth; i += 2) {
                 result = VCT(Role.AI, i);
-                if (result != null)
+                if (result.Item1!=-1)
                     break;
             }
             return result;
@@ -92,9 +93,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 PlayChess(lastX, lastY, Role.Player);
             //总共已经落子的大于5则考虑杀棋
             if (RunKillBoard && PlayedPiecesCnt > 5) {
-                Tuple<int, int>? KillingMove = DeepeningKillBoard(killingMaxDeep, lastX, lastY);
+                Tuple<int, int> KillingMove = DeepeningKillBoard(killingMaxDeep, lastX, lastY);
                 //杀棋命中直接返回杀棋
-                if (KillingMove != null) {
+                if (KillingMove.Item1!=-1) {
                     PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
                     return KillingMove;
                 }

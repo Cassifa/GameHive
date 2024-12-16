@@ -29,6 +29,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             //初始缓存表
             MinMaxCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
             BoardValueCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
+            KillingCache = new ZobristHashingCache<Tuple<int, int>>(TotalPiecesCnt, TotalPiecesCnt);
             //初始化自动机工具类
             ACAutomaton = new ACAutomaton(RewardTable);
             PlayerACAutomaton = new ACAutomaton(RewardTableUtil.SwitchAIPlayerRewardTable(RewardTable));
@@ -285,10 +286,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             if (role == Role.Empty) {
                 BoardValueCache.UpdateCurrentBoardHash(x, y, NormalBoard[x][y]);
                 MinMaxCache.UpdateCurrentBoardHash(x, y, NormalBoard[x][y]);
+                KillingCache.UpdateCurrentBoardHash(x, y, NormalBoard[x][y]);
                 PlayedPiecesCnt--;
             } else {
                 BoardValueCache.UpdateCurrentBoardHash(x, y, role);
                 MinMaxCache.UpdateCurrentBoardHash(x, y, role);
+                KillingCache.UpdateCurrentBoardHash(x, y, role);
                 PlayedPiecesCnt++;
             }
             NormalBoard[x][y] = role;
@@ -396,7 +399,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return killingBoard;
         }
 
-        //获取可杀气列表 第三项为此点的杀棋估值
+        //获取可杀气列表 第三项为此点的杀棋估值得分
         private List<Tuple<int, int, int>> GetVctPoints(Role type) {
             bool isAI = type == Role.AI;
             // 进攻点列表
@@ -481,29 +484,40 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
 
         //计算VCT杀棋
-        protected override Tuple<int, int>? VCT(Role type, int leftDepth) {
+        protected override Tuple<int, int> VCT(Role type, int leftDepth) {
+            Tuple<int, int> best = Tuple.Create(-1, -1);
+            //查缓存
+            if (KillingCache.GetValue(ref best) >= leftDepth)
+                if (best.Item1 != -1)
+                    return best;
+                else return best;
+
             // 算杀失败
-            if (leftDepth == 0 || GameOver) return null;
+            if (leftDepth == 0 || GameOver) {
+                KillingCache.Log(best, leftDepth);
+                return best;
+            }
             bool isAI = type == Role.AI;
 
-            Tuple<int, int>? best = null;
             List<Tuple<int, int, int>> pointList = GetVctPoints(type);
             foreach (var point in pointList) {
                 //已经形成必胜棋型
-                if (point.Item3 >= (int)KillingRiskEnum.High)
+                if (point.Item3 >= (int)KillingRiskEnum.High) {
                     //AI-返回当前节点 玩家-直接返回空
-                    return isAI ? new Tuple<int, int>(point.Item1, point.Item2) : null;
+                    best = isAI ? new Tuple<int, int>(point.Item1, point.Item2) : Tuple.Create(-1, -1);
+                    break;
+                }
                 //if (leftDepth == 8 && point.Item1 == 4 && point.Item2 == 10)
                 //leftDepth = leftDepth;
                 PlayChess(point.Item1, point.Item2, type);
                 best = VCT(type == Role.AI ? Role.Player : Role.AI, leftDepth - 1);
                 PlayChess(point.Item1, point.Item2, Role.Empty);
 
-                if (best == null) {
+                if (best.Item1 == -1) {
                     //AI还没找到可以算杀成功的棋子，继续找
                     if (isAI) continue;
                     //对手拦截成功，返回空表示算杀失败
-                    return null;
+                    break; //return null
                 }
                 //找到了 best,记录当前节点导致 best的节点
                 best = new Tuple<int, int>(point.Item1, point.Item2);
@@ -511,6 +525,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 if (isAI) break;
 
             }
+            //更新缓存
+            KillingCache.Log(best, leftDepth);
             return best;
         }
 
