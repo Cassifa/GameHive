@@ -273,7 +273,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return killingBoard;
         }
         //获取可杀气列表 第三项为此点的杀棋估值
-        private List<Tuple<int, int, int>> GetVctPoints(Role type, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+        private List<Tuple<int, int, int>> GetVctPoints(Role type) {
             bool isAI = type == Role.AI;
             // 进攻点列表
             List<Tuple<int, int, int>> attackPointList = new List<Tuple<int, int, int>>();
@@ -284,7 +284,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             // 局势是否危险
             bool isDanger = false;
 
-            List<Tuple<int, int>> availableMoves = GetAvailableMovesByNewPieces(NormalBoard, lastAvailableMoves, lastX, lastY);
+            List<Tuple<int, int>> availableMoves = GetAvailableMoves(NormalBoard);
 
             foreach (var move in availableMoves) {
                 int i = move.Item1, j = move.Item2;
@@ -357,14 +357,13 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
 
         //计算VCT杀棋
-        protected override Tuple<int, int>? VCT(Role type, int depth,
-            List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+        protected override Tuple<int, int>? VCT(Role type, int depth) {
             // 算杀失败
             if (depth == killingMaxDeep) return null;
             bool isAI = type == Role.AI;
 
             Tuple<int, int>? best = null;
-            List<Tuple<int, int, int>> pointList = GetVctPoints(type, lastAvailableMoves, lastX, lastY);
+            List<Tuple<int, int, int>> pointList = GetVctPoints(type);
             foreach (var point in pointList) {
                 //已经形成必胜棋型
                 if (point.Item3 >= (int)KillingRiskEnum.High)
@@ -372,7 +371,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     return isAI ? new Tuple<int, int>(point.Item1, point.Item2) : null;
 
                 PlayChess(point.Item1, point.Item2, type);
-                best = VCT(type == Role.AI ? Role.Player : Role.AI, depth + 1, lastAvailableMoves, point.Item1, point.Item2);
+                best = VCT(type == Role.AI ? Role.Player : Role.AI, depth + 1);
                 PlayChess(point.Item1, point.Item2, Role.Empty);
 
                 if (best == null) {

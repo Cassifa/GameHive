@@ -22,7 +22,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
         public GoBangMinMax(Dictionary<List<Role>, int> RewardTable, Dictionary<List<Role>, KillTypeEnum> killingTable) {
             //初始化搜索深度
-            maxDeep = 8; killingMaxDeep = 16;
+            maxDeep = 8; killingMaxDeep = 12;
             TotalPiecesCnt = 15;
             RunKillBoard = true;
             DeepeningKillingActivated = true;
@@ -397,7 +397,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
 
         //获取可杀气列表 第三项为此点的杀棋估值
-        private List<Tuple<int, int, int>> GetVctPoints(Role type, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+        private List<Tuple<int, int, int>> GetVctPoints(Role type) {
             bool isAI = type == Role.AI;
             // 进攻点列表
             List<Tuple<int, int, int>> attackPointList = new List<Tuple<int, int, int>>();
@@ -408,7 +408,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             // 局势是否危险
             bool isDanger = false;
 
-            List<Tuple<int, int>> availableMoves = GetAvailableMovesByNewPieces(NormalBoard, lastAvailableMoves, lastX, lastY);
+            List<Tuple<int, int>> availableMoves = GetAvailableMoves(NormalBoard);
 
             foreach (var move in availableMoves) {
                 int i = move.Item1, j = move.Item2;
@@ -434,7 +434,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 }
 
                 //看看自己有没有大于等于中风险分值的点位
-                if (killingBoard.type >= KillingRiskEnum.Middle) {
+                if (killingBoard.score >= (int)KillingRiskEnum.Middle) {
                     attackPointList.Add(new Tuple<int, int, int>(i, j, killingBoard.score));
                     continue;
                 }
@@ -481,23 +481,22 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
 
         //计算VCT杀棋
-        protected override Tuple<int, int>? VCT(Role type, int leftDepth,
-                    List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+        protected override Tuple<int, int>? VCT(Role type, int leftDepth) {
             // 算杀失败
-            if (leftDepth == 0) return null;
+            if (leftDepth == 0 || GameOver) return null;
             bool isAI = type == Role.AI;
 
             Tuple<int, int>? best = null;
-            List<Tuple<int, int, int>> pointList = GetVctPoints(type, lastAvailableMoves, lastX, lastY);
+            List<Tuple<int, int, int>> pointList = GetVctPoints(type);
             foreach (var point in pointList) {
                 //已经形成必胜棋型
                 if (point.Item3 >= (int)KillingRiskEnum.High)
                     //AI-返回当前节点 玩家-直接返回空
                     return isAI ? new Tuple<int, int>(point.Item1, point.Item2) : null;
-
+                //if (leftDepth == 8 && point.Item1 == 4 && point.Item2 == 10)
+                //leftDepth = leftDepth;
                 PlayChess(point.Item1, point.Item2, type);
-                best = VCT(type == Role.AI ? Role.Player : Role.AI, leftDepth - 1,
-                                       lastAvailableMoves, point.Item1, point.Item2);
+                best = VCT(type == Role.AI ? Role.Player : Role.AI, leftDepth - 1);
                 PlayChess(point.Item1, point.Item2, Role.Empty);
 
                 if (best == null) {

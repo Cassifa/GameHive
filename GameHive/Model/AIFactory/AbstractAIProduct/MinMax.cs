@@ -25,7 +25,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //是否需要迭代加深计算
         protected bool DeepeningKillingActivated = false;
         //游戏是否结束
-        private bool GameOver;
+        public bool GameOver;
         //当前已经落子数量
         protected int PlayedPiecesCnt;
         protected int TotalPiecesCnt;
@@ -49,8 +49,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //获取当前棋盘
         protected abstract List<List<Role>> GetCurrentBoard();
         //计算VCT杀棋
-        protected virtual Tuple<int, int>? VCT(Role type, int leftDepth,
-                                    List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+        protected virtual Tuple<int, int>? VCT(Role type, int leftDepth) {
             return null;
         }
 
@@ -59,7 +58,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(GetCurrentBoard());
             Tuple<int, int>? result = null;
             for (int i = 2; i <= maxDepth; i += 2) {
-                result = VCT(Role.AI, maxDepth, lastAvailableMoves, lastX, lastY);
+                result = VCT(Role.AI, i);
                 if (result != null)
                     break;
             }
@@ -92,14 +91,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             if (lastX != -1)
                 PlayChess(lastX, lastY, Role.Player);
             //总共已经落子的大于5则考虑杀棋
-            //if (RunKillBoard && PlayedPiecesCnt > 5) {
-            //    Tuple<int, int>? KillingMove = DeepeningKillBoard(killingMaxDeep, lastX, lastY);
-            //    //杀棋命中直接返回杀棋
-            //    if (KillingMove != null) {
-            //        PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
-            //        return KillingMove;
-            //    }
-            //}
+            if (RunKillBoard && PlayedPiecesCnt > 5) {
+                Tuple<int, int>? KillingMove = DeepeningKillBoard(killingMaxDeep, lastX, lastY);
+                //杀棋命中直接返回杀棋
+                if (KillingMove != null) {
+                    PlayChess(KillingMove.Item1, KillingMove.Item2, Role.AI);
+                    return KillingMove;
+                }
+            }
             DeepeningMinMax(maxDeep, lastX, lastY);
 
             //List<Tuple<int, int>> lastAvailableMoves = GetAvailableMoves(currentBoard);
