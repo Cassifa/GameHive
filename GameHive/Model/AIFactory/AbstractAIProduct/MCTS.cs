@@ -34,7 +34,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected int TotalPiecesCnt;
         //根节点
         protected MCTSNode RootNode;
-
+        //线程当前使用棋盘
+        protected List<List<Role>> CurrentBoard;
+        //缓存表
+        protected ZobristHashingCache<Role> CheckGameOverCache;
         //获取可行落子
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
 
@@ -49,6 +52,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 if (lastX != -1) {
                     PlayedPiecesCnt++;
                     RootNode = RootNode.MoveRoot(lastX, lastY, NodeExpansion);
+
                 }
                 AIMoveSearchCount = 0;
 
@@ -56,7 +60,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 while (AIMoveSearchCount < SearchCount)
                     Monitor.Wait(mutex);
                 //根据AI决策换根
-                Tuple<int, int> AIDecision = RootNode.GetGreatestUCB().PieceSelectedCompareToFather;
+                //Tuple<int, int> AIDecision = RootNode.GetGreatestUCB().PieceSelectedCompareToFather;
+                var tt = RootNode.GetGreatestUCB();
+                Tuple<int, int> AIDecision = tt.PieceSelectedCompareToFather;
                 RootNode = RootNode.MoveRoot(AIDecision.Item1, AIDecision.Item2, NodeExpansion);
                 PlayedPiecesCnt++;
                 if (NeedUpdateSearchCount)
@@ -82,6 +88,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //游戏开始-初始化根节点，启动搜索线程
         public override void GameStart(bool IsAIFirst) {
             end = false; PlayedPiecesCnt = 0; SearchCount = baseCount;
+            CheckGameOverCache.RefreshLog();
+            CurrentBoard = new List<List<Role>>(TotalPiecesCnt);
+            for (int i = 0; i < TotalPiecesCnt; i++)
+                CurrentBoard.Add(new List<Role>(new Role[TotalPiecesCnt]));
+            foreach (var row in CurrentBoard)
+                for (int i = 0; i < TotalPiecesCnt; i++)
+                    row[i] = Role.Empty;
             //创建根节点
             List<List<Role>> board = new List<List<Role>>(TotalPiecesCnt);
             List<Tuple<int, int>> moves = new List<Tuple<int, int>>();
@@ -108,10 +121,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //运行一次蒙特卡洛过程
         private void SimulationOnce() {
+            //激活Cache撤销
+            CheckGameOverCache.ActiveMoveDiscard();
             MCTSNode SimulationAim = Selection(RootNode);
             if (SimulationAim.IsNewLeaf())
                 SimulationAim.BackPropagation(RollOut(SimulationAim));
             else NodeExpansion(SimulationAim);
+            //Cache撤销本次模拟
+            CheckGameOverCache.WithDrawMoves();
         }
 
         //选择 从Root开始仅选择叶子节点（可能为终止节点）
@@ -120,6 +137,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             while (true) {
                 if (currentSelected.IsLeaf) break;
                 currentSelected = currentSelected.GetGreatestUCB();
+                //更新缓存表
+                PlayChess(currentSelected.PieceSelectedCompareToFather.Item1,
+                    currentSelected.PieceSelectedCompareToFather.Item2, currentSelected.LeadToThisStatus);
             }
             return currentSelected;
         }
@@ -137,6 +157,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 List<Tuple<int, int>> moves = GetAvailableMoves(currentBoard);
                 Tuple<int, int> move = moves[rand.Next(moves.Count)];
                 currentBoard[move.Item1][move.Item2] = WhoPlaying;
+                //更新缓存表
+                PlayChess(move.Item1, move.Item2, WhoPlaying);
                 winner = CheckGameOverByPiece(currentBoard, move.Item1, move.Item2);
                 //已经结束直接跳出
                 if (winner != Role.Empty) break;
@@ -191,7 +213,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             t = Math.Min(t, 5);
             SearchCount = BaseCount * (int)Math.Pow(10, t);
         }
+
         //用户下棋
         public override void UserPlayPiece(int lastX, int lastY) { }
+
+        //下棋，更新当前棋局记录表,蒙特卡洛不会撤销移动
+        public void PlayChess(int x, int y, Role role) {
+            CheckGameOverCache.UpdateCurrentBoardHash(x, y, role);
+        }
+
     }
 }

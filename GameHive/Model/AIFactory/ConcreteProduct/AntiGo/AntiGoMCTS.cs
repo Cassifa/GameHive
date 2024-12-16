@@ -11,41 +11,39 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            baseCount = 50000;
+            baseCount = 1000;
             NeedUpdateSearchCount = true;
+            CheckGameOverCache = new ZobristHashingCache<Role>(TotalPiecesCnt, TotalPiecesCnt);
         }
         /*****实现三个策略*****/
         //根据某次落子查看游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+            //判断是否命中
+            Role result = Role.Empty;
+            //if (CheckGameOverCache.GetValue(ref result) != -1) return result;
             int[] dx = { 0, -1, 1, 0, 0 };
             int[] dy = { 0, 0, 0, -1, 1 };
-            //一半情况快速判断
-            int notFind = 0;
-            for (int i = 0; i < 4; i++) {
-                int newX = x + dx[i];
-                int newY = y + dy[i];
-                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0) {
-                    notFind++; continue;
-                }
-                if (currentBoard[newX][newY] == Role.Empty) return Role.Empty;
-                //四面敌人或碰壁必死棋
-                if (currentBoard[x][y] != currentBoard[newX][newY]) notFind++;
-            }
-            if (notFind == 4) return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
 
             List<List<bool>> visitStatusBoard = new List<List<bool>>();
             for (int i = 0; i < currentBoard.Count; i++)
                 visitStatusBoard.Add(new List<bool>(new bool[currentBoard[i].Count]));
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 5; i++) {
                 int newX = x + dx[i];
                 int newY = y + dy[i];
                 if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0 || currentBoard[newX][newY] == Role.Empty)
                     continue;
                 Clear(ref visitStatusBoard);
-                if (!IsAlive(currentBoard, visitStatusBoard, x, y))
-                    return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
+                for (int k = 0; k < visitStatusBoard.Count; k++)
+                    for (int j = 0; j < visitStatusBoard[k].Count; j++)
+                        visitStatusBoard[i][j] = false;
+                if (!IsAlive(currentBoard, visitStatusBoard, x, y)) {
+                    result = currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
+                    break;
+                }
             }
-            return Role.Empty;
+            //记录入Cache
+            CheckGameOverCache.Log(result);
+            return result;
         }
         //重置状态
         private void Clear(ref List<List<bool>> bools) {

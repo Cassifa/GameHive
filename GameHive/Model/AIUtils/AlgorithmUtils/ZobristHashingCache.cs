@@ -15,6 +15,12 @@ public class ZobristHashingCache<T> {
     private Dictionary<long, int> ValueDeep = new Dictionary<long, int>();
     //当前记录棋盘状态
     private long CurrentBoardHash;
+
+    //忽略变化
+    private bool DiscardMoveActivated;
+    //要还原的状态
+    private long LastBoardHash;
+
     //随机数表
     private List<List<long>> AICache;
     private List<List<long>> PlayerCache;
@@ -22,6 +28,7 @@ public class ZobristHashingCache<T> {
     //根据传入大小初始化 Cache 表
     public ZobristHashingCache(int x, int y) {
         CurrentBoardHash = 0;
+        DiscardMoveActivated = false;
         PlayerCache = new List<List<long>>(x);
         AICache = new List<List<long>>(x);
         for (int i = 0; i < x; i++) {
@@ -70,6 +77,18 @@ public class ZobristHashingCache<T> {
     //刷新缓存-重置当前局面
     public void RefreshLog() {
         CurrentBoardHash = 0;
+    }
+    //启动自动忽略变动
+    public void ActiveMoveDiscard() {
+        DiscardMoveActivated = true;
+    }
+    //回溯局面
+    public void WithDrawMoves() {
+        if (!DiscardMoveActivated)
+            throw new KeyNotFoundException("未启用回溯!");
+        DiscardMoveActivated = false;
+        CurrentBoardHash = LastBoardHash;
+
     }
     // 生成高质量随机 long 类型数
     private long GenerateHighQualityRandomLong() {
