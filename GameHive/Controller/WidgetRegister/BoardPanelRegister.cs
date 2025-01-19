@@ -7,7 +7,6 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIUtils;
-using System.Threading;
 namespace GameHive.Controller {
     //用于注册棋盘点击事件事件
     internal partial class Controller {
@@ -16,7 +15,7 @@ namespace GameHive.Controller {
         }
         private void BoardPanelClick(object sender, EventArgs e) {
             // 游戏未开始，直接返回
-            if (!boardManager.gameRunning||boardManager.AIMoving) return;
+            if (!boardManager.gameRunning || boardManager.AIMoving) return;
 
             // 从事件参数中获取点击的鼠标位置
             var mouseEvent = (MouseEventArgs)e;
@@ -37,12 +36,12 @@ namespace GameHive.Controller {
                     if (Math.Pow(clickX - centerX, 2) + Math.Pow(clickY - centerY, 2) <= r * r) {
                         //启用模拟，修改下棋点位
                         if (RecordSimulateUtil.ActiveSimulate) {
-                            RecordSimulateUtil.SimulateKillBoardController(ref x,ref y);
+                            RecordSimulateUtil.SimulateKillBoardController(ref x, ref y);
                             centerX = chessCenters[x][y].Item1;
                             centerY = chessCenters[x][y].Item2;
                         }
                         //已经被下过棋则忽略
-                        if (!ModelMessageCheckValid(x,y)) return;
+                        if (!ModelMessageCheckValid(x, y)) return;
                         //给显示层发消息
                         ViewMessagePlayChess(centerX, centerY, Role.Player);
                         ViewMessageLogMove(Role.Player, y, x);

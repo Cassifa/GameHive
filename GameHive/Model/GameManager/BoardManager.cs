@@ -47,7 +47,6 @@ namespace GameHive.Model.GameManager {
                 SendAIPlayChess(nextMove.Item1, nextMove.Item2);
                 PlayChess(Role.AI, nextMove.Item1, nextMove.Item2);
             }
-
         }
 
         //下棋，并返回此次下棋是否导致游戏终止 若终止会触发游戏结束事件

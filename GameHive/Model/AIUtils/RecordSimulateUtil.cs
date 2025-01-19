@@ -10,7 +10,7 @@ namespace GameHive.Model.AIUtils {
         //已经运行轮数
         private static int RoundCount = 0;
         //是否启用模拟
-        public static bool ActiveSimulate = false;
+        public static bool ActiveSimulate = true;
         //是否为VCF模拟
         public static bool IsVCF = false;
         private static List<Tuple<int, int>> VCFSimulate() {
@@ -82,6 +82,7 @@ namespace GameHive.Model.AIUtils {
             tuples.Add(Tuple.Create(11, 7));
             return tuples;
         }
+        
         //模拟杀棋对局，必定AI先手，
         public static bool SimulateKillBoard(ref int lastX, ref int lastY, ref Tuple<int, int> FinalDecide) {
             if (IsVCF) {

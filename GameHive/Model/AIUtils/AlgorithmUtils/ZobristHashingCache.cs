@@ -88,7 +88,6 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
                 }
                 PlayerCache.Add(row);
             }
-
             for (int i = 0; i < LengthX; i++) {
                 List<long> row = new List<long>(lengthY);
                 for (int j = 0; j < lengthY; j++) {
@@ -97,6 +96,7 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
                 AICache.Add(row);
             }
         }
+
         // 生成高质量随机 long 类型数
         private long GenerateHighQualityRandomLong() {
             byte[] buffer = new byte[8]; // 8字节表示一个 long

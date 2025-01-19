@@ -28,6 +28,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             ChildrenMap = new Dictionary<int, MCTSNode>();
             AvailablePiece = availablePiece;
         }
+
         //当前视角下当前节点价值，胜利＋1，失败-1 平局0
         double TotalValue;
         //访问次数 N
@@ -43,7 +44,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         //相比与父节点哪里落子了
         public Tuple<int, int> PieceSelectedCompareToFather { get; set; }
         //父节点
-        MCTSNode? Father;
+        private MCTSNode? Father;
         //落子-孩子的地图
         public Dictionary<int, MCTSNode> ChildrenMap { get; set; }
         //可落子地方

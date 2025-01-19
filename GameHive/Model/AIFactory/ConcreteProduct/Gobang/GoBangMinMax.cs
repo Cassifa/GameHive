@@ -51,18 +51,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //获取AI在此点落子的局面估值增益,不考虑人类在这里会怎样
         private int GetAIPointDeltaScore(int x, int y) {
-            int score = 0;
+            int score = -1*EvalNowSituation(NormalBoard, Role.AI);
             var t = GetMainAndAntiDiagonalCoordinates(x, y);
             PlayChess(x, y, Role.AI);
-            score += ACAutomaton.CalculateLineValue(NormalBoard[x]);
-            score += ACAutomaton.CalculateLineValue(XYReversedBoard[y]);
-            score += ACAutomaton.CalculateLineValue(MainDiagonalBoard[t.Item1]);
-            score += ACAutomaton.CalculateLineValue(AntiDiagonalBoard[t.Item3]);
+            score += EvalNowSituation(NormalBoard, Role.AI);
             PlayChess(x, y, Role.Empty);
-            score -= ACAutomaton.CalculateLineValue(NormalBoard[x]);
-            score -= ACAutomaton.CalculateLineValue(XYReversedBoard[y]);
-            score -= ACAutomaton.CalculateLineValue(MainDiagonalBoard[t.Item1]);
-            score -= ACAutomaton.CalculateLineValue(AntiDiagonalBoard[t.Item3]);
             return score;
         }
         //获取人类在此点落子的局面估值增益，考虑自身收益同时考虑考虑此字对AI增益,阻挠AI增益视为自身增益

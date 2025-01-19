@@ -12,11 +12,11 @@
  *                    1.VCT                计算是否可连续冲三杀棋
  *                    2.HeuristicSort      对获取的可下棋节点启发式排序
  *          工具函数:
- *                    1.DeepeningKillBoard 对获取的可下棋节点启发式排序
- *                    2.DeepeningMinMax    对获取的可下棋节点启发式排序
+ *                    1.DeepeningKillBoard 迭代加深计算杀棋
+ *                    2.DeepeningMinMax    迭代加深博弈树
  *          实现抽象策略:
- *                    2.GetNextAIMove      对获取的可下棋节点启发式排序
- *                    2.EvalToGo           对获取的可下棋节点启发式排序
+ *                    2.GetNextAIMove      获取下一步操作
+ *                    2.EvalToGo           执行博弈树
  *                    3.GameStart          启动游戏，初始化参数，重置缓存
  *                    4.GameForcedEnd      终止游戏
  * 版    本：  V1.0
@@ -139,8 +139,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         }
 
         //执行博弈树搜索
-        private int EvalToGo(int depth, int alpha, int beta, //List<Tuple<int, int>> lastUsedMoves,
+        private int EvalToGo(int depth, int alpha, int beta,
                 List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
+            //玩家终止游戏
             if (GameOver) return 1_000_000;
             int nowScore = 0; Tuple<int, int> nowDec = new Tuple<int, int>(0, 0);
             //不是顶层则查缓存-顶层需要搜决策节点价值
@@ -157,6 +158,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
             //根据上一步操作获取下一步可行点位
             var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
+            //启发式搜索
             HeuristicSort(ref availableMoves, lastX, lastY);
             if (IsAi) {
                 //AI Max层，寻找Min层返回的价值最大的

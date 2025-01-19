@@ -191,6 +191,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             t = Math.Min(t, 5);
             SearchCount = BaseCount * (int)Math.Pow(10, t);
         }
+
         //用户下棋
         public override void UserPlayPiece(int lastX, int lastY) { }
     }

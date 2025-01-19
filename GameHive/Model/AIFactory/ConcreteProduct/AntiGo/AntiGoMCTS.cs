@@ -22,12 +22,14 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             List<List<bool>> visitStatusBoard = new List<List<bool>>();
             for (int i = 0; i < currentBoard.Count; i++)
                 visitStatusBoard.Add(new List<bool>(new bool[currentBoard[i].Count]));
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 5; i++) {
                 int newX = x + dx[i];
                 int newY = y + dy[i];
-                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0 || currentBoard[newX][newY] == Role.Empty)
+                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0 
+                    || currentBoard[newX][newY] == Role.Empty)
                     continue;
                 Clear(ref visitStatusBoard);
+                //如果导致某个位置无气说明此步非法
                 if (!IsAlive(currentBoard, visitStatusBoard, x, y))
                     return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
             }

@@ -9,7 +9,6 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory;
-using System.Threading;
 
 namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
@@ -82,7 +81,7 @@ namespace GameHive.Model.GameManager {
             this.BoardInfo = factory.GetBoardInfoProduct();
             return BoardInfo;
         }
-
+        //切换游戏类型
         public void SwitchAIType(AIAlgorithmType type) {
             this.aIAlgorithmType = type;
             // 根据 AI 类型从工厂获取对应的实例
@@ -91,7 +90,7 @@ namespace GameHive.Model.GameManager {
                 AIAlgorithmType.MCTS => factory.GetMCTSProduct(),
                 AIAlgorithmType.AlphaBetaPruning => factory.GetMinMaxProduct(),
                 AIAlgorithmType.Negamax => factory.GetNegamaxProduct(),
-                _ => throw new NotSupportedException($"Unsupported AI algorithm type: {type}")
+                _ => throw new NotSupportedException($"不支持此算法类型: {type}")
             };
         }
 

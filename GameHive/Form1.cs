@@ -15,7 +15,6 @@ namespace GameHive.MainForm {
             LogListBox.DrawMode = DrawMode.OwnerDrawFixed;
             LogListBox.DrawItem += (sender, e) => {
                 if (e.Index < 0) return;
-
                 var listBox = sender as ListBox;
                 var item = listBox?.Items[e.Index] as ColoredListItem;
                 if (item == null) return;
