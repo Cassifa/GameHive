@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="GameHive.Model.AIFactory.AbstractAIProduct.MinMax">
+    <Position X="5.75" Y="3.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAwEACAAICiACBQIAAyIQAgAQAAAQAAIAAAAAgABA=</HashCode>
+      <FileName>Model\AIFactory\AbstractAIProduct\MinMax.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameHive.Model.AIFactory.AbstractAIProduct.AbstractAIStrategy">
+    <Position X="5.75" Y="1" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAICAAAAAAAAAAACgAAAAAAAAIAAAAAAAAA=</HashCode>
+      <FileName>Model\AIFactory\AbstractAIProduct\AbstractAIStrategy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameHive.Model.AIFactory.ConcreteProduct.GoBangMinMax">
+    <Position X="3.75" Y="10" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEQCABQWiAAIEIAQQIACQKQAAAQEACAAAJAAAAA=</HashCode>
+      <FileName>Model\AIFactory\ConcreteProduct\Gobang\GoBangMinMax.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameHive.Model.AIFactory.ConcreteProduct.GoBang88MinMax">
+    <Position X="10.75" Y="10" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAABQUiAAIEIAAQIACQAQAAAQEACAAABAAAAA=</HashCode>
+      <FileName>Model\AIFactory\ConcreteProduct\Gobang88\GoBang88MinMax.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameHive.Model.AIFactory.ConcreteProduct.TicTacToeMinMax">
+    <Position X="0.5" Y="10" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAACAAAAIAAQAACQAQAAAQAAAAAAAAAAAA=</HashCode>
+      <FileName>Model\AIFactory\ConcreteProduct\TicTacToe\TicTacToeMinMax.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameHive.Model.AIFactory.ConcreteProduct.MisereTicTacToeMinMax">
+    <Position X="7.5" Y="10" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAACAAAAIAAQAACQAQAAAQAAAAAAAAAAAA=</HashCode>
+      <FileName>Model\AIFactory\ConcreteProduct\MisereTicTacToe\MisereTicTacToeMinMax.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>

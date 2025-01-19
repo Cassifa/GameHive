@@ -1,0 +1,78 @@
+﻿/*************************************************************************************
+ * 文 件 名:   ViewUtils.cs
+ * 描    述: 
+ * 版    本：  V1.0
+ * 创 建 者：  Cassifa
+ * 创建时间：  2024/12/2 19:01
+*************************************************************************************/
+using GameHive.Constants.RoleTypeEnum;
+using GameHive.MainForm;
+
+namespace GameHive.View {
+    internal partial class View {
+        private Controller.Controller controller;
+        private Form1 mainForm;
+
+        //设置先手
+        public void SetFirst(Role role) {
+            first = role;
+        }
+        //开启游戏
+        public void StartGame() {
+            ClearBoard();
+            //处理组件显示
+            mainForm.statusSwitch.Text = "终止游戏";
+            mainForm.statusSwitch.BackColor = Color.Red;
+            mainForm.firstTurn.Enabled = false;
+            mainForm.secondTurn.Enabled = false;
+            mainForm.AIType.Enabled = false;
+        }
+        public void EndGame(Role role) {
+            //处理组件显示
+            mainForm.Invoke(new Action(() => {
+                mainForm.statusSwitch.Text = "开始游戏";
+                mainForm.statusSwitch.BackColor = Color.Green;
+                mainForm.firstTurn.Enabled = true;
+                mainForm.secondTurn.Enabled = true;
+                mainForm.AIType.Enabled = true;
+            }));
+            LogWin(role);
+        }
+        //游戏结束
+        public void GameOver(Role role) {
+            string winner = "";
+            switch (role) {
+                case Role.Player:
+                    winner = "玩家胜利";
+                    break;
+                case Role.AI:
+                    winner = "AI获胜";
+                    break;
+                case Role.Draw:
+                    winner = "平局";
+                    break;
+            }
+            // 弹出提示框展示赢家
+            MessageBox.Show(winner, "Game Over", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        //单例模式
+#pragma warning disable CS8618
+        private static View _instance;
+#pragma warning restore CS8618 
+        private View(Controller.Controller controller, Form1 form) {
+            this.controller = controller;
+            this.mainForm = form;
+        }
+        private static readonly object _lock = new object();
+        public static View Instance(Controller.Controller controller, Form1 form) {
+            if (_instance == null) {
+                lock (_lock) {
+                    if (_instance == null) {
+                        _instance = new View(controller, form);
+                    }
+                }
+            }
+            return _instance;
+        }
+    }
+}
