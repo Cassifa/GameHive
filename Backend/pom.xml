@@ -4,16 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
-    <groupId>com.ruoyi</groupId>
-    <artifactId>ruoyi</artifactId>
+    <groupId>com.gamehive</groupId>
+    <artifactId>gamehive</artifactId>
     <version>3.8.9</version>
 
-    <name>ruoyi</name>
+    <name>gamehive</name>
     <url>http://www.ruoyi.vip</url>
-    <description>若依管理系统</description>
+    <description>GameHive后台管理系统</description>
     
     <properties>
-        <ruoyi.version>3.8.9</ruoyi.version>
+        <gamehive.version>3.8.9</gamehive.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
@@ -185,49 +185,49 @@
 
             <!-- 定时任务-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-quartz</artifactId>
-                <version>${ruoyi.version}</version>
+                <groupId>com.gamehive</groupId>
+                <artifactId>gamehive-quartz</artifactId>
+                <version>${gamehive.version}</version>
             </dependency>
 
             <!-- 代码生成-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-generator</artifactId>
-                <version>${ruoyi.version}</version>
+                <groupId>com.gamehive</groupId>
+                <artifactId>gamehive-generator</artifactId>
+                <version>${gamehive.version}</version>
             </dependency>
 
             <!-- 核心模块-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-framework</artifactId>
-                <version>${ruoyi.version}</version>
+                <groupId>com.gamehive</groupId>
+                <artifactId>gamehive-framework</artifactId>
+                <version>${gamehive.version}</version>
             </dependency>
 
             <!-- 系统模块-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-system</artifactId>
-                <version>${ruoyi.version}</version>
+                <groupId>com.gamehive</groupId>
+                <artifactId>gamehive-system</artifactId>
+                <version>${gamehive.version}</version>
             </dependency>
 
             <!-- 通用工具-->
             <dependency>
-                <groupId>com.ruoyi</groupId>
-                <artifactId>ruoyi-common</artifactId>
-                <version>${ruoyi.version}</version>
+                <groupId>com.gamehive</groupId>
+                <artifactId>gamehive-common</artifactId>
+                <version>${gamehive.version}</version>
             </dependency>
 
         </dependencies>
     </dependencyManagement>
 
     <modules>
-        <module>ruoyi-admin</module>
-        <module>ruoyi-framework</module>
-        <module>ruoyi-system</module>
-        <module>ruoyi-quartz</module>
-        <module>ruoyi-generator</module>
-        <module>ruoyi-common</module>
+        <module>gamehive-admin</module>
+        <module>gamehive-framework</module>
+        <module>gamehive-system</module>
+        <module>gamehive-quartz</module>
+        <module>gamehive-generator</module>
+        <module>gamehive-common</module>
     </modules>
     <packaging>pom</packaging>
 
