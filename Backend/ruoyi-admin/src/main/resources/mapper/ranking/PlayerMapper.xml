@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.ranking.mapper.PlayerMapper">
+    
+    <resultMap type="Player" id="PlayerResult">
+        <result property="userId"    column="user_id"    />
+        <result property="raking"    column="raking"    />
+        <result property="recordWithAi"    column="record_with_ai"    />
+        <result property="recordWithPlayer"    column="record_with_player"    />
+    </resultMap>
+
+    <sql id="selectPlayerVo">
+        select user_id, raking, record_with_ai, record_with_player from player
+    </sql>
+
+    <select id="selectPlayerList" parameterType="Player" resultMap="PlayerResult">
+        <include refid="selectPlayerVo"/>
+        <where>  
+        </where>
+    </select>
+    
+    <select id="selectPlayerByUserId" parameterType="Long" resultMap="PlayerResult">
+        <include refid="selectPlayerVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insertPlayer" parameterType="Player">
+        insert into player
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="raking != null">raking,</if>
+            <if test="recordWithAi != null">record_with_ai,</if>
+            <if test="recordWithPlayer != null">record_with_player,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="raking != null">#{raking},</if>
+            <if test="recordWithAi != null">#{recordWithAi},</if>
+            <if test="recordWithPlayer != null">#{recordWithPlayer},</if>
+         </trim>
+    </insert>
+
+    <update id="updatePlayer" parameterType="Player">
+        update player
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="raking != null">raking = #{raking},</if>
+            <if test="recordWithAi != null">record_with_ai = #{recordWithAi},</if>
+            <if test="recordWithPlayer != null">record_with_player = #{recordWithPlayer},</if>
+        </trim>
+        where user_id = #{userId}
+    </update>
+
+    <delete id="deletePlayerByUserId" parameterType="Long">
+        delete from player where user_id = #{userId}
+    </delete>
+
+    <delete id="deletePlayerByUserIds" parameterType="String">
+        delete from player where user_id in 
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+</mapper>

@@ -2,20 +2,24 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="AI类别" prop="aiTypeId">
-        <el-input
-          v-model="queryParams.aiTypeId"
-          placeholder="请输入AI类别"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-select v-model="queryParams.aiTypeId" placeholder="请选择AI类别" clearable>
+          <el-option
+            v-for="dict in dict.type.ai_type"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="游戏类别" prop="gameTypeId">
-        <el-input
-          v-model="queryParams.gameTypeId"
-          placeholder="请输入游戏类别"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+        <el-select v-model="queryParams.gameTypeId" placeholder="请选择游戏类别" clearable>
+          <el-option
+            v-for="dict in dict.type.game_type"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="难度" prop="level">
         <el-input
@@ -125,10 +129,24 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="AI类别" prop="aiTypeId">
-          <el-input v-model="form.aiTypeId" placeholder="请输入AI类别" />
+          <el-select v-model="form.aiTypeId" placeholder="请选择AI类别">
+            <el-option
+              v-for="dict in dict.type.ai_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="parseInt(dict.value)"
+            ></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="游戏类别" prop="gameTypeId">
-          <el-input v-model="form.gameTypeId" placeholder="请输入游戏类别" />
+          <el-select v-model="form.gameTypeId" placeholder="请选择游戏类别">
+            <el-option
+              v-for="dict in dict.type.game_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="parseInt(dict.value)"
+            ></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="难度" prop="level">
           <el-input v-model="form.level" placeholder="请输入难度" />
@@ -147,6 +165,7 @@ import { listAiProduct, getAiProduct, delAiProduct, addAiProduct, updateAiProduc
 
 export default {
   name: "AiProduct",
+  dicts: ['game_type', 'ai_type'],
   data() {
     return {
       // 遮罩层
@@ -180,10 +199,10 @@ export default {
       // 表单校验
       rules: {
         aiTypeId: [
-          { required: true, message: "AI类别不能为空", trigger: "blur" }
+          { required: true, message: "AI类别不能为空", trigger: "change" }
         ],
         gameTypeId: [
-          { required: true, message: "游戏类别不能为空", trigger: "blur" }
+          { required: true, message: "游戏类别不能为空", trigger: "change" }
         ],
       }
     };

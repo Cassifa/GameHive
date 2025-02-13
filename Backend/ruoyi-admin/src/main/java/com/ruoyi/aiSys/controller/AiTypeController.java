@@ -2,6 +2,7 @@ package com.ruoyi.aiSys.controller;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,14 +24,13 @@ import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
  * AI类型Controller
- * 
+ *
  * @author Cassifa
  * @date 2025-02-13
  */
 @RestController
 @RequestMapping("/aiSys/aiType")
-public class AiTypeController extends BaseController
-{
+public class AiTypeController extends BaseController {
     @Autowired
     private IAiTypeService aiTypeService;
 
@@ -39,8 +39,7 @@ public class AiTypeController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('aiSys:aiType:list')")
     @GetMapping("/list")
-    public TableDataInfo list(AiType aiType)
-    {
+    public TableDataInfo list(AiType aiType) {
         startPage();
         List<AiType> list = aiTypeService.selectAiTypeList(aiType);
         return getDataTable(list);
@@ -52,8 +51,7 @@ public class AiTypeController extends BaseController
     @PreAuthorize("@ss.hasPermi('aiSys:aiType:export')")
     @Log(title = "AI类型", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, AiType aiType)
-    {
+    public void export(HttpServletResponse response, AiType aiType) {
         List<AiType> list = aiTypeService.selectAiTypeList(aiType);
         ExcelUtil<AiType> util = new ExcelUtil<AiType>(AiType.class);
         util.exportExcel(response, list, "AI类型数据");
@@ -64,8 +62,7 @@ public class AiTypeController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('aiSys:aiType:query')")
     @GetMapping(value = "/{aiId}")
-    public AjaxResult getInfo(@PathVariable("aiId") Long aiId)
-    {
+    public AjaxResult getInfo(@PathVariable("aiId") Long aiId) {
         return success(aiTypeService.selectAiTypeByAiId(aiId));
     }
 
@@ -75,8 +72,7 @@ public class AiTypeController extends BaseController
     @PreAuthorize("@ss.hasPermi('aiSys:aiType:add')")
     @Log(title = "AI类型", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody AiType aiType)
-    {
+    public AjaxResult add(@RequestBody AiType aiType) {
         return toAjax(aiTypeService.insertAiType(aiType));
     }
 
@@ -86,8 +82,7 @@ public class AiTypeController extends BaseController
     @PreAuthorize("@ss.hasPermi('aiSys:aiType:edit')")
     @Log(title = "AI类型", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody AiType aiType)
-    {
+    public AjaxResult edit(@RequestBody AiType aiType) {
         return toAjax(aiTypeService.updateAiType(aiType));
     }
 
@@ -96,9 +91,8 @@ public class AiTypeController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('aiSys:aiType:remove')")
     @Log(title = "AI类型", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{aiIds}")
-    public AjaxResult remove(@PathVariable Long[] aiIds)
-    {
+    @DeleteMapping("/{aiIds}")
+    public AjaxResult remove(@PathVariable Long[] aiIds) {
         return toAjax(aiTypeService.deleteAiTypeByAiIds(aiIds));
     }
 }
