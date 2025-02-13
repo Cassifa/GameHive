@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamehive.aiSys.mapper.GameTypeMapper">
+    
+    <resultMap type="GameType" id="GameTypeResult">
+        <result property="gameId"    column="game_id"    />
+        <result property="gameName"    column="game_name"    />
+        <result property="gameIntroduction"    column="game_introduction"    />
+        <result property="gameRule"    column="game_rule"    />
+        <result property="boardSize"    column="board_size"    />
+        <result property="minValidPieces"    column="min_valid_pieces"    />
+        <result property="isCellCenter"    column="is_cell_center"    />
+    </resultMap>
+
+    <resultMap id="GameTypeAiGameResult" type="GameType" extends="GameTypeResult">
+        <collection property="aiGameList" ofType="AiGame" column="game_id" select="selectAiGameList" />
+    </resultMap>
+
+    <resultMap type="AiGame" id="AiGameResult">
+        <result property="id"    column="id"    />
+        <result property="aiTypeId"    column="ai_type_id"    />
+        <result property="gameTypeId"    column="game_type_id"    />
+        <result property="level"    column="level"    />
+        <result property="challengedCount"    column="challenged_count"    />
+        <result property="winCount"    column="win_count"    />
+    </resultMap>
+
+    <sql id="selectGameTypeVo">
+        select game_id, game_name, game_introduction, game_rule, board_size, min_valid_pieces, is_cell_center from game_type
+    </sql>
+
+    <select id="selectGameTypeList" parameterType="GameType" resultMap="GameTypeResult">
+        <include refid="selectGameTypeVo"/>
+        <where>  
+            <if test="gameName != null  and gameName != ''"> and game_name like concat('%', #{gameName}, '%')</if>
+            <if test="params.beginBoardSize != null and params.beginBoardSize != '' and params.endBoardSize != null and params.endBoardSize != ''"> and board_size between #{params.beginBoardSize} and #{params.endBoardSize}</if>
+            <if test="isCellCenter != null "> and is_cell_center = #{isCellCenter}</if>
+        </where>
+    </select>
+    
+    <select id="selectGameTypeByGameId" parameterType="Long" resultMap="GameTypeAiGameResult">
+        select game_id, game_name, game_introduction, game_rule, board_size, min_valid_pieces, is_cell_center
+        from game_type
+        where game_id = #{gameId}
+    </select>
+
+    <select id="selectAiGameList" resultMap="AiGameResult">
+        select id, ai_type_id, game_type_id, level, challenged_count, win_count
+        from ai_game
+        where game_type_id = #{game_type_id}
+    </select>
+
+    <insert id="insertGameType" parameterType="GameType" useGeneratedKeys="true" keyProperty="gameId">
+        insert into game_type
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="gameName != null and gameName != ''">game_name,</if>
+            <if test="gameIntroduction != null">game_introduction,</if>
+            <if test="gameRule != null">game_rule,</if>
+            <if test="boardSize != null">board_size,</if>
+            <if test="minValidPieces != null">min_valid_pieces,</if>
+            <if test="isCellCenter != null">is_cell_center,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="gameName != null and gameName != ''">#{gameName},</if>
+            <if test="gameIntroduction != null">#{gameIntroduction},</if>
+            <if test="gameRule != null">#{gameRule},</if>
+            <if test="boardSize != null">#{boardSize},</if>
+            <if test="minValidPieces != null">#{minValidPieces},</if>
+            <if test="isCellCenter != null">#{isCellCenter},</if>
+         </trim>
+    </insert>
+
+    <update id="updateGameType" parameterType="GameType">
+        update game_type
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="gameName != null and gameName != ''">game_name = #{gameName},</if>
+            <if test="gameIntroduction != null">game_introduction = #{gameIntroduction},</if>
+            <if test="gameRule != null">game_rule = #{gameRule},</if>
+            <if test="boardSize != null">board_size = #{boardSize},</if>
+            <if test="minValidPieces != null">min_valid_pieces = #{minValidPieces},</if>
+            <if test="isCellCenter != null">is_cell_center = #{isCellCenter},</if>
+        </trim>
+        where game_id = #{gameId}
+    </update>
+
+    <delete id="deleteGameTypeByGameId" parameterType="Long">
+        delete from game_type where game_id = #{gameId}
+    </delete>
+
+    <delete id="deleteGameTypeByGameIds" parameterType="String">
+        delete from game_type where game_id in 
+        <foreach item="gameId" collection="array" open="(" separator="," close=")">
+            #{gameId}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteAiGameByGameTypeIds" parameterType="String">
+        delete from ai_game where game_type_id in 
+        <foreach item="gameTypeId" collection="array" open="(" separator="," close=")">
+            #{gameTypeId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteAiGameByGameTypeId" parameterType="Long">
+        delete from ai_game where game_type_id = #{gameTypeId}
+    </delete>
+
+    <insert id="batchAiGame">
+        insert into ai_game( id, ai_type_id, game_type_id, level, challenged_count, win_count) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.id}, #{item.aiTypeId}, #{item.gameTypeId}, #{item.level}, #{item.challengedCount}, #{item.winCount})
+        </foreach>
+    </insert>
+</mapper>
