@@ -90,6 +90,7 @@ namespace GameHive.Model.GameManager {
                 AIAlgorithmType.MCTS => factory.GetMCTSProduct(),
                 AIAlgorithmType.Minimax => factory.GetMinMaxProduct(),
                 AIAlgorithmType.Negamax => factory.GetNegamaxProduct(),
+                AIAlgorithmType.DeepRL => factory.GetDeepRLProduct(),
                 _ => throw new NotSupportedException($"不支持此算法类型: {type}")
             };
         }

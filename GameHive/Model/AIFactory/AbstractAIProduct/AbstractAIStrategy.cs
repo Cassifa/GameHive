@@ -11,7 +11,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //获取下一步移动 棋盘 玩家上一次落子的X,上一次落子的Y
         public abstract Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY);
         //检查游戏是否结束
-        public abstract Role CheckGameOverByPiece(List<List<Role>> currentBoard,int x,int y);
+        public abstract Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y);
         //用户下棋
         public abstract void UserPlayPiece(int lastX, int lastY);
         //游戏开始

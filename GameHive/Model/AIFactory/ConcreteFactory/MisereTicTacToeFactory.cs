@@ -24,6 +24,9 @@ namespace GameHive.Model.AIFactory {
         }
 
         /*——————————不可用———————————*/
+        public override DeepRL GetDeepRLProduct() {
+            throw new NotImplementedException();
+        }
         public override HybridMinimaxMCTS GetHybridMinimaxMCTSProduct() {
             throw new NotImplementedException();
         }

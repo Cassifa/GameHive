@@ -18,6 +18,9 @@ namespace GameHive.Model.AIFactory {
         }
 
         /*——————————不可用———————————*/
+        public override DeepRL GetDeepRLProduct() {
+            throw new NotImplementedException();
+        }
 
         public override MCTS GetMCTSProduct() {
             throw new NotImplementedException();

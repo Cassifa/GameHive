@@ -21,6 +21,9 @@ namespace GameHive.Model.AIFactory {
         }
 
         /*——————————不可用———————————*/
+        public override DeepRL GetDeepRLProduct() {
+            throw new NotImplementedException();
+        }
 
         public override Negamax GetNegamaxProduct() {
             throw new NotImplementedException();

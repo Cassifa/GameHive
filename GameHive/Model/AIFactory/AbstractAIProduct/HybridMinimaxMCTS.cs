@@ -60,13 +60,17 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             // 检查当前局面的胜负情况
             Role winner = CheckGameOverByPiece(GetCurrentBoard(), lastX, lastY);
-            if (winner == Role.Draw) return 0;
-            else if (winner == Role.AI) return 1_000_000;
-            else if (winner == Role.Player) return -1_000_000;
+            if (winner == Role.Draw)
+                return 0;
+            else if (winner == Role.AI)
+                return 1_000_000;
+            else if (winner == Role.Player)
+                return -1_000_000;
             if (depth == maxDeep)
                 return EvalNowSituation(GetCurrentBoard(), lastX, lastY, Role.Player, GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY));
             bool IsAi = ((depth % 2) == 0);
-            double nowScore; Tuple<int, int>? nowDec = null;
+            double nowScore;
+            Tuple<int, int>? nowDec = null;
             //根据上一步操作获取下一步可行点位
             var availableMoves = GetAvailableMovesByNewPieces(GetCurrentBoard(), lastAvailableMoves, lastX, lastY);
             if (IsAi) {
@@ -120,14 +124,16 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             MCTSNode SimulationAim = Selection(RootNode);
             if (SimulationAim.IsNewLeaf())
                 SimulationAim.BackPropagation(RollOut(SimulationAim));
-            else NodeExpansion(SimulationAim);
+            else
+                NodeExpansion(SimulationAim);
         }
 
         //选择 从Root开始仅选择叶子节点（可能为终止节点）
         private MCTSNode Selection(MCTSNode root) {
             MCTSNode currentSelected = root;
             while (true) {
-                if (currentSelected.IsLeaf) break;
+                if (currentSelected.IsLeaf)
+                    break;
                 currentSelected = currentSelected.GetGreatestUCB();
             }
             return currentSelected;
@@ -136,7 +142,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //从当前节点开始模拟，返回赢家-如果节点是全新的
         private Role RollOut(MCTSNode node) {
             //如果这个节点本身就是终止节点，直接返回
-            if (node.Winner != Role.Empty) return node.Winner;
+            if (node.Winner != Role.Empty)
+                return node.Winner;
             List<List<Role>> currentBoard = node.NodeBoard.Select(row => new List<Role>(row)).ToList();
             Random rand = new Random();
             Role WhoPlaying = node.LeadToThisStatus;
@@ -148,9 +155,12 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 currentBoard[move.Item1][move.Item2] = WhoPlaying;
                 winner = CheckGameOverByPiece(currentBoard, move.Item1, move.Item2);
                 //已经结束直接跳出
-                if (winner != Role.Empty) break;
-                if (WhoPlaying == Role.AI) WhoPlaying = Role.Player;
-                else WhoPlaying = Role.AI;
+                if (winner != Role.Empty)
+                    break;
+                if (WhoPlaying == Role.AI)
+                    WhoPlaying = Role.Player;
+                else
+                    WhoPlaying = Role.AI;
             }
             return winner;
         }
@@ -159,8 +169,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         private void NodeExpansion(MCTSNode father) {
             List<Tuple<int, int>> moves = father.AvailablePiece;
             Role sonPlayerView;
-            if (father.LeadToThisStatus == Role.AI) sonPlayerView = Role.Player;
-            else sonPlayerView = Role.AI;
+            if (father.LeadToThisStatus == Role.AI)
+                sonPlayerView = Role.Player;
+            else
+                sonPlayerView = Role.AI;
             foreach (var move in moves) {
                 List<List<Role>> currentBoard = father.NodeBoard.Select(row => new List<Role>(row)).ToList();
                 currentBoard[move.Item1][move.Item2] = sonPlayerView;

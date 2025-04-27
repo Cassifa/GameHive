@@ -16,6 +16,9 @@ namespace GameHive.Model.AIFactory {
         public override MinMax GetMinMaxProduct() {
             return new GoBang88MinMax(RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
         }
+        public override DeepRL GetDeepRLProduct() {
+            throw new NotImplementedException();
+        }
 
         /*——————————不可用———————————*/
         public override Negamax GetNegamaxProduct() {
@@ -36,8 +39,7 @@ namespace GameHive.Model.AIFactory {
         private Gobang88Factory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
                 AIAlgorithmType.Minimax,
-                //暂不实现
-                //AIAlgorithmType.DRL
+                AIAlgorithmType.DeepRL,
             };
             boardInfo = new GameBoardInfo(8, false, aiTypes);
         }
