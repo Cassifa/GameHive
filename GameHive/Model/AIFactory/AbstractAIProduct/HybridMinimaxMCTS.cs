@@ -2,14 +2,14 @@
  * 文 件 名:   MinMaxMCTS.cs
  * 描    述: 蒙特卡洛博弈树抽象产品
  *          使用蒙特卡洛完成估值函数
- * 版    本：  V1.0
+ * 版    本：  V2.0 .NET客户端初版
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:11
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
-    internal abstract class MinMaxMCTS : AbstractAIStrategy {
+    internal abstract class HybridMinimaxMCTS : AbstractAIStrategy {
         //最大搜索深度
         protected int maxDeep;
         //搜索轮数

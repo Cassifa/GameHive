@@ -1,7 +1,7 @@
 ﻿/*************************************************************************************
  * 文 件 名:   BoardManagerReceiver.cs
  * 描    述: 棋盘管理类-接收信息
- * 版    本：  V1.0
+ * 版    本：  V2.0 .NET客户端初版
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 20:20
 *************************************************************************************/
@@ -62,7 +62,7 @@ namespace GameHive.Model.GameManager {
             //此线程与算法线程天然互斥
             runningAI.UserPlayPiece(x, y);
             return PlayChess(Role.Player, x, y);
-            //TODO:游戏无法判断玩家平局 AI智力降低
+            //TODO: 游戏无法判断玩家平局 AI智力降低
         }
 
         //切换算法
@@ -86,9 +86,9 @@ namespace GameHive.Model.GameManager {
             this.aIAlgorithmType = type;
             // 根据 AI 类型从工厂获取对应的实例
             runningAI = type switch {
-                AIAlgorithmType.MinMaxMCTS => factory.GetMinMaxMCTSProduct(),
+                AIAlgorithmType.HybridMinimaxMCTS => factory.GetHybridMinimaxMCTSProduct(),
                 AIAlgorithmType.MCTS => factory.GetMCTSProduct(),
-                AIAlgorithmType.AlphaBetaPruning => factory.GetMinMaxProduct(),
+                AIAlgorithmType.Minimax => factory.GetMinMaxProduct(),
                 AIAlgorithmType.Negamax => factory.GetNegamaxProduct(),
                 _ => throw new NotSupportedException($"不支持此算法类型: {type}")
             };

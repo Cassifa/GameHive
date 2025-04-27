@@ -1,7 +1,7 @@
 ﻿/*************************************************************************************
  * 文 件 名:   TicTacToeFactory.cs
  * 描    述: 井字棋工厂
- * 版    本：  V1.0
+ * 版    本：  V2.0 .NET客户端初版
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 20:35
 *************************************************************************************/
@@ -24,7 +24,7 @@ namespace GameHive.Model.AIFactory {
         }
 
         /*——————————不可用———————————*/
-        public override MinMaxMCTS GetMinMaxMCTSProduct() {
+        public override HybridMinimaxMCTS GetHybridMinimaxMCTSProduct() {
             throw new NotImplementedException();
         }
 
@@ -32,7 +32,7 @@ namespace GameHive.Model.AIFactory {
         private static TicTacToeFactory _instance;
         private TicTacToeFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
-                AIAlgorithmType.AlphaBetaPruning,
+                AIAlgorithmType.Minimax,
                 AIAlgorithmType.MCTS,
                 AIAlgorithmType.Negamax,
             };

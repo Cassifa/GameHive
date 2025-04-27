@@ -1,7 +1,7 @@
 ﻿/*************************************************************************************
  * 文 件 名:   Gobang88Factory.cs
  * 描    述: 8*8五子棋工厂
- * 版    本：  V1.0
+ * 版    本：  V2.0 .NET客户端初版
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 20:35
 *************************************************************************************/
@@ -27,7 +27,7 @@ namespace GameHive.Model.AIFactory {
         }
 
         //暂不实现
-        public override MinMaxMCTS GetMinMaxMCTSProduct() {
+        public override HybridMinimaxMCTS GetHybridMinimaxMCTSProduct() {
             throw new NotImplementedException();
         }
 
@@ -35,7 +35,7 @@ namespace GameHive.Model.AIFactory {
         private static Gobang88Factory _instance;
         private Gobang88Factory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
-                AIAlgorithmType.AlphaBetaPruning,
+                AIAlgorithmType.Minimax,
                 //暂不实现
                 //AIAlgorithmType.DRL
             };

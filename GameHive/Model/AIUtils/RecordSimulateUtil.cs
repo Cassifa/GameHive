@@ -1,7 +1,7 @@
 ﻿/*************************************************************************************
  * 文 件 名:   RecordSimulateUtil.cs
  * 描    述: 用于模拟对局
- * 版    本：  V1.0
+ * 版    本：  V2.0 .NET客户端初版
  * 创 建 者：  Cassifa
  * 创建时间：  2024/12/15 17:57
 *************************************************************************************/
@@ -10,7 +10,7 @@ namespace GameHive.Model.AIUtils {
         //已经运行轮数
         private static int RoundCount = 0;
         //是否启用模拟
-        public static bool ActiveSimulate = true;
+        public static bool ActiveSimulate = false;
         //是否为VCF模拟
         public static bool IsVCF = false;
         private static List<Tuple<int, int>> VCFSimulate() {
