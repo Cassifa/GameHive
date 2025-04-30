@@ -20,7 +20,7 @@ namespace GameHive.Constants.AIAlgorithmTypeEnum {
         public static string GetChineseName(this AIAlgorithmType algorithm) => algorithm switch {
             AIAlgorithmType.Minimax => "Minimax-αβ剪枝",
             AIAlgorithmType.MCTS => "蒙特卡洛树搜索",
-            AIAlgorithmType.Negamax => "负极大值算法",
+            AIAlgorithmType.Negamax => "负极大值搜索",
             AIAlgorithmType.DeepRL => "深度强化学习",
             AIAlgorithmType.HybridMinimaxMCTS => "混合Minimax-MCTS",
             _ => "未知算法"

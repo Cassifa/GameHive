@@ -8,6 +8,8 @@
 using GameHive.Constants.RoleTypeEnum;
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class AbstractAIStrategy {
+        //游戏是否结束-提供的默认游戏结束标识 若多线程算法会自定义
+        protected bool GameOver;
         //获取下一步移动 棋盘 玩家上一次落子的X,上一次落子的Y
         public abstract Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY);
         //检查游戏是否结束

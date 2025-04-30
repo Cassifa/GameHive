@@ -62,7 +62,7 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
         // 刷新缓存 - 重置当前局面
         public void RefreshLog() {
             CurrentBoardHash = 0;
-            //InitBoard();
+            //InitBoard();//随机数表可以继续用
         }
 
         // 启动自动忽略变动

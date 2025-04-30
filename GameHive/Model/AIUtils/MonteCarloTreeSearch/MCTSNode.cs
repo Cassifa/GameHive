@@ -2,7 +2,12 @@
  * 文 件 名:   MCTSNode.cs
  * 描    述: 蒙特卡洛节点类
  *          负责：四过程中的反向传播
- *          提供方法：1.反向传播 2.计算自身UCB 3.获取UCB最大的儿子节点 4.添加儿子节点 5.判断是否为新叶节点或终止点 6.换根
+ *          提供方法：1.反向传播 
+ *                  2.计算自身UCB 
+ *                  3.获取UCB最大的儿子节点 
+ *                  4.添加儿子节点 
+ *                  5.判断是否为新叶节点或终止点 
+ *                  6.换根
  * 版    本：  V2.0 .NET客户端初版
  * 创 建 者：  Cassifa
  * 创建时间：  2024/12/8 20:11
@@ -52,7 +57,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
 
         //反向传播,根据单次模拟的结果更新参数
         public void BackPropagation(Role winner) {
-            MCTSNode currentPropagate = this;
+            MCTSNode? currentPropagate = this;
             while (currentPropagate != null) {
                 currentPropagate.VisitedTimes++;
                 //如果结果使得导致下棋后导致本局面的玩家获胜则加一分
@@ -63,6 +68,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         }
         //换根
         public MCTSNode MoveRoot(int x, int y, Action<MCTSNode, bool> NodeExpansion) {
+            //由于进入必败局面导致未找到可行点，换根目标节点为随机选择，未拓展过。需要强制拓展
             if (!ChildrenMap.ContainsKey(x * 100 + y))
                 NodeExpansion(this, true);
             MCTSNode son = ChildrenMap[x * 100 + y];

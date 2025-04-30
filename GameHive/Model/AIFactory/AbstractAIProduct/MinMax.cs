@@ -36,8 +36,6 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected bool RunKillBoard = false;
         //是否需要迭代加深计算
         protected bool DeepeningKillingActivated = false;
-        //游戏是否结束
-        public bool GameOver;
         //当前已经落子数量
         protected int PlayedPiecesCnt;
         protected int TotalPiecesCnt;
@@ -151,7 +149,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             // 检查当前局面的胜负情况
             Role winner = CheckGameOverByPiece(GetCurrentBoard(), lastX, lastY);
             if (winner == Role.Draw) return 0;
-            else if (winner == Role.AI) return 1_000_000;//- depth;//防止AI调戏玩家
+            else if (winner == Role.AI) return 1_000_000 - depth;//- depth防止AI调戏玩家
             else if (winner == Role.Player) return -1_000_000;
             if (depth == 0) return EvalNowSituation(GetCurrentBoard(), Role.AI);
             bool IsAi = ((depth % 2) == 0);

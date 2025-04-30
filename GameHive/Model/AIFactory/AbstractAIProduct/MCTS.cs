@@ -3,11 +3,17 @@
 * 描    述: 蒙特卡洛搜索抽象产品
 *          选择->模拟/拓展->反向传播
 *          负责：选择、模拟、拓展三个步骤
-*          提供方法：1.获取AI下一步（实现抽象方法） 2.调用一定次数蒙特卡洛计算决策 3.执行一次蒙特卡洛过程
-*                  4.根据根节点选择节点 5.从当前节点开始模拟 6.拓展当前节点 7.获取所有Empty点，保证换根成功 8.更新模拟次数
-*             多线程：1.开启游戏，构建根节点，开启搜索线程
-*                    2.估值一次，会执行 MinSearchCount次，然后检查是否有要求过输入
-*                    3.获取AI下一步 收到玩家决策/AI做出决策会进行换根并返回当前根节点最优决策
+*          提供方法：1.获取AI下一步（实现抽象方法） 
+*                  2.调用一定次数蒙特卡洛计算决策 
+*                  3.执行一次蒙特卡洛过程
+*                  4.根据根节点选择节点 
+*                  5.从当前节点开始模拟 
+*                  6.拓展当前节点 
+*                  7.获取所有Empty点，保证换根成功 
+*                  8.更新模拟次数
+*          多线程： 1.开启游戏，构建根节点，开启搜索线程
+*                  2.估值一次，会执行 MinSearchCount次，然后检查是否有要求过做出决策
+*                  3.获取AI下一步 收到玩家决策/AI做出决策会进行换根并返回当前根节点最优决策
 *          定义抽象方法：拓展获取所有可行决策且保证不为空
 * 版    本：  V2.0 .NET客户端初版
 * 创 建 者：  Cassifa
@@ -15,6 +21,7 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIUtils.MonteCarloTreeSearch;
+using GameHive.Model.AIUtils.AlgorithmUtils;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
@@ -30,10 +37,12 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         Mutex mutex = new Mutex();
         //游戏结束信号
         private volatile bool end = false;
-        //已经落子的数量
+        //棋盘一行落子的数
         protected int TotalPiecesCnt;
         //根节点
         protected MCTSNode RootNode;
+        //缓存表
+        protected ZobristHashingCache<Role> GameStatusOverCache;
 
         //获取可行落子
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
@@ -43,8 +52,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             lock (mutex) {
                 Role winner;
                 //AI先手会根据(-1,-1)构造初始棋盘
-                if (lastX == -1) winner = Role.Empty;
-                else winner = CheckGameOverByPiece(currentBoard, lastX, lastY);
+                if (lastX == -1)
+                    winner = Role.Empty;
+                else
+                    winner = CheckGameOverByPiece(currentBoard, lastX, lastY);
                 //根据玩家决策换根
                 if (lastX != -1) {
                     PlayedPiecesCnt++;
@@ -81,7 +92,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //游戏开始-初始化根节点，启动搜索线程
         public override void GameStart(bool IsAIFirst) {
-            end = false; PlayedPiecesCnt = 0; SearchCount = baseCount;
+            end = false;
+            PlayedPiecesCnt = 0;
+            SearchCount = baseCount;
             //创建根节点
             List<List<Role>> board = new List<List<Role>>(TotalPiecesCnt);
             List<Tuple<int, int>> moves = new List<Tuple<int, int>>();
@@ -94,12 +107,18 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 board.Add(row);
             }
             Role WhoLeadTo = Role.AI;
-            if (IsAIFirst) WhoLeadTo = Role.Player;
+            if (IsAIFirst)
+                WhoLeadTo = Role.Player;
             RootNode = new MCTSNode(board, null, -1, -1, WhoLeadTo, Role.Empty, moves);
+            GameStatusOverCache = new ZobristHashingCache<Role>(TotalPiecesCnt,TotalPiecesCnt);
             //启动搜索任务
             Task.Run(() => EvalToGo());
         }
 
+        //下棋并维护当前棋盘
+        private void PlayChess(List<List<Role>> currentBoard,Role role, int x, int y) {
+
+        }
 
         //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
         public override void GameForcedEnd() {
@@ -111,14 +130,16 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             MCTSNode SimulationAim = Selection(RootNode);
             if (SimulationAim.IsNewLeaf())
                 SimulationAim.BackPropagation(RollOut(SimulationAim));
-            else NodeExpansion(SimulationAim);
+            else
+                NodeExpansion(SimulationAim);
         }
 
         //选择 从Root开始仅选择叶子节点（可能为终止节点）
         private MCTSNode Selection(MCTSNode root) {
             MCTSNode currentSelected = root;
             while (true) {
-                if (currentSelected.IsLeaf) break;
+                if (currentSelected.IsLeaf)
+                    break;
                 currentSelected = currentSelected.GetGreatestUCB();
             }
             return currentSelected;
@@ -126,8 +147,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //从当前节点开始模拟，返回赢家-如果节点是全新的
         private Role RollOut(MCTSNode node) {
-            //如果这个节点本身就是终止节点，直接返回
-            if (node.Winner != Role.Empty) return node.Winner;
+            //如果这个节点本身就是终止节点，直接返回 TODO这里加上缓存并支持回溯
+            if (node.Winner != Role.Empty)
+                return node.Winner;
             List<List<Role>> currentBoard = node.NodeBoard.Select(row => new List<Role>(row)).ToList();
             Random rand = new Random();
             Role WhoPlaying = node.LeadToThisStatus;
@@ -139,9 +161,12 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 currentBoard[move.Item1][move.Item2] = WhoPlaying;
                 winner = CheckGameOverByPiece(currentBoard, move.Item1, move.Item2);
                 //已经结束直接跳出
-                if (winner != Role.Empty) break;
-                if (WhoPlaying == Role.AI) WhoPlaying = Role.Player;
-                else WhoPlaying = Role.AI;
+                if (winner != Role.Empty)
+                    break;
+                if (WhoPlaying == Role.AI)
+                    WhoPlaying = Role.Player;
+                else
+                    WhoPlaying = Role.AI;
             }
             return winner;
         }
@@ -153,9 +178,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 father.AvailablePiece = GetAllEmptyPlace(father.NodeBoard);
             }
             List<Tuple<int, int>> moves = father.AvailablePiece;
+
             Role sonPlayerView;
-            if (father.LeadToThisStatus == Role.AI) sonPlayerView = Role.Player;
-            else sonPlayerView = Role.AI;
+            if (father.LeadToThisStatus == Role.AI)
+                sonPlayerView = Role.Player;
+            else
+                sonPlayerView = Role.AI;
+            //TODO拓展过程加缓存并支持撤销
             foreach (var move in moves) {
                 List<List<Role>> currentBoard = father.NodeBoard.Select(row => new List<Role>(row)).ToList();
                 currentBoard[move.Item1][move.Item2] = sonPlayerView;
@@ -181,7 +210,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //更新模拟次数
         protected void UpdateSearchCount(int BaseCount, int TotalCnt, int NowCount, ref int SearchCount) {
             int LeftCount = TotalCnt - NowCount;
-            if (LeftCount == 0) return;
+            if (LeftCount == 0)
+                return;
             int t = 0;
             //未下棋数量越少搜索次数越高
             while (TotalCnt / LeftCount >= 1.5) {
