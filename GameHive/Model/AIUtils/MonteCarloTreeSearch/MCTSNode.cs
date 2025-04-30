@@ -66,7 +66,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
                 currentPropagate = currentPropagate.Father;
             }
         }
-        //换根
+        //换根，换根操作一定滞后与拓展操作，不需要记录缓存表的 value
         public MCTSNode MoveRoot(int x, int y, Action<MCTSNode, bool> NodeExpansion) {
             //由于进入必败局面导致未找到可行点，换根目标节点为随机选择，未拓展过。需要强制拓展
             if (!ChildrenMap.ContainsKey(x * 100 + y))

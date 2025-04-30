@@ -11,12 +11,16 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            baseCount = 1_000;
+            baseCount = 100_000;
             NeedUpdateSearchCount = true;
         }
         /*****实现三个策略*****/
         //根据某次落子查看游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+            Role result = Role.Empty;
+            //先查缓存
+            if (GameOverStatusCache.GetValue(ref result) != -1)
+                return result;
             int[] dx = { 0, -1, 1, 0, 0 };
             int[] dy = { 0, 0, 0, -1, 1 };
             List<List<bool>> visitStatusBoard = new List<List<bool>>();
@@ -25,15 +29,20 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             for (int i = 0; i < 5; i++) {
                 int newX = x + dx[i];
                 int newY = y + dy[i];
-                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0 
+                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0
                     || currentBoard[newX][newY] == Role.Empty)
                     continue;
                 Clear(ref visitStatusBoard);
                 //如果导致某个位置无气说明此步非法
-                if (!IsAlive(currentBoard, visitStatusBoard, x, y))
-                    return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
+                if (!IsAlive(currentBoard, visitStatusBoard, x, y)) {
+                    result = currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
+                    //记录缓存
+                    GameOverStatusCache.Log(result);
+                    return result;
+                }
             }
-            return Role.Empty;
+            GameOverStatusCache.Log(result);
+            return result;// 一定是Role.Empty
         }
         //重置状态
         private void Clear(ref List<List<bool>> bools) {
@@ -55,7 +64,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0)
                     continue;
                 //当前字旁边有气
-                if (rawBoard[newX][newY] == Role.Empty) return true;
+                if (rawBoard[newX][newY] == Role.Empty)
+                    return true;
                 //搜到同种且未被搜过节点 如果这个节点能搜到气则本连通块有气
                 if (rawBoard[newX][newY] == rawBoard[x][y] && !visitStatusBoard[newX][newY]
                     && IsAlive(rawBoard, visitStatusBoard, newX, newY))

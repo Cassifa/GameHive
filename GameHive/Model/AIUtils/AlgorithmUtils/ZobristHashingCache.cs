@@ -15,10 +15,8 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
         // 当前记录棋盘状态
         private long CurrentBoardHash;
 
-        // 忽略变化
-        private bool DiscardMoveActivated;
-        // 要还原的状态
-        private long LastBoardHash;
+        // 忽略变化栈
+        private Stack<long> DiscardMoveStack;
 
         // 随机数表
         private List<List<long>> AICache;
@@ -27,25 +25,29 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
         // 根据传入大小初始化 Cache 表
         public ZobristHashingCache(int x, int y) {
             CurrentBoardHash = 0;
-            LengthX = x; lengthY = y;
-            DiscardMoveActivated = false;
+            LengthX = x;
+            lengthY = y;
+            DiscardMoveStack = new Stack<long>();
             PlayerCache = new List<List<long>>(LengthX);
             AICache = new List<List<long>>(LengthX);
             InitBoard();
         }
 
-        // 落子-只能接受 Role.AI 或 Role.Player
+        // 落子-只能接受 Role.AI 或 Role.Player 同一个点下两次相当于撤销
         public void UpdateCurrentBoardHash(int x, int y, Role role) {
             if (role == Role.Empty)
                 throw new KeyNotFoundException("不接受Empty类型的传入！");
-            if (role == Role.AI) CurrentBoardHash ^= AICache[x][y];
-            if (role == Role.Player) CurrentBoardHash ^= PlayerCache[x][y];
+            if (role == Role.AI)
+                CurrentBoardHash ^= AICache[x][y];
+            if (role == Role.Player)
+                CurrentBoardHash ^= PlayerCache[x][y];
         }
 
         // 记录当前 Hash 为 Value
         public void Log(T value, int deep = 0) {
             if (Cache.TryGetValue(CurrentBoardHash, out var existingEntry)) {
-                if (existingEntry.deep > deep) return;
+                if (existingEntry.deep > deep)
+                    return;
             }
             Cache[CurrentBoardHash] = (value, deep);
         }
@@ -65,22 +67,22 @@ namespace GameHive.Model.AIUtils.AlgorithmUtils {
             //InitBoard();//随机数表可以继续用
         }
 
-        // 启动自动忽略变动
+        // 记录一个忽略变更标记点
         public void ActiveMoveDiscard() {
-            DiscardMoveActivated = true;
+            DiscardMoveStack.Push(CurrentBoardHash);
         }
 
-        // 回溯局面
+        // 回溯局面至上次记录节点
         public void WithDrawMoves() {
-            if (!DiscardMoveActivated)
+            if (DiscardMoveStack.Count == 0)
                 throw new KeyNotFoundException("未启用回溯!");
-            DiscardMoveActivated = false;
-            CurrentBoardHash = LastBoardHash;
+            CurrentBoardHash = DiscardMoveStack.Pop();
         }
 
         //初始化棋盘
         private void InitBoard() {
-            PlayerCache.Clear(); AICache.Clear();
+            PlayerCache.Clear();
+            AICache.Clear();
             for (int i = 0; i < LengthX; i++) {
                 List<long> row = new List<long>(lengthY);
                 for (int j = 0; j < lengthY; j++) {
