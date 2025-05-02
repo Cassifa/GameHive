@@ -1,0 +1,14 @@
+#配置
+.vs
+/.vs
+.idea
+/.idea
+#可执行文件
+*.exe
+
+#临时文件
+/AlphaGo-Zero-Gobang-main
+
+# 输出
+/bin
+/obj

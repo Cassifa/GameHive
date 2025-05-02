@@ -82,6 +82,9 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
 
         //获取UCB,被父节点调用，父子节点视角不同
         public double GetUCB() {
+            //如果已经是终局节点则价值直接最大或最小
+            if (Winner != Role.Empty)
+                return Winner == LeadToThisStatus ? double.PositiveInfinity : double.NegativeInfinity;
             int N = Father.VisitedTimes;
             if (VisitedTimes == 0)
                 return double.PositiveInfinity;
