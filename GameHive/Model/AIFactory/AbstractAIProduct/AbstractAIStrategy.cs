@@ -10,11 +10,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class AbstractAIStrategy {
         //游戏是否结束-提供的默认游戏结束标识 若多线程算法会自定义
         protected bool GameOver;
-        //获取下一步移动 棋盘 玩家上一次落子的X,上一次落子的Y
+        //获取AI下一步移动 棋盘 玩家上一次落子的X,上一次落子的Y,这里使用的棋盘由GameManager维护
         public abstract Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY);
-        //检查游戏是否结束
+        //根据最新落子检查游戏是否结束,要保证此处的判断逻辑只依赖于参数。这里使用的棋盘由GameManager维护
         public abstract Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y);
-        //用户下棋
+        //提供的用户下棋接口，若用户下棋后需要立即进行更新操作可以调用此函数
         public abstract void UserPlayPiece(int lastX, int lastY);
         //游戏开始
         public abstract void GameStart(bool IsAIFirst);

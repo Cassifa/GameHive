@@ -75,7 +75,7 @@ namespace GameHive.Model.GameManager {
                 GameType.MisereTicTacToe => misere ??= MisereTicTacToeFactory.Instance,
                 GameType.AntiGo => antiGoFactory ??= AntiGoFactory.Instance,
                 GameType.TicTacToe => ticTacToeFactory ??= TicTacToeFactory.Instance,
-                _ => throw new NotSupportedException($"Unsupported game type: {gameType}")
+                _ => throw new NotSupportedException($"不支持此游戏类型: {gameType}")
             };
             //更新为新游戏的BoardInfo并返回
             this.BoardInfo = factory.GetBoardInfoProduct();

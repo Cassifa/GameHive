@@ -19,14 +19,17 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         public MCTSNode(List<List<Role>> board, MCTSNode father, int x, int y,
                     Role view, Role winner, List<Tuple<int, int>> availablePiece) {
             //初始化参数 价值、访问次数、是否为叶子节点
-            VisitedTimes = 0; TotalValue = 0;
+            VisitedTimes = 0;
+            TotalValue = 0;
             IsLeaf = true;
 
             //初始化传递成员 
             //当前视角 游戏是否结束
-            LeadToThisStatus = view; Winner = winner;
+            LeadToThisStatus = view;
+            Winner = winner;
             //父节点 相对父节点落子
-            Father = father; PieceSelectedCompareToFather = new Tuple<int, int>(x, y);
+            Father = father;
+            PieceSelectedCompareToFather = new Tuple<int, int>(x, y);
 
             //初始化数据结构
             NodeBoard = board;
@@ -80,7 +83,8 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         //获取UCB,被父节点调用，父子节点视角不同
         public double GetUCB() {
             int N = Father.VisitedTimes;
-            if (VisitedTimes == 0) return double.PositiveInfinity;
+            if (VisitedTimes == 0)
+                return double.PositiveInfinity;
             double ans = 1.0 * TotalValue / (double)VisitedTimes
                 + 1.414 * Math.Sqrt(Math.Log2(N) / VisitedTimes);
             return ans;
@@ -94,6 +98,8 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
                 MCTSNode node = entry.Value;
                 double t = node.GetUCB();
                 if (t > maxValue) {
+                    if (t == double.PositiveInfinity)
+                        return node;
                     maxValue = t;
                     chosenSon = node;
                 }
@@ -103,9 +109,11 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
 
         //是否为新节点或为终止节点的等价新节点
         public bool IsNewLeaf() {
-            if (VisitedTimes == 0) return true;
+            if (VisitedTimes == 0)
+                return true;
             //终止节点等价为新叶子节点
-            if (Winner != Role.Empty) return true;
+            if (Winner != Role.Empty)
+                return true;
             return false;
         }
 

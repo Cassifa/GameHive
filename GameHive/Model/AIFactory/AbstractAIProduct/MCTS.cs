@@ -15,7 +15,9 @@
 *          多线程： 1.开启游戏，构建根节点，开启搜索线程
 *                  2.估值一次，会执行 MinSearchCount次，然后检查是否有要求过做出决策
 *                  3.获取AI下一步 收到玩家决策/AI做出决策会进行换根并返回当前根节点最优决策
-*          定义抽象方法：拓展获取所有可行决策且保证不为空
+*          抽象方法：
+*                  1.拓展获取所有可行决策且保证不为空
+*                  2.通过缓存获取结果
 * 版    本：  V2.0 .NET客户端初版
 * 创 建 者：  Cassifa
 * 创建时间：  2024/11/26 18:11
@@ -47,21 +49,16 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //获取可行落子
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
+        //使用Cache获取结果
+        protected virtual Role CheckGameOverByPieceWithCache(List<List<Role>> currentBoard, int x, int y) { return Role.Empty; }
 
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //争夺锁，换根
             lock (mutex) {
-                Role winner;
-                //AI先手会根据(-1,-1)构造初始棋盘
-                if (lastX == -1)
-                    winner = Role.Empty;
-                else
-                    winner = CheckGameOverByPiece(currentBoard, lastX, lastY);
                 //根据玩家决策换根
                 if (lastX != -1) {
                     PlayedPiecesCnt++;
                     RootNode = RootNode.MoveRoot(lastX, lastY, NodeExpansion);
-                    //更新缓存局面值
                     PlayChess(Role.Player, lastX, lastY);
                 }
                 AIMoveSearchCount = 0;
@@ -170,7 +167,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 return node.Winner;
             List<List<Role>> currentBoard = node.NodeBoard.Select(row => new List<Role>(row)).ToList();
             Random rand = new Random();
-            Role WhoPlaying = node.LeadToThisStatus;
+            //对导致当前局面的角色取反为当前玩家
+            Role WhoPlaying = node.LeadToThisStatus == Role.Player ? Role.AI : Role.Player;
             Role lastChessWinnerResult;
             //启用缓存回溯功能
             GameOverStatusCache.ActiveMoveDiscard();
@@ -182,7 +180,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
                 //结果录入缓存
                 PlayChess(WhoPlaying, move.Item1, move.Item2);
-                lastChessWinnerResult = CheckGameOverByPiece(currentBoard, move.Item1, move.Item2);
+                lastChessWinnerResult = CheckGameOverByPieceWithCache(currentBoard, move.Item1, move.Item2);
 
                 //已经结束直接跳出
                 if (lastChessWinnerResult != Role.Empty)
@@ -218,7 +216,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
                 //结果录入缓存
                 PlayChess(sonPlayerView, move.Item1, move.Item2);
-                Role lastChessWinnerResult = CheckGameOverByPiece(currentBoard, move.Item1, move.Item2);
+                Role lastChessWinnerResult = CheckGameOverByPieceWithCache(currentBoard, move.Item1, move.Item2);
                 //撤销本次记录（同一个点同一人下两次等价撤销）
                 PlayChess(sonPlayerView, move.Item1, move.Item2);
 
@@ -228,7 +226,6 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                     GetAvailableMoves(currentBoard));
                 father.AddSon(nowSon, move.Item1, move.Item2);
 
-                //撤销本次缓存
             }
             father.IsLeaf = false;
         }

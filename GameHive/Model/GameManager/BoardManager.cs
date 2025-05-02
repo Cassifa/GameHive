@@ -18,7 +18,7 @@ namespace GameHive.Model.GameManager {
         private GameType gameType;
         //当前在使用的AI算法
         private AIAlgorithmType aIAlgorithmType;
-        //当前运行游戏的代码
+        //当前运行游戏的编码
         private int RoundId;
         //AI正在决策
         public bool AIMoving { get; private set; }
@@ -34,7 +34,6 @@ namespace GameHive.Model.GameManager {
 
         //获取AI下一步输出
         private void LetAIMove(int lastX, int lastY) {
-
             AIMoving = true;
             //记录本次ID
             int currentID = RoundId;

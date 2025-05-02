@@ -11,16 +11,34 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            baseCount = 100_000;
+            baseCount = 20_000;
             NeedUpdateSearchCount = true;
         }
+        private int TotalAttempts = 0;       // 总数
+        private int SuccessCount = 0;         // 命中次数
+        private double SuccessRate = 0;       // 命中比例
+        //private List<int> TotalAttemptsHistory = new List<int>();  // 每次的尝试次数
+        //private List<int> SuccessCountHistory = new List<int>();    // 每次的命中次数
+        //private List<double> SuccessRateHistory = new List<double>(); // 每次的命中率
         /*****实现三个策略*****/
-        //根据某次落子查看游戏是否结束
-        public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
+        //启用Cache判断胜负
+        protected override Role CheckGameOverByPieceWithCache(List<List<Role>> currentBoard, int x, int y) {
+            TotalAttempts++;
             Role result = Role.Empty;
             //先查缓存
-            if (GameOverStatusCache.GetValue(ref result) != -1)
+            if (GameOverStatusCache.GetValue(ref result) != -1) {
+                SuccessCount++;
                 return result;
+            }
+            SuccessRate = (double)SuccessCount / (double)TotalAttempts;
+            //记录缓存
+            result = CheckGameOverByPiece(currentBoard, x, y);
+            GameOverStatusCache.Log(result);
+            return result;
+        }
+
+        //根据某次落子查看游戏是否结束，导致出现无气局面的人判负，对手判胜
+        public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
             int[] dx = { 0, -1, 1, 0, 0 };
             int[] dy = { 0, 0, 0, -1, 1 };
             List<List<bool>> visitStatusBoard = new List<List<bool>>();
@@ -32,17 +50,14 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0
                     || currentBoard[newX][newY] == Role.Empty)
                     continue;
+                //要清除访问状态 否则会被访问过的堵住
                 Clear(ref visitStatusBoard);
                 //如果导致某个位置无气说明此步非法
-                if (!IsAlive(currentBoard, visitStatusBoard, x, y)) {
-                    result = currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
-                    //记录缓存
-                    GameOverStatusCache.Log(result);
-                    return result;
+                if (!IsAlive(currentBoard, visitStatusBoard, newX, newY)) {
+                    return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
                 }
             }
-            GameOverStatusCache.Log(result);
-            return result;// 一定是Role.Empty
+            return Role.Empty;
         }
         //重置状态
         private void Clear(ref List<List<bool>> bools) {
