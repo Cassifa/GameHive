@@ -6,29 +6,30 @@
  * 创建时间：  2024/11/26 20:35
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
 using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory {
     internal class MisereTicTacToeFactory : AbstractFactory {
-        public override MCTS GetMCTSProduct() {
+        public override MCTS GetMCTSProduct(DifficultyLevel level) {
             SetConcreteProductInfo(MisereTicTacToeMCTS.concreteProductInfo);
             return new MisereTicTacToeMCTS();
         }
 
-        public override MinMax GetMinMaxProduct() {
+        public override MinMax GetMinMaxProduct(DifficultyLevel level) {
             SetConcreteProductInfo(MisereTicTacToeMinMax.concreteProductInfo);
             return new MisereTicTacToeMinMax();
         }
 
-        public override Negamax GetNegamaxProduct() {
+        public override Negamax GetNegamaxProduct(DifficultyLevel level) {
             SetConcreteProductInfo(MisereTicTacToeNegamax.concreteProductInfo);
             return new MisereTicTacToeNegamax();
         }
 
         /*——————————不可用———————————*/
-        public override DeepRL GetDeepRLProduct() {
+        public override DeepRL GetDeepRLProduct(DifficultyLevel level) {
             throw new NotImplementedException();
         }
 

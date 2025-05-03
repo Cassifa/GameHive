@@ -11,11 +11,15 @@ namespace GameHive.Model.GameInfo {
     internal class ConcreteProductInfo {
         //当前产品的难度列表
         public List<DifficultyLevel> DifficultyLevels { get; set; }
-
+        public DifficultyLevel MaximumLevel { get; set; }
 
         // 构造函数初始化难度列表
         public ConcreteProductInfo(int levelCnt = 1) {
             DifficultyLevels = DifficultyLevelExtensions.GetLevelRange(levelCnt);
+            MaximumLevel = DifficultyLevelExtensions.FromInt(levelCnt);
         }
+
+        //默认产品初始化信息
+        public static ConcreteProductInfo DefaultProductInfo = new ConcreteProductInfo(1);
     }
 }

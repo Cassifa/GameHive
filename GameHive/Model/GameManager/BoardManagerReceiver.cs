@@ -6,6 +6,7 @@
  * 创建时间：  2024/11/26 20:20
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory;
@@ -47,7 +48,8 @@ namespace GameHive.Model.GameManager {
         //检查此处落子是否有效
         public bool CheckValid(int x, int y) {
             //不越界且未落子则有效
-            if (x >= board.Count || y >= board[0].Count) return false;
+            if (x >= board.Count || y >= board[0].Count)
+                return false;
             return board[x][y] == Role.Empty;
         }
         //要求AI移动
@@ -66,7 +68,7 @@ namespace GameHive.Model.GameManager {
             //TODO: 游戏无法判断玩家平局 AI智力降低
         }
 
-        //切换算法
+        //切换游戏
         public GameBoardInfo SwitchGame(GameType gameType) {
             this.gameType = gameType;
             // 根据当前游戏类型选择对应的工厂
@@ -82,7 +84,7 @@ namespace GameHive.Model.GameManager {
             this.BoardInfo = factory.GetBoardInfoProduct();
             return BoardInfo;
         }
-        //切换游戏类型
+        //切换算法类型
         public ConcreteProductInfo SwitchAIType(AIAlgorithmType type) {
             this.aIAlgorithmType = type;
             // 根据 AI 类型从工厂获取对应的实例
@@ -97,6 +99,19 @@ namespace GameHive.Model.GameManager {
             return ConcreteProductInfo;
         }
 
+        //切换游戏难度
+        public void SwitchDifficulty(DifficultyLevel level) {
+            //根据 AI 类型从工厂获取对应的实例
+            if (level > ConcreteProductInfo.MaximumLevel)
+                throw new NotSupportedException($"不支持此难度类型: {level.GetChineseName()}");
+            runningAI = this.aIAlgorithmType switch {
+                AIAlgorithmType.MCTS => factory.GetMCTSProduct(level),
+                AIAlgorithmType.Minimax => factory.GetMinMaxProduct(level),
+                AIAlgorithmType.Negamax => factory.GetNegamaxProduct(level),
+                AIAlgorithmType.DeepRL => factory.GetDeepRLProduct(level),
+                _ => throw new NotSupportedException($"不支持此算法类型: {this.aIAlgorithmType}")
+            };
+        }
 
     }
 }

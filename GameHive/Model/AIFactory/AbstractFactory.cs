@@ -5,17 +5,20 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:05
 *************************************************************************************/
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory {
     internal abstract class AbstractFactory {
+        //当前棋盘信息
         protected GameBoardInfo boardInfo;
+        //当前产品信息
         private ConcreteProductInfo currentConcreteProductInfo;
-        public abstract MCTS GetMCTSProduct();
-        public abstract MinMax GetMinMaxProduct();
-        public abstract Negamax GetNegamaxProduct();
-        public abstract DeepRL GetDeepRLProduct();
+        public abstract MCTS GetMCTSProduct(DifficultyLevel level=DifficultyLevel.LEVEL_1);
+        public abstract MinMax GetMinMaxProduct(DifficultyLevel level = DifficultyLevel.LEVEL_1);
+        public abstract Negamax GetNegamaxProduct(DifficultyLevel level = DifficultyLevel.LEVEL_1);
+        public abstract DeepRL GetDeepRLProduct(DifficultyLevel level = DifficultyLevel.LEVEL_1);
         public GameBoardInfo GetBoardInfoProduct() {
             return boardInfo;
         }

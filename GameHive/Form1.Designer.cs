@@ -25,6 +25,7 @@
         private void InitializeComponent() {
             menuStrip = new MenuStrip();
             rightPanel = new Panel();
+            DifficultySelector = new ComboBox();
             secondTurn = new RadioButton();
             firstTurn = new RadioButton();
             statusSwitch = new Button();
@@ -52,6 +53,7 @@
             // rightPanel
             // 
             rightPanel.AccessibleRole = AccessibleRole.PageTabList;
+            rightPanel.Controls.Add(DifficultySelector);
             rightPanel.Controls.Add(secondTurn);
             rightPanel.Controls.Add(firstTurn);
             rightPanel.Controls.Add(statusSwitch);
@@ -63,11 +65,21 @@
             rightPanel.Size = new Size(300, 900);
             rightPanel.TabIndex = 1;
             // 
+            // DifficultySelector
+            // 
+            DifficultySelector.Cursor = Cursors.Hand;
+            DifficultySelector.DropDownStyle = ComboBoxStyle.DropDownList;
+            DifficultySelector.FormattingEnabled = true;
+            DifficultySelector.Location = new Point(134, 401);
+            DifficultySelector.Name = "DifficultySelector";
+            DifficultySelector.Size = new Size(116, 32);
+            DifficultySelector.TabIndex = 7;
+            // 
             // secondTurn
             // 
             secondTurn.AutoSize = true;
             secondTurn.Cursor = Cursors.Hand;
-            secondTurn.Location = new Point(179, 360);
+            secondTurn.Location = new Point(50, 428);
             secondTurn.Name = "secondTurn";
             secondTurn.Size = new Size(71, 28);
             secondTurn.TabIndex = 6;
@@ -79,7 +91,7 @@
             // 
             firstTurn.AutoSize = true;
             firstTurn.Cursor = Cursors.Hand;
-            firstTurn.Location = new Point(50, 360);
+            firstTurn.Location = new Point(50, 379);
             firstTurn.Name = "firstTurn";
             firstTurn.Size = new Size(71, 28);
             firstTurn.TabIndex = 5;
@@ -103,7 +115,7 @@
             AIType.Cursor = Cursors.Hand;
             AIType.DropDownStyle = ComboBoxStyle.DropDownList;
             AIType.FormattingEnabled = true;
-            AIType.Location = new Point(50, 420);
+            AIType.Location = new Point(50, 325);
             AIType.Name = "AIType";
             AIType.Size = new Size(200, 32);
             AIType.TabIndex = 3;
@@ -190,6 +202,7 @@
         public ComboBox AIType;
         public Button statusSwitch;
         public ListBox LogListBox;
-        public Panel BoardPanel;
+        public ComboBox DifficultySelector;
+        public MyPanel BoardPanel;
     }
 }

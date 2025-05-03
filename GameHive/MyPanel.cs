@@ -6,7 +6,7 @@
  * 创建时间：  2024/12/6 5:40
 *************************************************************************************/
 namespace GameHive {
-    internal class MyPanel : Panel {
+    public class MyPanel : Panel {
         public MyPanel() {
             this.DoubleBuffered = true;
         }

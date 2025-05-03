@@ -6,6 +6,7 @@
  * 创建时间：  2024/11/26 1:04
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.MainForm;
@@ -70,9 +71,28 @@ namespace GameHive.Controller {
             if (defaultIndex >= 0) {
                 mainForm.AIType.SelectedIndex = defaultIndex; // 触发 SelectedIndexChanged 事件
                 //通知模型切换
-                ModelMessageSwitchAI(defaultAI);
+                ConcreteProductInfo info = ModelMessageSwitchAI(defaultAI);
+                //根据切换来的默认AI信息选择默认难度
+                RegisterDifficultySelector(info);
+                SetDefaultDifficulty();
             }
         }
+
+        //设置默认难度
+        private void SetDefaultDifficulty() { 
+            // 获取默认的难度等级（第一个可用的难度等级）
+            DifficultyLevel defaultLevel = boardManager.ConcreteProductInfo.DifficultyLevels[0];
+            // 获取默认难度的中文名称
+            var defaultLevelName = defaultLevel.GetChineseName();
+            // 查找 ComboBox 中对应的项并设置为选中
+            int defaultIndex = mainForm.DifficultySelector.Items.IndexOf(defaultLevelName);
+            if (defaultIndex >= 0) {
+                mainForm.DifficultySelector.SelectedIndex = defaultIndex; // 触发 SelectedIndexChanged 事件
+                //通知模型切换
+                ModelMessageSwitchDifficulty(defaultLevel);
+            }
+        }
+
 
         private void EndGame(Role role) {
             //终止游戏,公布赢家

@@ -26,6 +26,7 @@ namespace GameHive.View {
             mainForm.firstTurn.Enabled = false;
             mainForm.secondTurn.Enabled = false;
             mainForm.AIType.Enabled = false;
+            mainForm.DifficultySelector.Enabled = false;
         }
         public void EndGame(Role role) {
             //处理组件显示
@@ -35,6 +36,7 @@ namespace GameHive.View {
                 mainForm.firstTurn.Enabled = true;
                 mainForm.secondTurn.Enabled = true;
                 mainForm.AIType.Enabled = true;
+                mainForm.DifficultySelector.Enabled = true;
             }));
             LogWin(role);
         }

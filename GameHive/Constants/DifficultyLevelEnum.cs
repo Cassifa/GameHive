@@ -41,6 +41,7 @@ namespace GameHive.Constants.DifficultyLevelEnum {
 
             return Enumerable.Range(1, maxLevel)
                 .Select(x => (DifficultyLevel)x)
+                .OrderBy(x => (int)x)
                 .ToList();
         }
         public static bool IsGreaterThan(this DifficultyLevel current, DifficultyLevel other)
@@ -51,5 +52,13 @@ namespace GameHive.Constants.DifficultyLevelEnum {
 
         public static bool IsEqualTo(this DifficultyLevel current, DifficultyLevel other)
             => current == other;
+
+        // 从整数转换为难度等级
+        public static DifficultyLevel FromInt(int level) {
+            if (level < 1 || level > 5)
+                throw new ArgumentOutOfRangeException(nameof(level), "难度等级必须是1-5");
+            
+            return (DifficultyLevel)level;
+        }
     }
 }

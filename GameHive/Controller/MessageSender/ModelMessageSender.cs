@@ -1,4 +1,5 @@
 ﻿using GameHive.Constants.AIAlgorithmTypeEnum;
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.GameInfo;
@@ -11,8 +12,12 @@ namespace GameHive.Controller {
             return boardManager.SwitchGame(game);
         }
         //通知切换算法
-        private void ModelMessageSwitchAI(AIAlgorithmType type) {
-            boardManager.SwitchAIType(type);
+        private ConcreteProductInfo ModelMessageSwitchAI(AIAlgorithmType type) {
+            return boardManager.SwitchAIType(type);
+        }
+        //通知切换难度
+        private void ModelMessageSwitchDifficulty(DifficultyLevel level) {
+            boardManager.SwitchDifficulty(level);
         }
         //设定先后手
         private void ModelMessageSetPlayerTurnOrder(Role role) {
@@ -34,13 +39,13 @@ namespace GameHive.Controller {
             return boardManager.UserPalyChess(x, y);
         }
         //要求AI下棋
-        private void ModelMessageAskAIMove(int lastX,int lastY) {
+        private void ModelMessageAskAIMove(int lastX, int lastY) {
             boardManager.AskAIMove(lastX, lastY);
         }
 
         //检查是否合法
-        private bool ModelMessageCheckValid(int x,int y) {
-            return boardManager.CheckValid(x,y);
+        private bool ModelMessageCheckValid(int x, int y) {
+            return boardManager.CheckValid(x, y);
         }
     }
 }
