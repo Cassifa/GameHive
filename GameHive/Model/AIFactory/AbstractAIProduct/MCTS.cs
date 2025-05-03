@@ -149,9 +149,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //选择 从Root开始仅选择叶子节点（可能为终止节点）
         private MCTSNode Selection(MCTSNode root) {
             MCTSNode currentSelected = root;
-            List<MCTSNode> list=new List<MCTSNode>();
             while (true) {
-                list.Add(currentSelected);
                 if (currentSelected.IsLeaf)
                     break;
                 currentSelected = currentSelected.GetGreatestUCB();

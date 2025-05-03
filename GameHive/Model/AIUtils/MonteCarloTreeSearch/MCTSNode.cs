@@ -144,7 +144,8 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             foreach (var entry in ChildrenMap) {
                 MCTSNode node = entry.Value;
                 double t = node.GetUCB();
-                if (t > maxValue) {
+                //>=涵盖了maxValue==double.NegativeInfinity情况，使得搜到无解局面时得以反向传播
+                if (t >= maxValue) {
                     if (t == double.PositiveInfinity)
                         return node;
                     maxValue = t;
