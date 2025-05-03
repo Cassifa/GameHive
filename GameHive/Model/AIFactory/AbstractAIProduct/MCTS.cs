@@ -51,7 +51,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //获取可行落子
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
         //使用Cache获取结果
-        protected virtual Role CheckGameOverByPieceWithCache(List<List<Role>> currentBoard, int x, int y) { return Role.Empty; }
+        protected abstract Role CheckGameOverByPieceWithCache(List<List<Role>> currentBoard, int x, int y);
 
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //争夺锁，换根

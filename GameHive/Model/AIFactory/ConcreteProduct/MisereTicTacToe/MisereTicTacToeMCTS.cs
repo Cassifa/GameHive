@@ -58,6 +58,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             return Role.Draw;
         }
 
+
+        protected override Role CheckGameOverByPieceWithCache(List<List<Role>> currentBoard, int x, int y) {
+            return CheckGameOverByPiece(currentBoard, x, y);
+        }
         //获取所有可落子点
         protected override List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board) {
             List<Tuple<int, int>> ans = new List<Tuple<int, int>>();
