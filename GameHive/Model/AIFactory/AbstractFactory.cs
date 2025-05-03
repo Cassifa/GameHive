@@ -10,7 +10,6 @@ using GameHive.Model.AIFactory.AbstractAIProduct;
 namespace GameHive.Model.AIFactory {
     internal abstract class AbstractFactory {
         protected GameBoardInfo boardInfo;
-        public abstract HybridMinimaxMCTS GetHybridMinimaxMCTSProduct();
         public abstract MCTS GetMCTSProduct();
         public abstract MinMax GetMinMaxProduct();
         public abstract Negamax GetNegamaxProduct();

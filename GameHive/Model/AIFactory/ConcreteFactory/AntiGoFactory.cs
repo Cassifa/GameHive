@@ -16,10 +16,6 @@ namespace GameHive.Model.AIFactory {
             return new AntiGoMCTS();
         }
 
-        public override AbstractAIProduct.HybridMinimaxMCTS GetHybridMinimaxMCTSProduct() {
-            return new ConcreteProduct.AntiGoHybridMinimaxMCTS();
-        }
-
         /*——————————不可用———————————*/
         public override DeepRL GetDeepRLProduct() {
             throw new NotImplementedException();
@@ -37,7 +33,6 @@ namespace GameHive.Model.AIFactory {
         private AntiGoFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
                 AIAlgorithmType.MCTS,
-                AIAlgorithmType.HybridMinimaxMCTS,
             };
             boardInfo = new GameBoardInfo(7, true, aiTypes);
         }

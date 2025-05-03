@@ -13,7 +13,6 @@ namespace GameHive.Constants.AIAlgorithmTypeEnum {
         MCTS,               // 蒙特卡洛树搜索
         Negamax,            // 负极大值算法
         DeepRL,             // 深度强化学习
-        HybridMinimaxMCTS   // 混合Minimax-MCTS
     }
 
     public static class AIAlgorithmTypeExtensions {
@@ -22,7 +21,6 @@ namespace GameHive.Constants.AIAlgorithmTypeEnum {
             AIAlgorithmType.MCTS => "蒙特卡洛树搜索",
             AIAlgorithmType.Negamax => "负极大值搜索",
             AIAlgorithmType.DeepRL => "深度强化学习",
-            AIAlgorithmType.HybridMinimaxMCTS => "混合Minimax-MCTS",
             _ => "未知算法"
         };
 
@@ -31,7 +29,6 @@ namespace GameHive.Constants.AIAlgorithmTypeEnum {
             AIAlgorithmType.MCTS => "Monte Carlo Tree Search",
             AIAlgorithmType.Negamax => "Negamax Algorithm",
             AIAlgorithmType.DeepRL => "Deep Reinforcement Learning",
-            AIAlgorithmType.HybridMinimaxMCTS => "Hybrid Minimax-MCTS",
             _ => "Unknown Algorithm"
         };
     }

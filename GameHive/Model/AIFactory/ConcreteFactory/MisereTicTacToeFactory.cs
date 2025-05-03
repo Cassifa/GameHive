@@ -27,9 +27,6 @@ namespace GameHive.Model.AIFactory {
         public override DeepRL GetDeepRLProduct() {
             throw new NotImplementedException();
         }
-        public override HybridMinimaxMCTS GetHybridMinimaxMCTSProduct() {
-            throw new NotImplementedException();
-        }
 
         //单例模式
         private static MisereTicTacToeFactory _instance;

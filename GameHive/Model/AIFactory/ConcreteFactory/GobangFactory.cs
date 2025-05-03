@@ -29,9 +29,6 @@ namespace GameHive.Model.AIFactory {
             throw new NotImplementedException();
         }
 
-        public override HybridMinimaxMCTS GetHybridMinimaxMCTSProduct() {
-            throw new NotImplementedException();
-        }
         //单例模式
         private static GobangFactory _instance;
         private GobangFactory() {

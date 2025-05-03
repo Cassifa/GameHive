@@ -86,7 +86,6 @@ namespace GameHive.Model.GameManager {
             this.aIAlgorithmType = type;
             // 根据 AI 类型从工厂获取对应的实例
             runningAI = type switch {
-                AIAlgorithmType.HybridMinimaxMCTS => factory.GetHybridMinimaxMCTSProduct(),
                 AIAlgorithmType.MCTS => factory.GetMCTSProduct(),
                 AIAlgorithmType.Minimax => factory.GetMinMaxProduct(),
                 AIAlgorithmType.Negamax => factory.GetNegamaxProduct(),
