@@ -77,7 +77,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             }
         }
 
-        //运行反向传播MinMax 传入刚拓展过的父节点，会反向传播其子节点的胜利信息
+        //运行反向传播MinMax 传入刚拓展过的父节点，会反向传播其子节点的胜利信息 此处未考虑平局
         public void RunBackPropagateMinMax() {
             //开启反向传播MinMax
             MCTSNode? currentPropagate = this;

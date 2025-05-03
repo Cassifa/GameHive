@@ -84,7 +84,8 @@ namespace GameHive.Controller {
                 // 根据中文名称查找对应的枚举值
                 var selectedAI = info.AllAIType.FirstOrDefault(aiType => aiType.GetChineseName() == selectedName);
                 // 切换到选中的 AI 类型
-                ModelMessageSwitchAI(selectedAI);
+                ConcreteProductInfo productInfo = ModelMessageSwitchAI(selectedAI);
+                RegisterDifficultySelector(productInfo);
             };
         }
         //注册难度等级

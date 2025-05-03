@@ -175,6 +175,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             GameOverStatusCache.ActiveMoveDiscard();
             List<Tuple<int, int>> movesLsit = new List<Tuple<int, int>>();
             List<Role> roleList = new List<Role>();
+            List<List<List<Role>>> boardStates = new List<List<List<Role>>>(); // 新增棋盘状态记录
             while (true) {
                 //获取可行点并模拟落子
                 List<Tuple<int, int>> moves = GetAvailableMoves(currentBoard);
@@ -186,6 +187,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 PlayChess(WhoPlaying, move.Item1, move.Item2);
                 lastChessWinnerResult = CheckGameOverByPieceWithCache(currentBoard, move.Item1, move.Item2);
                 roleList.Add(lastChessWinnerResult);
+                List<List<Role>> copiedBoard = currentBoard.Select(row => new List<Role>(row)).ToList();
+                boardStates.Add(copiedBoard);
                 //已经结束直接跳出
                 if (lastChessWinnerResult != Role.Empty)
                     break;
