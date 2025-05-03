@@ -7,12 +7,12 @@
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
 
-namespace GameHive.Model {
+namespace GameHive.Model.GameInfo {
     internal class GameBoardInfo {
         public GameBoardInfo(int column, bool isCenter, List<AIAlgorithmType> allAIType) {
-            this.AllAIType = allAIType;
-            this.Column = column;
-            this.IsCenter = isCenter;
+            AllAIType = allAIType;
+            Column = column;
+            IsCenter = isCenter;
             totalSize = 810;
             CalculateMapping();
         }
@@ -76,19 +76,19 @@ namespace GameHive.Model {
                 // **交点落子逻辑**
                 int gridCount = Column - 1; // 在交点落子时网格数量少一行一列
                 R = totalSize / (gridCount * 2 + 4);
-                Bias = 2*R;
+                Bias = 2 * R;
                 double cellSize = R * 2;
-                BoardLength = (totalSize - 2*R);
+                BoardLength = totalSize - 2 * R;
 
                 for (int i = 0; i < Column; i++) {
                     List<Tuple<double, double>> rowCenters = new List<Tuple<double, double>>();
                     for (int j = 0; j < Column; j++) {
-                        double x = j * cellSize + R*2; // 交点 x 坐标，预留边界
-                        double y = i * cellSize + R*2; // 交点 y 坐标，预留边界
+                        double x = j * cellSize + R * 2; // 交点 x 坐标，预留边界
+                        double y = i * cellSize + R * 2; // 交点 y 坐标，预留边界
                         rowCenters.Add(new Tuple<double, double>((double)x, (double)y));
                         if (i == 0) {
                             //计算 Columns
-                            Columns.Add((double)(j * cellSize + R*2));
+                            Columns.Add((double)(j * cellSize + R * 2));
                         }
                     }
                     ChessCenter.Add(rowCenters);

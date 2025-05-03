@@ -9,7 +9,7 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.MainForm;
-using GameHive.Model;
+using GameHive.Model.GameInfo;
 using GameHive.Model.GameManager;
 namespace GameHive.Controller {
     //这个函数用于执行控制器生命周期主流程

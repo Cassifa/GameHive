@@ -9,11 +9,13 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
 using GameHive.Model.AIUtils.AlphaBetaPruning;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory {
     internal class GobangFactory : AbstractFactory {
 
         public override MinMax GetMinMaxProduct() {
+            SetConcreteProductInfo(GoBangMinMax.concreteProductInfo);
             return new GoBangMinMax(RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
         }
 

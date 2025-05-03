@@ -9,6 +9,7 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
@@ -82,7 +83,7 @@ namespace GameHive.Model.GameManager {
             return BoardInfo;
         }
         //切换游戏类型
-        public void SwitchAIType(AIAlgorithmType type) {
+        public ConcreteProductInfo SwitchAIType(AIAlgorithmType type) {
             this.aIAlgorithmType = type;
             // 根据 AI 类型从工厂获取对应的实例
             runningAI = type switch {
@@ -92,6 +93,8 @@ namespace GameHive.Model.GameManager {
                 AIAlgorithmType.DeepRL => factory.GetDeepRLProduct(),
                 _ => throw new NotSupportedException($"不支持此算法类型: {type}")
             };
+            this.ConcreteProductInfo = factory.GetConcreteProductInfo();
+            return ConcreteProductInfo;
         }
 
 

@@ -8,18 +8,22 @@
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory {
     internal class MisereTicTacToeFactory : AbstractFactory {
         public override MCTS GetMCTSProduct() {
+            SetConcreteProductInfo(MisereTicTacToeMCTS.concreteProductInfo);
             return new MisereTicTacToeMCTS();
         }
 
         public override MinMax GetMinMaxProduct() {
+            SetConcreteProductInfo(MisereTicTacToeMinMax.concreteProductInfo);
             return new MisereTicTacToeMinMax();
         }
 
         public override Negamax GetNegamaxProduct() {
+            SetConcreteProductInfo(MisereTicTacToeNegamax.concreteProductInfo);
             return new MisereTicTacToeNegamax();
         }
 

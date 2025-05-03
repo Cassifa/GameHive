@@ -7,9 +7,12 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.GameInfo;
 
-namespace GameHive.Model.AIFactory.ConcreteProduct.AntiGo {
+namespace GameHive.Model.AIFactory.ConcreteProduct {
     class AntiGoMinMax : MinMax {
+        //具体产品信息 包含难度
+        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
             throw new NotImplementedException();
         }

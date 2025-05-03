@@ -8,11 +8,12 @@
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
-using GameHive.Model.AIFactory.ConcreteProduct.AntiGo;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory {
     internal class AntiGoFactory : AbstractFactory {
         public override MCTS GetMCTSProduct() {
+            SetConcreteProductInfo(AntiGoMCTS.concreteProductInfo);
             return new AntiGoMCTS();
         }
 

@@ -6,7 +6,7 @@
  * 创建时间：  2024/11/25 21:55
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
-using GameHive.Model;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.Controller {
     internal partial class Controller {

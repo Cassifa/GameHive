@@ -9,14 +9,17 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
 using GameHive.Model.AIUtils.AlphaBetaPruning;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory {
     internal class Gobang88Factory : AbstractFactory {
 
         public override MinMax GetMinMaxProduct() {
+            SetConcreteProductInfo(GoBang88MinMax.concreteProductInfo);
             return new GoBang88MinMax(RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
         }
         public override DeepRL GetDeepRLProduct() {
+            SetConcreteProductInfo(AntiGoMCTS.concreteProductInfo);//TODO修改此处
             throw new NotImplementedException();
         }
 

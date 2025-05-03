@@ -18,9 +18,12 @@ using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIUtils.AlgorithmUtils;
 using GameHive.Model.AIUtils.AlphaBetaPruning;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88MinMax : MinMax {
+        //具体产品信息 包含难度
+        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
 
         /**********成员申明与初始化**********/
         //AC自动机执行工具类

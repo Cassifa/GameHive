@@ -1,6 +1,6 @@
 ﻿/*************************************************************************************
  * 文 件 名:   DifficultyLevelEnum.cs
- * 描    述: 定义游戏难度等级
+ * 描    述:   游戏难度等级
  * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
  * 创 建 者：  Cassifa
  * 创建时间：  2025/5/3 15:19
@@ -43,5 +43,13 @@ namespace GameHive.Constants.DifficultyLevelEnum {
                 .Select(x => (DifficultyLevel)x)
                 .ToList();
         }
+        public static bool IsGreaterThan(this DifficultyLevel current, DifficultyLevel other)
+            => (int)current > (int)other;
+
+        public static bool IsLessThan(this DifficultyLevel current, DifficultyLevel other)
+            => (int)current < (int)other;
+
+        public static bool IsEqualTo(this DifficultyLevel current, DifficultyLevel other)
+            => current == other;
     }
 }

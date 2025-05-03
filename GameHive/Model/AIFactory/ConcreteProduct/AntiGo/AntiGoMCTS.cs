@@ -7,8 +7,11 @@
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.GameInfo;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
+        //具体产品信息 包含难度
+        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(4);
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
             baseCount = 2_000;

@@ -1,7 +1,7 @@
 ﻿using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
-using GameHive.Model;
+using GameHive.Model.GameInfo;
 namespace GameHive.Controller {
     //用于向Model发送命令，并调用命令发送后相关的函数
     internal partial class Controller {

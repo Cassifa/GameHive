@@ -6,7 +6,7 @@
  * 创建时间：  2024/11/25 19:03
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
-using GameHive.Model;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.View {
     //控制棋盘上所有动画

@@ -9,6 +9,7 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
+using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.GameManager {
     internal partial class BoardManager {
@@ -27,8 +28,10 @@ namespace GameHive.Model.GameManager {
 
         //当前在运行的AI产品实例
         private AbstractAIStrategy runningAI;
-        //游戏情况
+        //游戏类型信息
         public GameBoardInfo BoardInfo { get; private set; }
+        //游戏产品信息（游戏类型＋算法类型）
+        public ConcreteProductInfo ConcreteProductInfo { get; private set; }
         //当前棋盘
         public List<List<Role>> board { get; private set; }
 
