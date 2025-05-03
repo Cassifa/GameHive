@@ -228,6 +228,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
             }
             father.IsLeaf = false;
+            //反向传播胜利信息
+            father.RunBackPropagateMinMax();
         }
 
 

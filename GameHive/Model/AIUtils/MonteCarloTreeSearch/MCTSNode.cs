@@ -18,7 +18,7 @@ using System.Reflection;
 namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
     internal class MCTSNode {
         public MCTSNode(List<List<Role>> board, MCTSNode father, int x, int y,
-                    Role view, Role winner, List<Tuple<int, int>> availablePiece, bool backPropagationMinMaxFlag = true) {
+                    Role view, Role winner, List<Tuple<int, int>> availablePiece) {
             //初始化参数 价值、访问次数、是否为叶子节点
             VisitedTimes = 0;
             TotalValue = 0;
@@ -37,8 +37,6 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             ChildrenMap = new Dictionary<int, MCTSNode>();
             AvailablePiece = availablePiece;
 
-            //判断是否触发MinMax
-            BackPropagationMinMaxFlag = backPropagationMinMaxFlag;
         }
 
         //当前视角下当前节点价值，胜利＋1，失败-1 平局0
@@ -51,8 +49,6 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         private Role Winner;
         //当前视角
         public Role LeadToThisStatus { get; set; }
-        //是否触发反向传播
-        private bool BackPropagationMinMaxFlag { get; set; }
         //节点拥有的棋盘
         public List<List<Role>> NodeBoard { get; set; }
         //相比与父节点哪里落子了
@@ -68,19 +64,6 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         }
         private void setWinner(Role role) {
             Winner = role;
-            if (role.IsVictory()) {
-                //开启反向传播MinMax
-                MCTSNode? currentPropagate = this;
-                if (currentPropagate == null)
-                    return;
-                if (!BackPropagationMinMaxFlag)
-                    return;
-                Role result = role;
-                while (result.IsVictory() && currentPropagate.Father != null) {
-                    //MinMax一旦成功，继续向上MinMax操作
-                    result = BackPropagateMinMax(currentPropagate.Father);
-                }
-            }
         }
         //反向传播,根据单次模拟的结果更新参数
         public void BackPropagation(Role winner) {
@@ -94,7 +77,21 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             }
         }
 
-        //反向传播MinMax
+        //运行反向传播MinMax 传入刚拓展过的父节点，会反向传播其子节点的胜利信息
+        public void RunBackPropagateMinMax() {
+            //开启反向传播MinMax
+            MCTSNode? currentPropagate = this;
+            Role result;
+            do {
+                result = BackPropagateMinMax(currentPropagate);
+                currentPropagate = currentPropagate.Father;
+            }
+            //MinMax一旦成功，继续向上MinMax操作
+            while (result.IsVictory() && currentPropagate != null);
+
+        }
+
+        //反向传播MinMax 根据子节点检查自身胜利状态
         private Role BackPropagateMinMax(MCTSNode node) {
             //查到了终局节点（有赢家）直接返回
             if (node.Winner.IsVictory())
