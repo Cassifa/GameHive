@@ -32,5 +32,8 @@ namespace GameHive.Constants.RoleTypeEnum {
                 _ => "Unknown"
             };
         }
+        public static bool IsVictory(this Role role) {
+            return role == Role.AI || role == Role.Player;
+        }
     }
 }

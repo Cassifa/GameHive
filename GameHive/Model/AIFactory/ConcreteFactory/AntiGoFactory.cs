@@ -16,8 +16,8 @@ namespace GameHive.Model.AIFactory {
             return new AntiGoMCTS();
         }
 
-        public override HybridMinimaxMCTS GetHybridMinimaxMCTSProduct() {
-            return new AntiGoMinMaxMCTS();
+        public override AbstractAIProduct.HybridMinimaxMCTS GetHybridMinimaxMCTSProduct() {
+            return new ConcreteProduct.AntiGoHybridMinimaxMCTS();
         }
 
         /*——————————不可用———————————*/

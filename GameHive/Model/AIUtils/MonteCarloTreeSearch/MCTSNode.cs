@@ -13,11 +13,12 @@
  * 创建时间：  2024/12/8 20:11
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using System.Reflection;
 
 namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
     internal class MCTSNode {
         public MCTSNode(List<List<Role>> board, MCTSNode father, int x, int y,
-                    Role view, Role winner, List<Tuple<int, int>> availablePiece) {
+                    Role view, Role winner, List<Tuple<int, int>> availablePiece, bool backPropagationMinMaxFlag = true) {
             //初始化参数 价值、访问次数、是否为叶子节点
             VisitedTimes = 0;
             TotalValue = 0;
@@ -26,7 +27,7 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             //初始化传递成员 
             //当前视角 游戏是否结束
             LeadToThisStatus = view;
-            Winner = winner;
+            setWinner(winner);
             //父节点 相对父节点落子
             Father = father;
             PieceSelectedCompareToFather = new Tuple<int, int>(x, y);
@@ -35,6 +36,9 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             NodeBoard = board;
             ChildrenMap = new Dictionary<int, MCTSNode>();
             AvailablePiece = availablePiece;
+
+            //判断是否触发MinMax
+            BackPropagationMinMaxFlag = backPropagationMinMaxFlag;
         }
 
         //当前视角下当前节点价值，胜利＋1，失败-1 平局0
@@ -44,9 +48,11 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         //是否为叶子节点
         public bool IsLeaf { get; set; }
         //游戏是否终止 若不是Role.Empty表示赢家
-        public Role Winner { get; set; }
+        private Role Winner;
         //当前视角
         public Role LeadToThisStatus { get; set; }
+        //是否触发反向传播
+        private bool BackPropagationMinMaxFlag { get; set; }
         //节点拥有的棋盘
         public List<List<Role>> NodeBoard { get; set; }
         //相比与父节点哪里落子了
@@ -57,7 +63,25 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         public Dictionary<int, MCTSNode> ChildrenMap { get; set; }
         //可落子地方
         public List<Tuple<int, int>> AvailablePiece { get; set; }
-
+        public Role getWinner() {
+            return Winner;
+        }
+        private void setWinner(Role role) {
+            Winner = role;
+            if (role.IsVictory()) {
+                //开启反向传播MinMax
+                MCTSNode? currentPropagate = this;
+                if (currentPropagate == null)
+                    return;
+                if (!BackPropagationMinMaxFlag)
+                    return;
+                Role result = role;
+                while (result.IsVictory() && currentPropagate.Father != null) {
+                    //MinMax一旦成功，继续向上MinMax操作
+                    result = BackPropagateMinMax(currentPropagate.Father);
+                }
+            }
+        }
         //反向传播,根据单次模拟的结果更新参数
         public void BackPropagation(Role winner) {
             MCTSNode? currentPropagate = this;
@@ -69,6 +93,26 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
                 currentPropagate = currentPropagate.Father;
             }
         }
+
+        //反向传播MinMax
+        private Role BackPropagateMinMax(MCTSNode node) {
+            //查到了终局节点（有赢家）直接返回
+            if (node.Winner.IsVictory())
+                return node.Winner;
+            //若子树尚未拓展，直接返回
+            if (node.ChildrenMap.Count == 0)
+                return node.Winner;
+            //判断第一个子节点赢家
+            Role firstChildWinner = BackPropagateMinMax(node.ChildrenMap.Values.First());
+            if (!firstChildWinner.IsVictory())
+                return Role.Empty;
+            //如果剩余子节点胜利状态全部一致
+            bool allSameWinner = ChildrenMap.Values.All(node => BackPropagateMinMax(node) == firstChildWinner);
+            if (allSameWinner)
+                node.Winner = (firstChildWinner == Role.AI) ? Role.Player : Role.AI;
+            return node.Winner;
+        }
+
         //换根，换根操作一定滞后与拓展操作，不需要记录缓存表的 value
         public MCTSNode MoveRoot(int x, int y, Action<MCTSNode, bool> NodeExpansion) {
             //由于进入必败局面导致未找到可行点，换根目标节点为随机选择，未拓展过。需要强制拓展

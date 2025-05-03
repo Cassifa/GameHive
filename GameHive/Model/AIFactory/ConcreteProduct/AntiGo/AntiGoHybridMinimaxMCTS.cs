@@ -9,44 +9,54 @@ using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
-    internal class AntiGoMinMaxMCTS : HybridMinimaxMCTS {
-        private List<List<Role>> board;
-        public AntiGoMinMaxMCTS() {
-            maxDeep = 10;
+    internal class AntiGoHybridMinimaxMCTS : HybridMinimaxMCTS {
+        public AntiGoHybridMinimaxMCTS() {
             TotalPiecesCnt = 7;
-            SearchCount = 300;
-            OnlyMCTSSearchCount = 7000;
-            board = new List<List<Role>>(TotalPiecesCnt);
+            baseCount = 20_000;
+            NeedUpdateSearchCount = true;
         }
-        //根据某次落子查看游戏是否结束
+        private int TotalAttempts = 0;       // 总数
+        private int SuccessCount = 0;         // 命中次数
+        private double SuccessRate = 0;       // 命中比例
+        //private List<int> TotalAttemptsHistory = new List<int>();  // 每次的尝试次数
+        //private List<int> SuccessCountHistory = new List<int>();    // 每次的命中次数
+        //private List<double> SuccessRateHistory = new List<double>(); // 每次的命中率
+        /*****实现三个策略*****/
+        //启用Cache判断胜负
+        protected override Role CheckGameOverByPieceWithCache(List<List<Role>> currentBoard, int x, int y) {
+            TotalAttempts++;
+            Role result = Role.Empty;
+            //先查缓存
+            if (GameOverStatusCache.GetValue(ref result) != -1) {
+                SuccessCount++;
+                return result;
+            }
+            SuccessRate = (double)SuccessCount / (double)TotalAttempts;
+            //记录缓存
+            result = CheckGameOverByPiece(currentBoard, x, y);
+            GameOverStatusCache.Log(result);
+            return result;
+        }
+
+        //根据某次落子查看游戏是否结束，导致出现无气局面的人判负，对手判胜
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
             int[] dx = { 0, -1, 1, 0, 0 };
             int[] dy = { 0, 0, 0, -1, 1 };
-            //一半情况快速判断
-            int notFind = 0;
-            for (int i = 0; i < 4; i++) {
-                int newX = x + dx[i];
-                int newY = y + dy[i];
-                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0) {
-                    notFind++; continue;
-                }
-                if (currentBoard[newX][newY] == Role.Empty) return Role.Empty;
-                //四面敌人或碰壁必死棋
-                if (currentBoard[x][y] != currentBoard[newX][newY]) notFind++;
-            }
-            if (notFind == 4) return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
-
             List<List<bool>> visitStatusBoard = new List<List<bool>>();
             for (int i = 0; i < currentBoard.Count; i++)
                 visitStatusBoard.Add(new List<bool>(new bool[currentBoard[i].Count]));
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 5; i++) {
                 int newX = x + dx[i];
                 int newY = y + dy[i];
-                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0 || currentBoard[newX][newY] == Role.Empty)
+                if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0
+                    || currentBoard[newX][newY] == Role.Empty)
                     continue;
+                //要清除访问状态 否则会被访问过的堵住
                 Clear(ref visitStatusBoard);
-                if (!IsAlive(currentBoard, visitStatusBoard, x, y))
+                //如果导致某个位置无气说明此步非法
+                if (!IsAlive(currentBoard, visitStatusBoard, newX, newY)) {
                     return currentBoard[x][y] == Role.AI ? Role.Player : Role.AI;
+                }
             }
             return Role.Empty;
         }
@@ -70,7 +80,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 if (newX == TotalPiecesCnt || newY == TotalPiecesCnt || newX < 0 || newY < 0)
                     continue;
                 //当前字旁边有气
-                if (rawBoard[newX][newY] == Role.Empty) return true;
+                if (rawBoard[newX][newY] == Role.Empty)
+                    return true;
                 //搜到同种且未被搜过节点 如果这个节点能搜到气则本连通块有气
                 if (rawBoard[newX][newY] == rawBoard[x][y] && !visitStatusBoard[newX][newY]
                     && IsAlive(rawBoard, visitStatusBoard, newX, newY))
@@ -95,32 +106,6 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             if (availableMoves.Count == 0)
                 availableMoves.Add(emptyMoves[0]);
             return availableMoves;
-        }
-
-
-        protected override List<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
-            return GetAvailableMoves(currentBoard);
-        }
-
-        protected override List<List<Role>> GetCurrentBoard() {
-            return board;
-        }
-
-        protected override void PlayChess(int x, int y, Role role) {
-            if (role == Role.Empty) PlayedPiecesCnt--;
-            else PlayedPiecesCnt++;
-            board[x][y] = role;
-        }
-
-        //游戏开始
-        public override void GameStart(bool IsAIFirst) {
-            board.Clear();
-            for (int i = 0; i < TotalPiecesCnt; i++) {
-                board.Add(new List<Role>(new Role[TotalPiecesCnt]));
-            }
-            for (int i = 0; i < TotalPiecesCnt; i++)
-                for (int j = 0; j < TotalPiecesCnt; j++)
-                    board[i][j] = Role.Empty;
         }
     }
 }

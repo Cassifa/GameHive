@@ -149,7 +149,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //选择 从Root开始仅选择叶子节点（可能为终止节点）
         private MCTSNode Selection(MCTSNode root) {
             MCTSNode currentSelected = root;
+            List<MCTSNode> list=new List<MCTSNode>();
             while (true) {
+                list.Add(currentSelected);
                 if (currentSelected.IsLeaf)
                     break;
                 currentSelected = currentSelected.GetGreatestUCB();
@@ -163,8 +165,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //从当前节点开始模拟，返回赢家-如果节点是全新的
         private Role RollOut(MCTSNode node) {
             //如果这个节点本身就是终止节点，直接返回 
-            if (node.Winner != Role.Empty)
-                return node.Winner;
+            if (node.getWinner() != Role.Empty)
+                return node.getWinner();
             List<List<Role>> currentBoard = node.NodeBoard.Select(row => new List<Role>(row)).ToList();
             Random rand = new Random();
             //对导致当前局面的角色取反为当前玩家
@@ -252,7 +254,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 t++;
                 TotalCnt /= LeftCount;
             }
-            t = Math.Min(t, 5);
+            t = Math.Min(t, 3);
             SearchCount = BaseCount * (int)Math.Pow(10, t);
         }
 

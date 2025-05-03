@@ -11,7 +11,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
         public AntiGoMCTS() {
             TotalPiecesCnt = 7;
-            baseCount = 20_000;
+            baseCount = 2_000;
             NeedUpdateSearchCount = true;
         }
         private int TotalAttempts = 0;       // 总数
