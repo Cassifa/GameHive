@@ -15,17 +15,17 @@ namespace GameHive.Model.AIFactory {
     internal class TicTacToeFactory : AbstractFactory {
         public override MCTS GetMCTSProduct(DifficultyLevel level) {
             SetConcreteProductInfo(TicTacToeMCTS.concreteProductInfo);
-            return new TicTacToeMCTS();
+            return new TicTacToeMCTS(boardInfo.Column, level);
         }
 
         public override MinMax GetMinMaxProduct(DifficultyLevel level) {
             SetConcreteProductInfo(TicTacToeMinMax.concreteProductInfo);
-            return new TicTacToeMinMax();
+            return new TicTacToeMinMax(boardInfo.Column, level);
         }
 
         public override Negamax GetNegamaxProduct(DifficultyLevel level) {
             SetConcreteProductInfo(TicTacToeNegamax.concreteProductInfo);
-            return new TicTacToeNegamax();
+            return new TicTacToeNegamax(boardInfo.Column, level);
         }
 
         /*——————————不可用———————————*/

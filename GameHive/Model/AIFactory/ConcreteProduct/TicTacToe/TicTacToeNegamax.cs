@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:38
 *************************************************************************************/
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.GameInfo;
@@ -13,6 +14,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class TicTacToeNegamax : Negamax {
         //具体产品信息 包含难度
         public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
+
+        public TicTacToeNegamax(int column, DifficultyLevel level) {
+
+        }
         /*****实现两个策略*****/
         //检查游戏是否结束，并返回赢家（平局Draw 未结束Empty）
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {

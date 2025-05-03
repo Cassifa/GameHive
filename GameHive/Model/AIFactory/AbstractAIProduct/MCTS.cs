@@ -30,10 +30,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
         //游戏搜索轮数
         protected int SearchCount, baseCount;
+        bool RunBackPropagateMinMax = false;
         //是否更新搜索次数(小规模棋盘无需更新)
         protected bool NeedUpdateSearchCount = false;
         //单次线程最小搜索次数，达到后释放一次锁
-        private int MinSearchCount = 1000;
+        protected int MinSearchCount = 1000;
         //互斥期间搜索次数
         private int AIMoveSearchCount, PlayedPiecesCnt;
         //互斥锁
@@ -172,16 +173,19 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             Role lastChessWinnerResult;
             //启用缓存回溯功能
             GameOverStatusCache.ActiveMoveDiscard();
+            List<Tuple<int, int>> movesLsit = new List<Tuple<int, int>>();
+            List<Role> roleList = new List<Role>();
             while (true) {
                 //获取可行点并模拟落子
                 List<Tuple<int, int>> moves = GetAvailableMoves(currentBoard);
                 Tuple<int, int> move = moves[rand.Next(moves.Count)];
+                movesLsit.Add(move);
                 currentBoard[move.Item1][move.Item2] = WhoPlaying;
 
                 //结果录入缓存
                 PlayChess(WhoPlaying, move.Item1, move.Item2);
                 lastChessWinnerResult = CheckGameOverByPieceWithCache(currentBoard, move.Item1, move.Item2);
-
+                roleList.Add(lastChessWinnerResult);
                 //已经结束直接跳出
                 if (lastChessWinnerResult != Role.Empty)
                     break;
@@ -229,7 +233,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             }
             father.IsLeaf = false;
             //反向传播胜利信息
-            father.RunBackPropagateMinMax();
+            if (RunBackPropagateMinMax)
+                father.RunBackPropagateMinMax();
         }
 
 

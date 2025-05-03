@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:38
 *************************************************************************************/
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIUtils.AlgorithmUtils;
@@ -15,16 +16,18 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //具体产品信息 包含难度
         public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
         private List<List<Role>> NormalBoard;
-        public TicTacToeMinMax() {
+        public TicTacToeMinMax(int column, DifficultyLevel level) {
             //井字棋直接搜完
-            maxDeep = 12; TotalPiecesCnt = 3;
+            maxDeep = 12;
+            TotalPiecesCnt = column;
             //初始缓存表
             MinMaxCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
             NormalBoard = new List<List<Role>>(TotalPiecesCnt);
         }
         /*****实现两个博弈树策略*****/
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
-            if (x == -1) return Role.Empty;
+            if (x == -1)
+                return Role.Empty;
             if (currentBoard[x][0] != Role.Empty &&
                 currentBoard[x][0] == currentBoard[x][1] &&
                 currentBoard[x][1] == currentBoard[x][2]) {
@@ -66,7 +69,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             }
             return moves;
         }
-        
+
         protected override List<Tuple<int, int>> GetAvailableMovesByNewPieces(List<List<Role>> currentBoard, List<Tuple<int, int>> lastAvailableMoves, int lastX, int lastY) {
             return GetAvailableMoves(currentBoard);
         }

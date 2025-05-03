@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:38
 *************************************************************************************/
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.GameInfo;
@@ -12,10 +13,18 @@ using GameHive.Model.GameInfo;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class TicTacToeMCTS : MCTS {
         //具体产品信息 包含难度
-        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
-        public TicTacToeMCTS() {
-            TotalPiecesCnt = 3;
-            baseCount = 200000;
+        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(2);
+        public TicTacToeMCTS(int column, DifficultyLevel level) {
+            TotalPiecesCnt = column;
+            switch (level) {
+                case DifficultyLevel.LEVEL_1:
+                    baseCount = 100;
+                    MinSearchCount = 100;
+                    break;
+                case DifficultyLevel.LEVEL_2:
+                    baseCount = 2000;
+                    break;
+            }
         }
         /*****实现两个策略*****/
         //根据某次落子查看游戏是否结束
@@ -54,7 +63,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             List<Tuple<int, int>> ans = new List<Tuple<int, int>>();
             for (int i = 0; i < board.Count; i++)
                 for (int j = 0; j < board[i].Count; j++)
-                    if (board[i][j] == Role.Empty) ans.Add(new Tuple<int, int>(i, j));
+                    if (board[i][j] == Role.Empty)
+                        ans.Add(new Tuple<int, int>(i, j));
             return ans;
         }
 

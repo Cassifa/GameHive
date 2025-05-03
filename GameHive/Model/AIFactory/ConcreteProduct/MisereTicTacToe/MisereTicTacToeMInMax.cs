@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:37
 *************************************************************************************/
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIUtils.AlgorithmUtils;
@@ -15,7 +16,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //具体产品信息 包含难度
         public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
         private List<List<Role>> NormalBoard;
-        public MisereTicTacToeMinMax() {
+        public MisereTicTacToeMinMax(int column, DifficultyLevel level) {
             //井字棋直接搜完
             maxDeep = 12;TotalPiecesCnt = 3;
             //初始缓存表
