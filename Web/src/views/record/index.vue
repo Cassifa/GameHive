@@ -5,7 +5,7 @@
         <span>对局记录热力图</span>
         <el-button style="float: right; padding: 3px 0" type="text" @click="refreshHeatmap">刷新</el-button>
       </div>
-      <game-record-heatmap :useMockData="true" ref="heatmap" />
+      <game-record-heatmap ref="heatmap" />
     </el-card>
     
     <!-- 原有内容 -->
@@ -32,4 +32,10 @@ export default {
   },
   // 保留原有内容
 }
-</script> 
+</script>
+
+<style scoped>
+.box-card {
+  margin-bottom: 20px;
+}
+</style> 

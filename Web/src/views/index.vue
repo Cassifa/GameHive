@@ -3,10 +3,8 @@
     <!-- 游戏记录热力图 -->
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <!-- <span>对局记录热力图</span> -->
-        <el-button style="float: right; padding: 3px 0" type="text" @click="refreshHeatmap">刷新</el-button>
+        <game-record-heatmap ref="heatmap" :query-params="heatmapParams"></game-record-heatmap>
       </div>
-      <game-record-heatmap ref="heatmap" :query-params="heatmapParams"></game-record-heatmap>
     </el-card>
     
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
@@ -449,5 +447,10 @@ export default {
 <style scoped>
 .box-card {
   margin-bottom: 20px;
+}
+
+.el-card__body {
+  overflow-x: auto; /* 添加横向滚动 */
+  padding: 20px;
 }
 </style>

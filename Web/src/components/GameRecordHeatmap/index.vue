@@ -6,40 +6,41 @@
       <span>加载中...</span>
     </div>
     <template v-else>
-      <div class="record-heatmap-header">
-        <div class="months" ref="monthsContainer">
-          <!-- 每个月份标签与对应格子对齐 -->
-          <div v-for="(month, index) in calendarData.monthLabels" :key="index" 
-            class="month-label" 
-            :style="{left: month.position + 'px', width: month.width + 'px'}">
+      <div class="heatmap-wrapper">
+        <!-- 月份标签区域 -->
+        <div class="month-labels" :style="{ height: monthLabelHeight + 'px' }">
+          <div 
+            v-for="(month, index) in calendarData.monthLabels" 
+            :key="index"
+            class="month-label"
+            :style="{
+              left: month.position + 'px',
+              fontSize: month.fontSize + 'px',
+              transform: 'translateX(-50%)'
+            }"
+          >
             {{ month.name }}
           </div>
         </div>
-      </div>
-      <div class="record-heatmap-body">
-        <div class="weekdays">
-          <div class="weekday" v-for="(day, index) in weekdays" :key="index">{{ day }}</div>
-        </div>
-        <canvas 
-          ref="heatmapCanvas" 
-          class="heatmap-canvas"
-          @mousemove="onCanvasMouseMove"
-          @mouseout="hideTooltip"
-        ></canvas>
-      </div>
-      <div class="record-heatmap-footer">
-        <div class="legend">
-          <div class="legend-cells">
-            <div class="heatmap-cell level-0"></div>
-            <div class="heatmap-cell level-1"></div>
-            <div class="heatmap-cell level-2"></div>
-            <div class="heatmap-cell level-3"></div>
-            <div class="heatmap-cell level-4"></div>
+        
+        <!-- 主体内容 -->
+        <div class="heatmap-body">
+          <!-- 周标签 -->
+          <div class="weekdays">
+            <div v-for="(day, index) in weekdays" :key="index" class="weekday">
+              {{ day }}
+            </div>
           </div>
+          <!-- 热力图 -->
+          <canvas 
+            ref="heatmapCanvas" 
+            class="heatmap-canvas"
+            @mousemove="onCanvasMouseMove"
+            @mouseout="hideTooltip"
+          ></canvas>
         </div>
       </div>
     </template>
-
     <!-- 悬浮提示框 -->
     <div class="tooltip" v-show="showTooltipFlag" :style="tooltipStyle">
       <div class="tooltip-date">{{ tooltipData.dateDisplay }}</div>
@@ -174,10 +175,10 @@ export default {
   },
   data() {
     return {
-      // 月份名称 - 中文
-      months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
-      // 星期名称 - 完整中文
-      weekdays: ['周一', '周三', '周五'],
+      // 月份名称改为数字
+      months: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+      // 周数改为1,3,7
+      weekdays: ['1', '3', '7'],
       // 热力图数据
       recordsData: [],
       // 处理后的热力图数据
@@ -217,16 +218,17 @@ export default {
         '#194bab'  // 大量记录 - 深蓝色
       ],
       // 当前鼠标悬停的单元格
-      hoveredCellIndex: -1
+      hoveredCellIndex: -1,
+      monthLabelHeight: 30, // 月份标签区域高度
     }
   },
   mounted() {
-    window.addEventListener('resize', this.drawHeatmap);
+    window.addEventListener('resize', this.handleResize);
     // 组件创建时获取数据
     this.fetchRecordsData();
   },
   beforeDestroy() {
-    window.removeEventListener('resize', this.drawHeatmap);
+    window.removeEventListener('resize', this.handleResize);
   },
   methods: {
     // 获取对局记录数据
@@ -339,43 +341,62 @@ export default {
     
     // 计算每个月份标签的位置
     calculateMonthPositions() {
+      // 重构后的月份计算逻辑
       if (this.heatmapData.length === 0) return;
-      
-      // 按月份分组
+
       const months = [];
       let currentMonth = -1;
       let currentYear = -1;
       let startCol = 0;
-      
-      this.heatmapData.forEach(day => {
-        if (day.month !== currentMonth || day.year !== currentYear) {
+
+      // 按周遍历数据
+      const weeks = Math.ceil(this.heatmapData.length / 7);
+      for (let col = 0; col < weeks; col++) {
+        // 获取该周周一的日期
+        const firstDay = this.heatmapData[col * 7];
+        if (!firstDay) continue;
+
+        // 月份变化时记录位置
+        if (firstDay.month !== currentMonth || firstDay.year !== currentYear) {
           if (currentMonth !== -1) {
-            // 计算上一个月的宽度
-            const width = (day.col - startCol) * (this.cellSize + this.cellGap) - this.cellGap;
             months.push({
               name: this.months[currentMonth],
-              position: startCol * (this.cellSize + this.cellGap),
-              width: width,
-              monthIndex: currentMonth
+              startCol: startCol,
+              endCol: col - 1,
+              month: currentMonth,
+              year: currentYear
             });
           }
-          currentMonth = day.month;
-          currentYear = day.year;
-          startCol = day.col;
+          currentMonth = firstDay.month;
+          currentYear = firstDay.year;
+          startCol = col;
         }
-      });
-      
+      }
+
       // 添加最后一个月
-      const lastDay = this.heatmapData[this.heatmapData.length - 1];
-      const width = (lastDay.col - startCol + 1) * (this.cellSize + this.cellGap) - this.cellGap;
-      months.push({
-        name: this.months[currentMonth],
-        position: startCol * (this.cellSize + this.cellGap),
-        width: width,
-        monthIndex: currentMonth
+      if (currentMonth !== -1) {
+        months.push({
+          name: this.months[currentMonth],
+          startCol: startCol,
+          endCol: weeks - 1,
+          month: currentMonth,
+          year: currentYear
+        });
+      }
+
+      // 最终位置计算
+      this.calendarData.monthLabels = months.map(m => {
+        const startPixel = m.startCol * (this.cellSize + this.cellGap);
+        const endPixel = (m.endCol + 1) * (this.cellSize + this.cellGap);
+        // 修正单列位置计算
+        const centerPosition = startPixel + ((endPixel - startPixel) / 2);
+        return {
+          name: m.name,
+          position: centerPosition,
+          width: endPixel - startPixel,
+          fontSize: this.cellSize * 1.5
+        };
       });
-      
-      this.calendarData.monthLabels = months;
     },
 
     // 根据对局数量获取颜色级别 (0-4)
@@ -398,13 +419,13 @@ export default {
       const containerWidth = canvas.parentElement.clientWidth - 50; // 减去星期标签宽度
       const weeks = Math.ceil(this.heatmapData.length / 7);
       
-      // 自适应单元格大小
-      this.cellSize = Math.min(15, Math.floor((containerWidth - (weeks - 1) * this.cellGap) / weeks));
-      this.cellGap = Math.max(1, Math.min(3, Math.floor(this.cellSize / 5)));
+      // 增大基础单元格尺寸
+      const baseCellSize = 18; // 从15调整为18
+      this.cellSize = Math.min(baseCellSize, Math.floor((containerWidth - (weeks - 1) * this.cellGap) / weeks));
       
-      // 设置canvas尺寸
-      this.canvasWidth = weeks * (this.cellSize + this.cellGap) - this.cellGap;
-      this.canvasHeight = 7 * (this.cellSize + this.cellGap) - this.cellGap;
+      // 设置canvas尺寸时增加10%的边距
+      this.canvasWidth = Math.floor(weeks * (this.cellSize + this.cellGap) * 1.1);
+      this.canvasHeight = 7 * (this.cellSize + this.cellGap) + 10; // 增加底部间距
       
       canvas.width = this.canvasWidth;
       canvas.height = this.canvasHeight;
@@ -434,9 +455,6 @@ export default {
           ctx.strokeRect(x, y, this.cellSize, this.cellSize);
         }
       });
-      
-      // 重新计算月份标签位置
-      this.calculateMonthPositions();
     },
     
     // 颜色加深函数
@@ -462,8 +480,20 @@ export default {
     onCanvasMouseMove(event) {
       const canvas = this.$refs.heatmapCanvas;
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      
+      // 精确计算缩放比例
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      // 修正后的坐标计算
+      const x = (event.clientX - rect.left) * scaleX;
+      const y = (event.clientY - rect.top) * scaleY;
+
+      // 调整提示框位置
+      this.tooltipStyle = {
+        top: `${event.clientY + 20}px`,  // 增加垂直偏移
+        left: `${event.clientX + 20}px`  // 增加水平偏移
+      };
       
       // 计算单元格索引
       const col = Math.floor(x / (this.cellSize + this.cellGap));
@@ -480,11 +510,6 @@ export default {
           date: cell.date,
           dateDisplay: cell.dateDisplay,
           count: cell.count
-        };
-        
-        this.tooltipStyle = {
-          top: `${event.clientY - 60}px`,
-          left: `${event.clientX - 60}px`
         };
         
         this.showTooltipFlag = true;
@@ -511,6 +536,11 @@ export default {
     // 提供给父组件的刷新方法
     refresh() {
       this.fetchRecordsData();
+    },
+
+    handleResize() {
+      this.calculateMonthPositions();
+      this.drawHeatmap();
     }
   }
 }
@@ -563,18 +593,22 @@ export default {
 
 .month-label {
   position: absolute;
-  font-size: 14px;
-  font-weight: 500;
-  color: #303133;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
   text-align: center;
   top: 0;
+  padding-left: 3px; /* 左对齐调整 */
+  transform: translate(-50%, -50%) !important;
+  left: 0; /* 重置left属性 */
 }
 
 .record-heatmap-body {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  margin: 5px 0 15px;
+  margin: 0 auto;
+  max-width: 90%;
 }
 
 .weekdays {
@@ -586,15 +620,22 @@ export default {
 }
 
 .weekday {
-  font-size: 14px;
-  font-weight: 500;
-  color: #303133;
+  font-size: 14px; /* 增大字号 */
+  transform: translateX(-8px); /* 向左微调位置 */
+  color: #606266;
+  height: calc(18px + 3px); /* 与单元格高度+间距匹配 */
   line-height: 18px;
-  height: 18px;
+  margin: 1.5px 0;
+  text-align: right; /* 右对齐 */
+  padding-right: 5px; /* 右边距 */
 }
 
 .heatmap-canvas {
   display: block;
+  margin: 0 auto;
+  cursor: pointer;
+  width: 100% !important;
+  height: auto !important;
 }
 
 .record-heatmap-footer {
@@ -656,7 +697,7 @@ export default {
   padding: 10px 12px;
   border-radius: 4px;
   font-size: 13px;
-  z-index: 9999;
+  z-index: 99999;
   pointer-events: none;
   max-width: 200px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
@@ -671,5 +712,59 @@ export default {
   .weekdays {
     height: 105px;
   }
+}
+
+/* 新增容器样式 */
+.heatmap-wrapper {
+  position: relative;
+  margin: 0 auto;
+  max-width: 1200px; /* 增大最大宽度 */
+  padding-left: 50px; /* 为周标签留出空间 */
+  padding-top: 30px; /* 为月份标签留出空间 */
+}
+
+.month-labels {
+  position: absolute;
+  top: 0;
+  left: 50px; /* 与周标签对齐 */
+  right: 0;
+  height: 20px;
+}
+
+.heatmap-body {
+  position: relative;
+  display: flex;
+}
+
+.weekdays {
+  position: absolute;
+  left: -50px; /* 向左偏移 */
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  width: 40px;
+}
+
+.heatmap-canvas {
+  flex: 1;
+  min-width: 800px; /* 最小宽度保证热力图大小 */
+  margin-top: 10px; /* 与月份标签间距 */
+}
+
+.month-labels {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.month-label {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  font-weight: bold;
+  color: #333;
+  pointer-events: none;
 }
 </style> 
