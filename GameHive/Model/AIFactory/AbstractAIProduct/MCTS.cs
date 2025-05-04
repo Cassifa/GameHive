@@ -46,10 +46,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //棋盘一行落子的数
         protected int TotalPiecesCnt;
         //是否启用多线程搜索
-        protected bool MultiThreadExecutionEnabled=true;
+        protected bool MultiThreadExecutionEnabled = true;
         //是否运行反向传播MinMax
         protected bool RunBackPropagateMinMax = false;
-        //初始搜索轮数 多线程内部最小搜索次数（达到后释放锁）
+        //初始搜索轮数 多线程内部最小搜索次数（达到后释放锁）,若小于 baseCount 则需要重置
         protected int baseCount = 1000, MinSearchCount = 1000;
         //是否更新搜索次数(小规模棋盘无需更新)
         protected bool NeedUpdateSearchCount = false;
@@ -281,12 +281,12 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 return;
             int t = 0;
             //未下棋数量越少搜索次数越高
-            while (TotalCnt / LeftCount >= 1.5) {
+            while (TotalCnt / LeftCount >= 1.4) {
                 t++;
                 TotalCnt /= LeftCount;
             }
-            t = Math.Min(t, 3);
-            SearchCount = BaseCount * (int)Math.Pow(10, t);
+            t = Math.Min(t, 5);
+            while (t--!=0) SearchCount = BaseCount * 2;
         }
 
         //用户下棋

@@ -5,6 +5,7 @@
 * 创 建 者：  Cassifa
 * 创建时间：  2024/11/26 18:38
 *************************************************************************************/
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.GameInfo;
@@ -12,10 +13,34 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class AntiGoMCTS : MCTS {
         //具体产品信息 包含难度
         public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(4);
-        public AntiGoMCTS() {
-            TotalPiecesCnt = 7;
-            baseCount = 2_000;
-            NeedUpdateSearchCount = true;
+        public AntiGoMCTS(int Column, DifficultyLevel level) {
+            TotalPiecesCnt = Column;
+            switch (level) {
+                case DifficultyLevel.LEVEL_1:
+                    MultiThreadExecutionEnabled = false;
+                    RunBackPropagateMinMax = false;
+                    NeedUpdateSearchCount = false;
+                    baseCount = 3_000;
+                    break;
+                case DifficultyLevel.LEVEL_2://开启多线程搜索与动态搜索次数
+                    MultiThreadExecutionEnabled = true;
+                    RunBackPropagateMinMax = false;
+                    NeedUpdateSearchCount = true;
+                    baseCount = 5_000;
+                    break;
+                case DifficultyLevel.LEVEL_3://开启反向传播MinMax
+                    MultiThreadExecutionEnabled = true;
+                    RunBackPropagateMinMax = true;
+                    NeedUpdateSearchCount = true;
+                    baseCount = 10_000;
+                    break;
+                case DifficultyLevel.LEVEL_4://提高搜索次数
+                    MultiThreadExecutionEnabled = true;
+                    RunBackPropagateMinMax = true;
+                    NeedUpdateSearchCount = true;
+                    baseCount = 15_000;
+                    break;
+            }
         }
         private int TotalAttempts = 0;       // 总数
         private int SuccessCount = 0;         // 命中次数

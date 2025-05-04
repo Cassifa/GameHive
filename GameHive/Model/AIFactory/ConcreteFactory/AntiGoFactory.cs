@@ -15,7 +15,7 @@ namespace GameHive.Model.AIFactory {
     internal class AntiGoFactory : AbstractFactory {
         public override MCTS GetMCTSProduct(DifficultyLevel level) {
             SetConcreteProductInfo(AntiGoMCTS.concreteProductInfo);
-            return new AntiGoMCTS();
+            return new AntiGoMCTS(boardInfo.Column, level);
         }
 
         /*——————————不可用———————————*/
