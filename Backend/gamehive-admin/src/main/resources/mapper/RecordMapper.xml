@@ -221,4 +221,16 @@
 			#{recordId}
 		</foreach>
 	</delete>
+
+	<select id="getHeatmapData" resultType="java.util.Map">
+		SELECT 
+			DATE_FORMAT(record_time, '%Y-%m-%d') as date,
+			COUNT(*) as count
+		FROM 
+			record
+		GROUP BY 
+			DATE_FORMAT(record_time, '%Y-%m-%d')
+		ORDER BY 
+			date ASC
+	</select>
 </mapper>

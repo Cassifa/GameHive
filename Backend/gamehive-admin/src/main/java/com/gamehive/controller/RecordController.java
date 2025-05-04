@@ -1,6 +1,7 @@
 package com.gamehive.controller;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,9 @@ public class RecordController extends BaseController {
             @RequestParam(value = "winner", required = false) Long winner,
             @RequestParam(value = "playerName", required = false) String playerName,
             Record record) {
+
+        // 获取当前登录用户ID
+        Long userId = getUserId();
         
         // 设置查询参数
         if (gameTypeId != null) {
@@ -76,6 +80,10 @@ public class RecordController extends BaseController {
             record.getParams().put("playerName", playerName);
         }
         
+        // 将用户ID添加到查询参数中
+        // 在RecordServiceImpl.selectRecordList方法中会根据用户角色判断是否过滤
+        record.getParams().put("userId", userId);
+
         // 如果pageSize不为空，使用分页查询
         if (pageSize != null && pageSize > 0) {
             // 使用PageHelper进行分页
@@ -83,7 +91,7 @@ public class RecordController extends BaseController {
             PageHelper.startPage(pageNumValue, pageSize);
         }
         // 否则不分页，返回所有数据
-        
+
         List<Record> list = recordService.selectRecordList(record);
         return getDataTable(list);
     }
@@ -137,5 +145,43 @@ public class RecordController extends BaseController {
     @DeleteMapping("/{recordIds}")
     public AjaxResult remove(@PathVariable Long[] recordIds) {
         return toAjax(recordService.deleteRecordByRecordIds(recordIds));
+    }
+
+    /**
+     * 获取对局记录热力图数据
+     * 需要的参数:
+     * - gameTypeId: 游戏类型ID (可选)
+     * - isPkAi: 是否与AI对局 (可选)
+     * - algorithmId: 算法ID (可选)
+     * - winner: 赢家 (可选)
+     * - playerName: 玩家名称，用于模糊匹配 (可选)
+     * 
+     * 返回格式:
+     * {
+     *   "code": 200,
+     *   "msg": "操作成功",
+     *   "data": [
+     *     { "date": "2023-01-01", "count": 5 },
+     *     { "date": "2023-01-02", "count": 3 },
+     *     ...
+     *   ]
+     * }
+     */
+    @PreAuthorize("@ss.hasPermi('system:record:list')")
+    @GetMapping("/heatmap")
+    public AjaxResult getHeatmapData(
+            @RequestParam(required = false) Long gameTypeId,
+            @RequestParam(required = false) Boolean isPkAi,
+            @RequestParam(required = false) Long algorithmId,
+            @RequestParam(required = false) Long winner,
+            @RequestParam(required = false) String playerName) {
+        
+        // 获取当前登录用户ID
+        Long userId = getUserId();
+        
+        // 获取热力图数据
+        List<Map<String, Object>> heatmapData = recordService.getHeatmapData(userId, gameTypeId, isPkAi, algorithmId, winner, playerName);
+        
+        return success(heatmapData);
     }
 }

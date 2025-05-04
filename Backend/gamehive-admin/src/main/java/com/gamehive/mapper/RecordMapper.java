@@ -3,7 +3,9 @@ package com.gamehive.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.gamehive.pojo.Record;
 import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 对局记录Mapper接口
@@ -61,4 +63,11 @@ public interface RecordMapper extends BaseMapper<Record> {
      * @return 结果
      */
     public int deleteRecordByRecordIds(Long[] recordIds);
+    
+    /**
+     * 获取对局记录热力图数据
+     * 
+     * @return 热力图数据
+     */
+    public List<Map<String, Object>> getHeatmapData();
 }

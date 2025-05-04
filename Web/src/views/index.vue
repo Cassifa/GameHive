@@ -1,5 +1,14 @@
 <template>
   <div class="app-container">
+    <!-- 游戏记录热力图 -->
+    <el-card class="box-card">
+      <div slot="header" class="clearfix">
+        <!-- <span>对局记录热力图</span> -->
+        <el-button style="float: right; padding: 3px 0" type="text" @click="refreshHeatmap">刷新</el-button>
+      </div>
+      <game-record-heatmap ref="heatmap" :query-params="heatmapParams"></game-record-heatmap>
+    </el-card>
+    
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
       <el-form-item label="游戏类别" prop="gameTypeId">
         <el-select v-model="queryParams.gameTypeId" placeholder="请选择游戏类别" clearable @change="handleGameTypeChange">
@@ -164,9 +173,13 @@ import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api
 import { listGameTypeOptions } from "@/api/GameType/GameType";
 import { listAlgorithmOptions } from "@/api/Algorithm/Algorithm";
 import { listAlgorithmsByGameId } from "@/api/Product/Product";
+import GameRecordHeatmap from "@/components/GameRecordHeatmap";
 
 export default {
   name: "Record",
+  components: {
+    GameRecordHeatmap
+  },
   dicts: ['win_status'],
   data() {
     return {
@@ -208,8 +221,39 @@ export default {
       form: {},
       // 表单校验
       rules: {
+      },
+      // 热力图参数
+      heatmapParams: {
+        gameTypeId: null,        // 游戏类型ID
+        isPkAi: null,            // 是否与AI对局
+        algorithmId: null,       // 算法ID
+        winner: null,            // 赢家
+        playerName: null         // 玩家名称，用于模糊匹配
       }
     };
+  },
+  watch: {
+    // 监听查询参数变化，同步到热力图参数
+    'queryParams.gameTypeId': function(val) {
+      this.heatmapParams.gameTypeId = val;
+      this.refreshHeatmap();
+    },
+    'queryParams.isPkAi': function(val) {
+      this.heatmapParams.isPkAi = val;
+      this.refreshHeatmap();
+    },
+    'queryParams.algorithmId': function(val) {
+      this.heatmapParams.algorithmId = val;
+      this.refreshHeatmap();
+    },
+    'queryParams.winner': function(val) {
+      this.heatmapParams.winner = val;
+      this.refreshHeatmap();
+    },
+    'queryParams.playerName': function(val) {
+      this.heatmapParams.playerName = val;
+      this.refreshHeatmap();
+    }
   },
   created() {
     this.getList();
@@ -302,12 +346,32 @@ export default {
     handleQuery() {
       this.queryParams.pageNum = 1;
       this.getList();
+      
+      // 同步查询参数到热力图
+      this.heatmapParams = {
+        gameTypeId: this.queryParams.gameTypeId,
+        isPkAi: this.queryParams.isPkAi,
+        algorithmId: this.queryParams.algorithmId,
+        winner: this.queryParams.winner,
+        playerName: this.queryParams.playerName
+      };
+      this.refreshHeatmap();
     },
     /** 重置按钮操作 */
     resetQuery() {
       this.resetForm("queryForm");
       this.isPkAiSelected = false;
       this.algorithmOptions = [];
+      
+      // 重置热力图参数
+      this.heatmapParams = {
+        gameTypeId: null,
+        isPkAi: null,
+        algorithmId: null,
+        winner: null,
+        playerName: null
+      };
+      
       this.handleQuery();
     },
     // 多选框选中数据
@@ -367,7 +431,23 @@ export default {
       this.download('Record/Record/export', {
         ...this.queryParams
       }, `Record_${new Date().getTime()}.xlsx`)
+    },
+    // 刷新热力图
+    refreshHeatmap() {
+      // 延迟执行，避免频繁刷新
+      clearTimeout(this.heatmapTimer);
+      this.heatmapTimer = setTimeout(() => {
+        if (this.$refs.heatmap) {
+          this.$refs.heatmap.refresh();
+        }
+      }, 500);
     }
   }
 };
 </script>
+
+<style scoped>
+.box-card {
+  margin-bottom: 20px;
+}
+</style>

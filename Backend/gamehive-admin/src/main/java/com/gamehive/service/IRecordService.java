@@ -1,6 +1,7 @@
 package com.gamehive.service;
 
 import java.util.List;
+import java.util.Map;
 import com.gamehive.pojo.Record;
 
 /**
@@ -58,4 +59,18 @@ public interface IRecordService {
      * @return 结果
      */
     public int deleteRecordByRecordId(Long recordId);
+    
+    /**
+     * 获取对局记录热力图数据
+     *
+     * @param userId 用户ID
+     * @param gameTypeId 游戏类型ID
+     * @param isPkAi 是否与AI对局
+     * @param algorithmId 算法ID
+     * @param winner 赢家
+     * @param playerName 玩家名称
+     * @return 热力图数据
+     */
+    public List<Map<String, Object>> getHeatmapData(Long userId, Long gameTypeId, Boolean isPkAi, 
+                                                   Long algorithmId, Long winner, String playerName);
 }
