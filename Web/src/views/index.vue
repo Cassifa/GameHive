@@ -1,260 +1,355 @@
 <template>
   <div class="app-container">
-    <div class="matrix-container">
-      <!-- 标题 -->
-      <h2 class="matrix-title">AI游戏产品矩阵</h2>
+
+    <!-- 对局记录部分 -->
+    <div class="record-container">
+      <h2 class="record-title">对局记录</h2>
+      <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+        <el-form-item label="游戏类别" prop="gameTypeId">
+          <el-input
+            v-model="queryParams.gameTypeId"
+            placeholder="请输入游戏类别"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="对局时间" prop="recordTime">
+          <el-date-picker clearable
+            v-model="queryParams.recordTime"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择对局时间">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="是否与AI对战" prop="isPkAi">
+          <el-input
+            v-model="queryParams.isPkAi"
+            placeholder="请输入是否与AI对战"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="对战AI" prop="aiGameId">
+          <el-input
+            v-model="queryParams.aiGameId"
+            placeholder="请输入对战AI"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="玩家A是否先手" prop="isAFirst">
+          <el-input
+            v-model="queryParams.isAFirst"
+            placeholder="请输入玩家A是否先手"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="赢家" prop="winner">
+          <el-input
+            v-model="queryParams.winner"
+            placeholder="请输入赢家"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="A玩家ID" prop="playerAId">
+          <el-input
+            v-model="queryParams.playerAId"
+            placeholder="请输入A玩家ID"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="B玩家ID" prop="playerBId">
+          <el-input
+            v-model="queryParams.playerBId"
+            placeholder="请输入B玩家ID"
+            clearable
+            @keyup.enter.native="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+
+      <el-row :gutter="10" class="mb8">
+        <el-col :span="1.5">
+          <el-button
+            type="primary"
+            plain
+            icon="el-icon-plus"
+            size="mini"
+            @click="handleAdd"
+            v-hasPermi="['record:record:add']"
+          >新增</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="success"
+            plain
+            icon="el-icon-edit"
+            size="mini"
+            :disabled="single"
+            @click="handleUpdate"
+            v-hasPermi="['record:record:edit']"
+          >修改</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="danger"
+            plain
+            icon="el-icon-delete"
+            size="mini"
+            :disabled="multiple"
+            @click="handleDelete"
+            v-hasPermi="['record:record:remove']"
+          >删除</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button
+            type="warning"
+            plain
+            icon="el-icon-download"
+            size="mini"
+            @click="handleExport"
+            v-hasPermi="['record:record:export']"
+          >导出</el-button>
+        </el-col>
+        <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+      </el-row>
+
+      <el-table v-loading="loading" :data="recordList" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column label="对局编号" align="center" prop="recordId" />
+        <el-table-column label="游戏类别" align="center" prop="gameTypeId">
+          <template slot-scope="scope">
+            <dict-tag :options="dict.type.game_type" :value="scope.row.gameTypeId"/>
+          </template>
+        </el-table-column>
+        <el-table-column label="对局时间" align="center" prop="recordTime" width="180">
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.recordTime, '{y}-{m}-{d}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="是否与AI对战" align="center" prop="isPkAi" />
+        <el-table-column label="对战AI" align="center" prop="aiGameId" />
+        <el-table-column label="玩家A是否先手" align="center" prop="isAFirst" />
+        <el-table-column label="赢家" align="center" prop="winner" />
+        <el-table-column label="A玩家ID" align="center" prop="playerAId" />
+        <el-table-column label="B玩家ID" align="center" prop="playerBId" />
+        <el-table-column label="玩家A操作序列" align="center" prop="playerAPieces" />
+        <el-table-column label="玩家B操作序列" align="center" prop="playerBPieces" />
+        <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-edit"
+              @click="handleUpdate(scope.row)"
+              v-hasPermi="['record:record:edit']"
+            >修改</el-button>
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-delete"
+              @click="handleDelete(scope.row)"
+              v-hasPermi="['record:record:remove']"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
       
-      <!-- 矩阵图表 -->
-      <canvas ref="matrixCanvas" class="matrix-canvas"></canvas>
-          </div>
+      <pagination
+        v-show="total>0"
+        :total="total"
+        :page.sync="queryParams.pageNum"
+        :limit.sync="queryParams.pageSize"
+        @pagination="getList"
+      />
+
+      <!-- 添加或修改对局记录对话框 -->
+      <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+        <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
 <script>
-import { listAiType } from "@/api/aiSys/aiType";
-import { listGameType } from "@/api/aiSys/gameType";
-import { listAiProduct } from "@/api/aiSys/aiProduct";
+import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api/record/record";
 
 export default {
   name: "Index",
+  components: {
+    AIMatrix
+  },
   data() {
     return {
-      // AI类型列表
-      aiTypes: [],
-      // 游戏类型列表
-      gameTypes: [],
-      // AI产品列表
-      products: [],
-      // Canvas配置
-      canvas: null,
-      ctx: null,
-      // 坐标系配置
-      padding: 120,      // 内边距
-      cellSize: {
-        x: 120,         // 横轴单元格大小
-        y: 60,          // 纵轴间距
+      // 对局记录数据
+      loading: true,
+      ids: [],
+      single: true,
+      multiple: true,
+      showSearch: true,
+      total: 0,
+      recordList: [],
+      title: "",
+      open: false,
+      queryParams: {
+        pageNum: 1,
+        pageSize: 10,
+        gameTypeId: null,
+        recordTime: null,
+        isPkAi: null,
+        aiGameId: null,
+        isAFirst: null,
+        winner: null,
+        playerAId: null,
+        playerBId: null,
       },
-      fontSize: 14,     // 字体大小
-      axisLabelSize: 14, // 轴标题字体大小
-      labelPadding: 30, // 标签与轴线的间距
-      arrowSize: 10,    // 箭头大小
-      checkSize: 30,    // 对勾大小
-      titleOffset: 15,  // 标题与箭头的距离
+      form: {},
+      rules: {
+        gameTypeId: [
+          { required: true, message: "游戏类别不能为空", trigger: "blur" }
+        ],
+        recordTime: [
+          { required: true, message: "对局时间不能为空", trigger: "blur" }
+        ],
+        isPkAi: [
+          { required: true, message: "是否与AI对战不能为空", trigger: "blur" }
+        ],
+        aiGameId: [
+          { required: true, message: "对战AI不能为空", trigger: "blur" }
+        ],
+        isAFirst: [
+          { required: true, message: "玩家A是否先手不能为空", trigger: "blur" }
+        ],
+        winner: [
+          { required: true, message: "赢家不能为空", trigger: "blur" }
+        ],
+        playerAId: [
+          { required: true, message: "A玩家ID不能为空", trigger: "blur" }
+        ],
+        playerBId: [
+          { required: true, message: "B玩家ID不能为空", trigger: "blur" }
+        ],
+        playerAPieces: [
+          { required: true, message: "玩家A操作序列不能为空", trigger: "blur" }
+        ],
+        playerBPieces: [
+          { required: true, message: "玩家B操作序列不能为空", trigger: "blur" }
+        ]
+      }
     };
   },
-  computed: {
-    // 计算画布所需的实际尺寸
-    canvasSize() {
-      const width = this.padding * 2 + this.cellSize.x * (this.aiTypes.length + 1);
-      const height = this.padding * 2 + this.cellSize.y * (this.gameTypes.length + 1);
-      return { width, height };
-    }
-  },
   mounted() {
-    // 获取数据后初始化画布
-    Promise.all([
-      this.getAiTypes(),
-      this.getGameTypes(),
-      this.getProducts()
-    ]).then(() => {
-      this.initCanvas();
-      this.drawMatrix();
-    });
-
-    // 监听窗口大小变化
-    window.addEventListener('resize', this.handleResize);
-  },
-  beforeDestroy() {
-    window.removeEventListener('resize', this.handleResize);
+    // 初始化对局记录列表
+    this.getList();
   },
   methods: {
-    /** 获取AI类型列表 */
-    getAiTypes() {
-      return listAiType().then(response => {
-        this.aiTypes = response.rows;
+    // 对局记录方法
+    getList() {
+      this.loading = true;
+      listRecord(this.queryParams).then(response => {
+        this.recordList = response.rows;
+        this.total = response.total;
+        this.loading = false;
       });
     },
-    /** 获取游戏类型列表 */
-    getGameTypes() {
-      return listGameType().then(response => {
-        this.gameTypes = response.rows;
+    cancel() {
+      this.open = false;
+      this.reset();
+    },
+    reset() {
+      this.form = {
+        recordId: null,
+        gameTypeId: null,
+        recordTime: null,
+        isPkAi: null,
+        aiGameId: null,
+        isAFirst: null,
+        winner: null,
+        playerAId: null,
+        playerBId: null,
+        playerAPieces: null,
+        playerBPieces: null
+      };
+      this.resetForm("form");
+    },
+    handleQuery() {
+      this.queryParams.pageNum = 1;
+      this.getList();
+    },
+    resetQuery() {
+      this.resetForm("queryForm");
+      this.handleQuery();
+    },
+    handleSelectionChange(selection) {
+      this.ids = selection.map(item => item.recordId)
+      this.single = selection.length!==1
+      this.multiple = !selection.length
+    },
+    handleAdd() {
+      this.reset();
+      this.open = true;
+      this.title = "添加对局记录";
+    },
+    handleUpdate(row) {
+      this.reset();
+      const recordId = row.recordId || this.ids
+      getRecord(recordId).then(response => {
+        this.form = response.data;
+        this.open = true;
+        this.title = "修改对局记录";
       });
     },
-    /** 获取产品列表 */
-    getProducts() {
-      return listAiProduct().then(response => {
-        this.products = response.rows;
-      });
-    },
-    initCanvas() {
-      this.canvas = this.$refs.matrixCanvas;
-      this.ctx = this.canvas.getContext('2d');
-      
-      // 设置画布尺寸
-      this.canvas.width = this.canvasSize.width;
-      this.canvas.height = this.canvasSize.height;
-      
-      // 设置画布缩放以适应高DPI显示器
-      const dpr = window.devicePixelRatio || 1;
-      this.canvas.style.width = this.canvas.width + 'px';
-      this.canvas.style.height = this.canvas.height + 'px';
-      this.canvas.width *= dpr;
-      this.canvas.height *= dpr;
-      this.ctx.scale(dpr, dpr);
-      
-      // 设置默认样式
-      this.ctx.font = `${this.fontSize}px Arial`;
-      this.ctx.textAlign = 'center';
-      this.ctx.textBaseline = 'middle';
-    },
-    drawMatrix() {
-      this.drawAxes();       // 1. 绘制坐标轴和标题
-      this.drawGrid();       // 2. 绘制网格
-      this.drawLabels();     // 3. 绘制格点标签
-      this.drawProducts();   // 4. 绘制对勾
-    },
-    drawAxes() {
-      const { ctx, padding, arrowSize, titleOffset, cellSize } = this;
-      const width = this.canvasSize.width;
-      const height = this.canvasSize.height;
-      
-      // 计算坐标轴终点 (延伸一个单元格的距离)
-      const xAxisEnd = padding + cellSize.x * (this.aiTypes.length + 1);
-      const yAxisEnd = height - padding - cellSize.y * (this.gameTypes.length + 1);
-      
-      ctx.beginPath();
-      ctx.strokeStyle = '#303133';
-      ctx.lineWidth = 2;
-      
-      // X轴
-      ctx.moveTo(padding, height - padding);
-      ctx.lineTo(xAxisEnd, height - padding);
-      
-      // Y轴
-      ctx.moveTo(padding, height - padding);
-      ctx.lineTo(padding, yAxisEnd);
-      
-      // 绘制箭头
-      // X轴箭头
-      ctx.moveTo(xAxisEnd, height - padding);
-      ctx.lineTo(xAxisEnd - arrowSize, height - padding - arrowSize);
-      ctx.moveTo(xAxisEnd, height - padding);
-      ctx.lineTo(xAxisEnd - arrowSize, height - padding + arrowSize);
-      
-      // Y轴箭头
-      ctx.moveTo(padding, yAxisEnd);
-      ctx.lineTo(padding - arrowSize, yAxisEnd + arrowSize);
-      ctx.moveTo(padding, yAxisEnd);
-      ctx.lineTo(padding + arrowSize, yAxisEnd + arrowSize);
-      
-      ctx.stroke();
-      
-      // 绘制坐标轴标题
-      ctx.font = `${this.axisLabelSize}px Arial`;
-      ctx.fillStyle = '#303133';
-      
-      // X轴标题 (放在箭头右侧)
-      ctx.save();
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('AI等级结构', xAxisEnd + titleOffset, height - padding);
-      ctx.restore();
-      
-      // Y轴标题 (放在箭头上方)
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText('游戏产品簇', padding, yAxisEnd - titleOffset);
-      ctx.restore();
-    },
-    drawGrid() {
-      const { ctx, padding, cellSize } = this;
-      
-      ctx.strokeStyle = '#DCDFE6';
-      ctx.lineWidth = 0.5;
-      ctx.setLineDash([4, 4]);
-      
-      // 绘制水平网格线
-      this.gameTypes.forEach((_, index) => {
-        const y = this.canvasSize.height - padding - cellSize.y * (index + 1);
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        // 网格线只到最后一个单元格
-        ctx.lineTo(padding + cellSize.x * this.aiTypes.length, y);
-        ctx.stroke();
-      });
-      
-      // 绘制垂直网格线
-      this.aiTypes.forEach((_, index) => {
-        const x = padding + cellSize.x * (index + 1);
-        ctx.beginPath();
-        ctx.moveTo(x, this.canvasSize.height - padding);
-        // 网格线只到最后一个单元格
-        ctx.lineTo(x, this.canvasSize.height - padding - cellSize.y * this.gameTypes.length);
-        ctx.stroke();
-      });
-      
-      ctx.setLineDash([]);
-    },
-    drawLabels() {
-      const { ctx, padding, cellSize, labelPadding } = this;
-      
-      ctx.font = `${this.fontSize}px Arial`;
-      ctx.fillStyle = '#606266';
-      
-      // Y轴标签
-      this.gameTypes.forEach((game, index) => {
-        const y = this.canvasSize.height - padding - cellSize.y * (index + 1);
-        ctx.textAlign = 'right';
-        ctx.fillText(game.gameName, padding - labelPadding, y);
-      });
-      
-      // X轴标签
-      this.aiTypes.forEach((ai, index) => {
-        const x = padding + cellSize.x * (index + 1);
-        ctx.textAlign = 'center';
-        ctx.fillText(ai.aiName, x, this.canvasSize.height - padding + labelPadding);
-      });
-    },
-    drawProducts() {
-      const { ctx, padding, cellSize, checkSize } = this;
-      
-      ctx.strokeStyle = '#67C23A';
-      ctx.lineWidth = 3;
-      
-      this.gameTypes.forEach((game, i) => {
-        this.aiTypes.forEach((ai, j) => {
-          if (this.checkProduct(game.gameTypeId || game.gameId, ai.aiTypeId || ai.aiId)) {
-            const x = padding + cellSize.x * (j + 1);
-            const y = this.canvasSize.height - padding - cellSize.y * (i + 1);
-            
-            // 绘制大号对勾
-            ctx.beginPath();
-            ctx.moveTo(x - checkSize, y);
-            ctx.lineTo(x - checkSize/2, y + checkSize/2);
-            ctx.lineTo(x + checkSize, y - checkSize);
-            ctx.stroke();
+    submitForm() {
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          if (this.form.recordId != null) {
+            updateRecord(this.form).then(response => {
+              this.$modal.msgSuccess("修改成功");
+              this.open = false;
+              this.getList();
+            });
+          } else {
+            addRecord(this.form).then(response => {
+              this.$modal.msgSuccess("新增成功");
+              this.open = false;
+              this.getList();
+            });
           }
-        });
+        }
       });
     },
-    /** 判断是否存在对应产品 */
-    checkProduct(gameId, aiId) {
-      return this.products.some(product => 
-        Number(product.gameTypeId) === Number(gameId) && 
-        Number(product.aiTypeId) === Number(aiId)
-      );
+    handleDelete(row) {
+      const recordIds = row.recordId || this.ids;
+      this.$modal.confirm('是否确认删除对局记录编号为"' + recordIds + '"的数据项？').then(function() {
+        return delRecord(recordIds);
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess("删除成功");
+      }).catch(() => {});
     },
-    handleResize() {
-      this.initCanvas();
-      this.drawMatrix();
+    handleExport() {
+      this.download('record/record/export', {
+        ...this.queryParams
+      }, `record_${new Date().getTime()}.xlsx`)
     }
   }
 };
 </script>
 
 <style scoped lang="scss">
-.matrix-container {
+.record-container {
   padding: 40px;
   background: #fff;
   border-radius: 4px;
@@ -262,7 +357,7 @@ export default {
   margin: 20px;
 }
 
-.matrix-title {
+.record-title {
   text-align: center;
   margin-bottom: 30px;
   color: #303133;
@@ -270,9 +365,8 @@ export default {
   font-weight: bold;
 }
 
-.matrix-canvas {
-      display: block;
-  margin: 0 auto;
+.mb8 {
+  margin-bottom: 8px;
 }
 </style>
 
