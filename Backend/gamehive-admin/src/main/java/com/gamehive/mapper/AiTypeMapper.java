@@ -3,18 +3,21 @@ package com.gamehive.mapper;
 import java.util.List;
 import com.gamehive.pojo.AiType;
 import com.gamehive.pojo.AiGame;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * AI类型Mapper接口
- * 
+ *
  * @author Cassifa
  * @date 2025-02-13
  */
-public interface AiTypeMapper 
-{
+@Mapper
+public interface AiTypeMapper extends BaseMapper<AiType> {
+
     /**
      * 查询AI类型
-     * 
+     *
      * @param aiId AI类型主键
      * @return AI类型
      */
@@ -22,7 +25,7 @@ public interface AiTypeMapper
 
     /**
      * 查询AI类型列表
-     * 
+     *
      * @param aiType AI类型
      * @return AI类型集合
      */
@@ -30,7 +33,7 @@ public interface AiTypeMapper
 
     /**
      * 新增AI类型
-     * 
+     *
      * @param aiType AI类型
      * @return 结果
      */
@@ -38,7 +41,7 @@ public interface AiTypeMapper
 
     /**
      * 修改AI类型
-     * 
+     *
      * @param aiType AI类型
      * @return 结果
      */
@@ -46,7 +49,7 @@ public interface AiTypeMapper
 
     /**
      * 删除AI类型
-     * 
+     *
      * @param aiId AI类型主键
      * @return 结果
      */
@@ -54,7 +57,7 @@ public interface AiTypeMapper
 
     /**
      * 批量删除AI类型
-     * 
+     *
      * @param aiIds 需要删除的数据主键集合
      * @return 结果
      */
@@ -62,24 +65,24 @@ public interface AiTypeMapper
 
     /**
      * 批量删除AI-Game具体产品
-     * 
+     *
      * @param aiIds 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteAiGameByAiTypeIds(Long[] aiIds);
-    
+
     /**
      * 批量新增AI-Game具体产品
-     * 
+     *
      * @param aiGameList AI-Game具体产品列表
      * @return 结果
      */
     public int batchAiGame(List<AiGame> aiGameList);
-    
+
 
     /**
      * 通过AI类型主键删除AI-Game具体产品信息
-     * 
+     *
      * @param aiId AI类型ID
      * @return 结果
      */

@@ -2,6 +2,8 @@ package com.gamehive.mapper;
 
 import java.util.List;
 import com.gamehive.pojo.Player;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 天梯排行Mapper接口
@@ -9,7 +11,8 @@ import com.gamehive.pojo.Player;
  * @author Cassifa
  * @date 2025-02-13
  */
-public interface PlayerMapper 
+@Mapper
+public interface PlayerMapper extends BaseMapper<Player>
 {
     /**
      * 查询天梯排行

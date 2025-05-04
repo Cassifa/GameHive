@@ -2,6 +2,8 @@ package com.gamehive.mapper;
 
 import java.util.List;
 import com.gamehive.pojo.Record;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 对局记录Mapper接口
@@ -9,7 +11,8 @@ import com.gamehive.pojo.Record;
  * @author Cassifa
  * @date 2025-02-13
  */
-public interface RecordMapper 
+@Mapper
+public interface RecordMapper extends BaseMapper<Record>
 {
     /**
      * 查询对局记录
