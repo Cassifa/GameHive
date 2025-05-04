@@ -1,11 +1,15 @@
 package com.gamehive.service.impl;
 
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.gamehive.mapper.AlgorithmTypeMapper;
 import com.gamehive.pojo.AlgorithmType;
 import com.gamehive.service.IAlgorithmTypeService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 /**
  * 算法类型Service业务层处理
@@ -89,5 +93,31 @@ public class AlgorithmTypeServiceImpl implements IAlgorithmTypeService
     public int deleteAlgorithmTypeByAlgorithmId(Long algorithmId)
     {
         return algorithmTypeMapper.deleteAlgorithmTypeByAlgorithmId(algorithmId);
+    }
+
+    /**
+     * 获取算法类型下拉框选项
+     * 
+     * @return 算法类型下拉框选项列表
+     */
+    @Override
+    public List<Map<String, Object>> selectAlgorithmTypeOptions() {
+        // 使用LambdaQueryWrapper，只查询需要的字段
+        LambdaQueryWrapper<AlgorithmType> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(AlgorithmType::getAlgorithmId, AlgorithmType::getAlgorithmName);
+        
+        // 使用BaseMapper直接查询
+        List<AlgorithmType> list = algorithmTypeMapper.selectList(queryWrapper);
+        
+        // 转换为前端需要的格式
+        List<Map<String, Object>> options = new ArrayList<>();
+        for (AlgorithmType type : list) {
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", type.getAlgorithmId());
+            option.put("label", type.getAlgorithmName());
+            options.add(option);
+        }
+        
+        return options;
     }
 }

@@ -1,6 +1,7 @@
 package com.gamehive.controller;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,5 +95,14 @@ public class AlgorithmTypeController extends BaseController {
     @DeleteMapping("/{algorithmIds}")
     public AjaxResult remove(@PathVariable Long[] algorithmIds) {
         return toAjax(algorithmTypeService.deleteAlgorithmTypeByAlgorithmIds(algorithmIds));
+    }
+
+    /**
+     * 获取算法类型下拉框选项
+     */
+    @GetMapping("/options")
+    public AjaxResult options() {
+        List<Map<String, Object>> options = algorithmTypeService.selectAlgorithmTypeOptions();
+        return success(options);
     }
 }

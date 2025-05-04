@@ -1,6 +1,7 @@
 package com.gamehive.service;
 
 import java.util.List;
+import java.util.Map;
 import com.gamehive.pojo.GameType;
 
 /**
@@ -58,4 +59,11 @@ public interface IGameTypeService
      * @return 结果
      */
     public int deleteGameTypeByGameId(Long gameId);
+
+    /**
+     * 获取游戏类型下拉框选项
+     * 
+     * @return 游戏类型下拉框选项列表
+     */
+    public List<Map<String, Object>> selectGameTypeOptions();
 }

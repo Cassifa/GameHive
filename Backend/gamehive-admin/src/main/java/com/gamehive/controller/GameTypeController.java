@@ -1,6 +1,7 @@
 package com.gamehive.controller;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,5 +95,14 @@ public class GameTypeController extends BaseController {
     @DeleteMapping("/{gameIds}")
     public AjaxResult remove(@PathVariable Long[] gameIds) {
         return toAjax(gameTypeService.deleteGameTypeByGameIds(gameIds));
+    }
+
+    /**
+     * 获取游戏类型下拉框选项
+     */
+    @GetMapping("/options")
+    public AjaxResult options() {
+        List<Map<String, Object>> options = gameTypeService.selectGameTypeOptions();
+        return success(options);
     }
 }

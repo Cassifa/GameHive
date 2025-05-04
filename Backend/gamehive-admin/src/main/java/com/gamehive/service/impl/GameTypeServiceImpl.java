@@ -1,11 +1,15 @@
 package com.gamehive.service.impl;
 
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.gamehive.mapper.GameTypeMapper;
 import com.gamehive.pojo.GameType;
 import com.gamehive.service.IGameTypeService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 /**
  * 游戏类型Service业务层处理
@@ -89,5 +93,31 @@ public class GameTypeServiceImpl implements IGameTypeService
     public int deleteGameTypeByGameId(Long gameId)
     {
         return gameTypeMapper.deleteGameTypeByGameId(gameId);
+    }
+
+    /**
+     * 获取游戏类型下拉框选项
+     * 
+     * @return 游戏类型下拉框选项列表
+     */
+    @Override
+    public List<Map<String, Object>> selectGameTypeOptions() {
+        // 使用LambdaQueryWrapper，只查询需要的字段
+        LambdaQueryWrapper<GameType> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.select(GameType::getGameId, GameType::getGameName);
+        
+        // 使用BaseMapper直接查询
+        List<GameType> list = gameTypeMapper.selectList(queryWrapper);
+        
+        // 转换为前端需要的格式
+        List<Map<String, Object>> options = new ArrayList<>();
+        for (GameType type : list) {
+            Map<String, Object> option = new HashMap<>();
+            option.put("value", type.getGameId());
+            option.put("label", type.getGameName());
+            options.add(option);
+        }
+        
+        return options;
     }
 }

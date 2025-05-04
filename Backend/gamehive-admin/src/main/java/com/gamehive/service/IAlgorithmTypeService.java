@@ -1,6 +1,7 @@
 package com.gamehive.service;
 
 import java.util.List;
+import java.util.Map;
 import com.gamehive.pojo.AlgorithmType;
 
 /**
@@ -58,4 +59,11 @@ public interface IAlgorithmTypeService
      * @return 结果
      */
     public int deleteAlgorithmTypeByAlgorithmId(Long algorithmId);
+
+    /**
+     * 获取算法类型下拉框选项
+     * 
+     * @return 算法类型下拉框选项列表
+     */
+    public List<Map<String, Object>> selectAlgorithmTypeOptions();
 }
