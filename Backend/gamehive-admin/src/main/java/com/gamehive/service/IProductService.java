@@ -1,6 +1,7 @@
 package com.gamehive.service;
 
 import java.util.List;
+import java.util.Map;
 import com.gamehive.pojo.Product;
 
 /**
@@ -58,4 +59,12 @@ public interface IProductService
      * @return 结果
      */
     public int deleteProductById(Long id);
+
+    /**
+     * 根据游戏ID查询该游戏关联的算法列表
+     * 
+     * @param gameId 游戏ID
+     * @return 算法ID和名称的列表
+     */
+    public List<Map<String, Object>> selectAlgorithmsByGameId(Long gameId);
 }

@@ -1,6 +1,7 @@
 package com.gamehive.controller;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 import com.gamehive.common.annotation.Log;
 import com.gamehive.common.core.controller.BaseController;
 import com.gamehive.common.core.domain.AjaxResult;
@@ -94,5 +96,14 @@ public class ProductController extends BaseController {
     @DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids) {
         return toAjax(productService.deleteProductByIds(ids));
+    }
+    
+    /**
+     * 根据游戏ID筛选该游戏有的算法
+     */
+    @GetMapping("/listAlgorithmsByGameId")
+    public AjaxResult listAlgorithmsByGameId(@RequestParam Long gameId) {
+        List<Map<String, Object>> algorithms = productService.selectAlgorithmsByGameId(gameId);
+        return success(algorithms);
     }
 }
