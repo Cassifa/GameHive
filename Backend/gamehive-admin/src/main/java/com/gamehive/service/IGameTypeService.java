@@ -6,8 +6,8 @@ import com.gamehive.pojo.GameType;
 /**
  * 游戏类型Service接口
  * 
- * @author ruoyi
- * @date 2025-02-13
+ * @author Cassifa
+ * @date 2025-05-05
  */
 public interface IGameTypeService 
 {

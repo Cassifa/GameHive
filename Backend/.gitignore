@@ -21,6 +21,9 @@ target/
 
 ### IntelliJ IDEA ###
 .idea
+.vscode
+/.vscode
+.vscode/*
 *.iws
 *.iml
 *.ipr

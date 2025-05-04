@@ -11,54 +11,60 @@ import com.gamehive.common.core.domain.BaseEntity;
  * 对局记录对象 record
  * 
  * @author Cassifa
- * @date 2025-02-13
+ * @date 2025-05-05
  */
 public class Record extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** 对局编号 */
+    /** 对局id */
     private Long recordId;
 
-    /** 游戏类别 */
-    @Excel(name = "游戏类别")
+    /** 本局对局对应的game_id */
     private Long gameTypeId;
 
-    /** 对局时间 */
+    /** 本局游戏名称 */
+    @Excel(name = "本局游戏名称")
+    private String gameTypeName;
+
+    /** 对局结束时间 */
     @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "对局时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @Excel(name = "对局结束时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date recordTime;
 
-    /** 是否与AI对战 */
-    @Excel(name = "是否与AI对战")
+    /** 是否是与ai对局 */
+    @Excel(name = "是否是与ai对局")
     private Boolean isPkAi;
 
-    /** 对战AI */
-    @Excel(name = "对战的ai产品编号,如果为匹配对战则为-1")
-    private Long aiGameId;
+    /** 对战的算法编号,如果为匹配对战则为-1 */
+    private Long algorithmId;
 
-    /** 玩家A是否先手 */
-    @Excel(name = "玩家A是否先手")
-    private Boolean isAFirst;
+    /** 算法名称 */
+    @Excel(name = "算法名称")
+    private String algorithmName;
 
-    /** 赢家 */
-    @Excel(name = "赢家（0-A 1-B 2-平局）")
+    /** 赢家（0-先手 1-后手 2-平局） */
+    @Excel(name = "赢家", readConverterExp = "0=-先手,1=-后手,2=-平局")
     private Long winner;
 
-    /** A玩家ID */
-    @Excel(name = "A玩家ID,一定是玩家")
-    private Long playerAId;
+    /** 先手id */
+    private Long firstPlayerId;
 
-    /** B玩家ID */
-    @Excel(name = "如果ai为-1")
-    private Long playerBId;
+    /** 先手玩家 */
+    @Excel(name = "先手玩家")
+    private String firstPlayer;
 
-    /** 玩家A操作序列 */
-    @Excel(name = "玩家A操作序列")
-    private String playerAPieces;
+    /** 后手 */
+    private Long secondPlayerId;
 
-    /** 玩家B操作序列 */
-    @Excel(name = "玩家B操作序列")
+    /** 后手玩家 */
+    @Excel(name = "后手玩家")
+    private String secondPlayerName;
+
+    /** 先手玩家操作序列，json格式 */
+    private String firstPlayerPieces;
+
+    /** 后手玩家操作序列，json格式 */
     private String playerBPieces;
 
     public void setRecordId(Long recordId) 
@@ -79,6 +85,15 @@ public class Record extends BaseEntity
     {
         return gameTypeId;
     }
+    public void setGameTypeName(String gameTypeName) 
+    {
+        this.gameTypeName = gameTypeName;
+    }
+
+    public String getGameTypeName() 
+    {
+        return gameTypeName;
+    }
     public void setRecordTime(Date recordTime) 
     {
         this.recordTime = recordTime;
@@ -97,23 +112,23 @@ public class Record extends BaseEntity
     {
         return isPkAi;
     }
-    public void setAiGameId(Long aiGameId) 
+    public void setAlgorithmId(Long algorithmId) 
     {
-        this.aiGameId = aiGameId;
+        this.algorithmId = algorithmId;
     }
 
-    public Long getAiGameId() 
+    public Long getAlgorithmId() 
     {
-        return aiGameId;
+        return algorithmId;
     }
-    public void setIsAFirst(Boolean isAFirst) 
+    public void setAlgorithmName(String algorithmName) 
     {
-        this.isAFirst = isAFirst;
+        this.algorithmName = algorithmName;
     }
 
-    public Boolean getIsAFirst() 
+    public String getAlgorithmName() 
     {
-        return isAFirst;
+        return algorithmName;
     }
     public void setWinner(Long winner) 
     {
@@ -124,32 +139,50 @@ public class Record extends BaseEntity
     {
         return winner;
     }
-    public void setPlayerAId(Long playerAId) 
+    public void setFirstPlayerId(Long firstPlayerId) 
     {
-        this.playerAId = playerAId;
+        this.firstPlayerId = firstPlayerId;
     }
 
-    public Long getPlayerAId() 
+    public Long getFirstPlayerId() 
     {
-        return playerAId;
+        return firstPlayerId;
     }
-    public void setPlayerBId(Long playerBId) 
+    public void setFirstPlayer(String firstPlayer) 
     {
-        this.playerBId = playerBId;
-    }
-
-    public Long getPlayerBId() 
-    {
-        return playerBId;
-    }
-    public void setPlayerAPieces(String playerAPieces) 
-    {
-        this.playerAPieces = playerAPieces;
+        this.firstPlayer = firstPlayer;
     }
 
-    public String getPlayerAPieces() 
+    public String getFirstPlayer() 
     {
-        return playerAPieces;
+        return firstPlayer;
+    }
+    public void setSecondPlayerId(Long secondPlayerId) 
+    {
+        this.secondPlayerId = secondPlayerId;
+    }
+
+    public Long getSecondPlayerId() 
+    {
+        return secondPlayerId;
+    }
+    public void setSecondPlayerName(String secondPlayerName) 
+    {
+        this.secondPlayerName = secondPlayerName;
+    }
+
+    public String getSecondPlayerName() 
+    {
+        return secondPlayerName;
+    }
+    public void setFirstPlayerPieces(String firstPlayerPieces) 
+    {
+        this.firstPlayerPieces = firstPlayerPieces;
+    }
+
+    public String getFirstPlayerPieces() 
+    {
+        return firstPlayerPieces;
     }
     public void setPlayerBPieces(String playerBPieces) 
     {
@@ -166,14 +199,17 @@ public class Record extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("recordId", getRecordId())
             .append("gameTypeId", getGameTypeId())
+            .append("gameTypeName", getGameTypeName())
             .append("recordTime", getRecordTime())
             .append("isPkAi", getIsPkAi())
-            .append("aiGameId", getAiGameId())
-            .append("isAFirst", getIsAFirst())
+            .append("algorithmId", getAlgorithmId())
+            .append("algorithmName", getAlgorithmName())
             .append("winner", getWinner())
-            .append("playerAId", getPlayerAId())
-            .append("playerBId", getPlayerBId())
-            .append("playerAPieces", getPlayerAPieces())
+            .append("firstPlayerId", getFirstPlayerId())
+            .append("firstPlayer", getFirstPlayer())
+            .append("secondPlayerId", getSecondPlayerId())
+            .append("secondPlayerName", getSecondPlayerName())
+            .append("firstPlayerPieces", getFirstPlayerPieces())
             .append("playerBPieces", getPlayerBPieces())
             .toString();
     }

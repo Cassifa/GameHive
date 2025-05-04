@@ -22,83 +22,77 @@ import com.gamehive.common.utils.poi.ExcelUtil;
 import com.gamehive.common.core.page.TableDataInfo;
 
 /**
- * 天梯排行Controller
- * 
+ * 玩家Controller
+ *
  * @author Cassifa
- * @date 2025-02-13
+ * @date 2025-05-05
  */
 @RestController
-@RequestMapping("/ranking/ranking")
-public class PlayerController extends BaseController
-{
+@RequestMapping("/Player/Player")
+public class PlayerController extends BaseController {
+
     @Autowired
     private IPlayerService playerService;
 
     /**
-     * 查询天梯排行列表
+     * 查询玩家列表
      */
-    @PreAuthorize("@ss.hasPermi('ranking:ranking:list')")
+    @PreAuthorize("@ss.hasPermi('system:player:list')")
     @GetMapping("/list")
-    public TableDataInfo list(Player player)
-    {
+    public TableDataInfo list(Player player) {
         startPage();
         List<Player> list = playerService.selectPlayerList(player);
         return getDataTable(list);
     }
 
     /**
-     * 导出天梯排行列表
+     * 导出玩家列表
      */
-    @PreAuthorize("@ss.hasPermi('ranking:ranking:export')")
-    @Log(title = "天梯排行", businessType = BusinessType.EXPORT)
+    @PreAuthorize("@ss.hasPermi('system:player:export')")
+    @Log(title = "玩家", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, Player player)
-    {
+    public void export(HttpServletResponse response, Player player) {
         List<Player> list = playerService.selectPlayerList(player);
         ExcelUtil<Player> util = new ExcelUtil<Player>(Player.class);
-        util.exportExcel(response, list, "天梯排行数据");
+        util.exportExcel(response, list, "玩家数据");
     }
 
     /**
-     * 获取天梯排行详细信息
+     * 获取玩家详细信息
      */
-    @PreAuthorize("@ss.hasPermi('ranking:ranking:query')")
+    @PreAuthorize("@ss.hasPermi('system:player:query')")
     @GetMapping(value = "/{userId}")
-    public AjaxResult getInfo(@PathVariable("userId") Long userId)
-    {
+    public AjaxResult getInfo(@PathVariable("userId") Long userId) {
         return success(playerService.selectPlayerByUserId(userId));
     }
 
     /**
-     * 新增天梯排行
+     * 新增玩家
      */
-    @PreAuthorize("@ss.hasPermi('ranking:ranking:add')")
-    @Log(title = "天梯排行", businessType = BusinessType.INSERT)
+    @PreAuthorize("@ss.hasPermi('system:player:add')")
+    @Log(title = "玩家", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody Player player)
-    {
+    public AjaxResult add(@RequestBody Player player) {
         return toAjax(playerService.insertPlayer(player));
     }
 
     /**
-     * 修改天梯排行
+     * 修改玩家
      */
-    @PreAuthorize("@ss.hasPermi('ranking:ranking:edit')")
-    @Log(title = "天梯排行", businessType = BusinessType.UPDATE)
+    @PreAuthorize("@ss.hasPermi('system:player:edit')")
+    @Log(title = "玩家", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody Player player)
-    {
+    public AjaxResult edit(@RequestBody Player player) {
         return toAjax(playerService.updatePlayer(player));
     }
 
     /**
-     * 删除天梯排行
+     * 删除玩家
      */
-    @PreAuthorize("@ss.hasPermi('ranking:ranking:remove')")
-    @Log(title = "天梯排行", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{userIds}")
-    public AjaxResult remove(@PathVariable Long[] userIds)
-    {
+    @PreAuthorize("@ss.hasPermi('system:player:remove')")
+    @Log(title = "玩家", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{userIds}")
+    public AjaxResult remove(@PathVariable Long[] userIds) {
         return toAjax(playerService.deletePlayerByUserIds(userIds));
     }
 }

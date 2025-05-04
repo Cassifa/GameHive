@@ -2,17 +2,14 @@ package com.gamehive.mapper;
 
 import java.util.List;
 import com.gamehive.pojo.Record;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 对局记录Mapper接口
  * 
  * @author Cassifa
- * @date 2025-02-13
+ * @date 2025-05-05
  */
-@Mapper
-public interface RecordMapper extends BaseMapper<Record>
+public interface RecordMapper 
 {
     /**
      * 查询对局记录

@@ -8,10 +8,10 @@ import com.gamehive.pojo.Player;
 import com.gamehive.service.IPlayerService;
 
 /**
- * 天梯排行Service业务层处理
+ * 玩家Service业务层处理
  * 
  * @author Cassifa
- * @date 2025-02-13
+ * @date 2025-05-05
  */
 @Service
 public class PlayerServiceImpl implements IPlayerService 
@@ -20,10 +20,10 @@ public class PlayerServiceImpl implements IPlayerService
     private PlayerMapper playerMapper;
 
     /**
-     * 查询天梯排行
+     * 查询玩家
      * 
-     * @param userId 天梯排行主键
-     * @return 天梯排行
+     * @param userId 玩家主键
+     * @return 玩家
      */
     @Override
     public Player selectPlayerByUserId(Long userId)
@@ -32,10 +32,10 @@ public class PlayerServiceImpl implements IPlayerService
     }
 
     /**
-     * 查询天梯排行列表
+     * 查询玩家列表
      * 
-     * @param player 天梯排行
-     * @return 天梯排行
+     * @param player 玩家
+     * @return 玩家
      */
     @Override
     public List<Player> selectPlayerList(Player player)
@@ -44,9 +44,9 @@ public class PlayerServiceImpl implements IPlayerService
     }
 
     /**
-     * 新增天梯排行
+     * 新增玩家
      * 
-     * @param player 天梯排行
+     * @param player 玩家
      * @return 结果
      */
     @Override
@@ -56,9 +56,9 @@ public class PlayerServiceImpl implements IPlayerService
     }
 
     /**
-     * 修改天梯排行
+     * 修改玩家
      * 
-     * @param player 天梯排行
+     * @param player 玩家
      * @return 结果
      */
     @Override
@@ -68,9 +68,9 @@ public class PlayerServiceImpl implements IPlayerService
     }
 
     /**
-     * 批量删除天梯排行
+     * 批量删除玩家
      * 
-     * @param userIds 需要删除的天梯排行主键
+     * @param userIds 需要删除的玩家主键
      * @return 结果
      */
     @Override
@@ -80,9 +80,9 @@ public class PlayerServiceImpl implements IPlayerService
     }
 
     /**
-     * 删除天梯排行信息
+     * 删除玩家信息
      * 
-     * @param userId 天梯排行主键
+     * @param userId 玩家主键
      * @return 结果
      */
     @Override

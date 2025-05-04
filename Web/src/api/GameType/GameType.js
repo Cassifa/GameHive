@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询游戏类型列表
 export function listGameType(query) {
   return request({
-    url: '/aiSys/gameType/list',
+    url: '/GameType/GameType/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listGameType(query) {
 // 查询游戏类型详细
 export function getGameType(gameId) {
   return request({
-    url: '/aiSys/gameType/' + gameId,
+    url: '/GameType/GameType/' + gameId,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getGameType(gameId) {
 // 新增游戏类型
 export function addGameType(data) {
   return request({
-    url: '/aiSys/gameType',
+    url: '/GameType/GameType',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addGameType(data) {
 // 修改游戏类型
 export function updateGameType(data) {
   return request({
-    url: '/aiSys/gameType',
+    url: '/GameType/GameType',
     method: 'put',
     data: data
   })
@@ -38,7 +38,7 @@ export function updateGameType(data) {
 // 删除游戏类型
 export function delGameType(gameId) {
   return request({
-    url: '/aiSys/gameType/' + gameId,
+    url: '/GameType/GameType/' + gameId,
     method: 'delete'
   })
 }

@@ -1,6 +1,5 @@
 package com.gamehive.pojo;
 
-import java.util.List;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.gamehive.common.annotation.Excel;
@@ -9,43 +8,38 @@ import com.gamehive.common.core.domain.BaseEntity;
 /**
  * 游戏类型对象 game_type
  * 
- * @author ruoyi
- * @date 2025-02-13
+ * @author Cassifa
+ * @date 2025-05-05
  */
 public class GameType extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** 游戏编号 */
-    @Excel(name = "游戏编号")
+    /** $column.columnComment */
     private Long gameId;
 
-    /** 游戏名 */
-    @Excel(name = "游戏名")
+    /** $column.columnComment */
+    @Excel(name = "${comment}", readConverterExp = "$column.readConverterExp()")
     private String gameName;
 
-    /** 规则简介 */
-    @Excel(name = "规则简介")
+    /** 游戏规则简介 */
+    @Excel(name = "游戏规则简介")
     private String gameIntroduction;
 
-    /** 规则 */
-    @Excel(name = "规则")
+    /** 游戏规则 */
     private String gameRule;
 
     /** 棋盘格数 */
     @Excel(name = "棋盘格数")
     private Long boardSize;
 
-    /** 最低有效步数 */
-    @Excel(name = "最低有效步数")
+    /** 最低记录有效步数 */
+    @Excel(name = "最低记录有效步数")
     private Long minValidPieces;
 
-    /** 是否格中落子 */
-    @Excel(name = "是否格中落子")
+    /** 是否在格子中落子 */
+    @Excel(name = "是否在格子中落子")
     private Boolean isCellCenter;
-
-    /** AI-Game具体产品信息 */
-    private List<AiGame> aiGameList;
 
     public void setGameId(Long gameId) 
     {
@@ -111,16 +105,6 @@ public class GameType extends BaseEntity
         return isCellCenter;
     }
 
-    public List<AiGame> getAiGameList()
-    {
-        return aiGameList;
-    }
-
-    public void setAiGameList(List<AiGame> aiGameList)
-    {
-        this.aiGameList = aiGameList;
-    }
-
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -131,7 +115,6 @@ public class GameType extends BaseEntity
             .append("boardSize", getBoardSize())
             .append("minValidPieces", getMinValidPieces())
             .append("isCellCenter", getIsCellCenter())
-            .append("aiGameList", getAiGameList())
             .toString();
     }
 }

@@ -4,20 +4,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gamehive.mapper.PlayerMapper">
     
-    <resultMap type="com.gamehive.pojo.Player" id="PlayerResult">
+    <resultMap type="Player" id="PlayerResult">
         <result property="userId"    column="user_id"    />
+        <result property="userName"    column="user_name"    />
         <result property="raking"    column="raking"    />
         <result property="recordWithAi"    column="record_with_ai"    />
         <result property="recordWithPlayer"    column="record_with_player"    />
     </resultMap>
 
     <sql id="selectPlayerVo">
-        select user_id, raking, record_with_ai, record_with_player from player
+        select user_id, user_name, raking, record_with_ai, record_with_player from player
     </sql>
 
-    <select id="selectPlayerList" parameterType="com.gamehive.pojo.Player" resultMap="PlayerResult">
+    <select id="selectPlayerList" parameterType="Player" resultMap="PlayerResult">
         <include refid="selectPlayerVo"/>
         <where>  
+            <if test="userName != null  and userName != ''"> and user_name like concat('%', #{userName}, '%')</if>
         </where>
     </select>
     
@@ -26,25 +28,28 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where user_id = #{userId}
     </select>
 
-    <insert id="insertPlayer" parameterType="com.gamehive.pojo.Player">
+    <insert id="insertPlayer" parameterType="Player">
         insert into player
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="userId != null">user_id,</if>
+            <if test="userName != null">user_name,</if>
             <if test="raking != null">raking,</if>
             <if test="recordWithAi != null">record_with_ai,</if>
             <if test="recordWithPlayer != null">record_with_player,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
+            <if test="userName != null">#{userName},</if>
             <if test="raking != null">#{raking},</if>
             <if test="recordWithAi != null">#{recordWithAi},</if>
             <if test="recordWithPlayer != null">#{recordWithPlayer},</if>
          </trim>
     </insert>
 
-    <update id="updatePlayer" parameterType="com.gamehive.pojo.Player">
+    <update id="updatePlayer" parameterType="Player">
         update player
         <trim prefix="SET" suffixOverrides=",">
+            <if test="userName != null">user_name = #{userName},</if>
             <if test="raking != null">raking = #{raking},</if>
             <if test="recordWithAi != null">record_with_ai = #{recordWithAi},</if>
             <if test="recordWithPlayer != null">record_with_player = #{recordWithPlayer},</if>

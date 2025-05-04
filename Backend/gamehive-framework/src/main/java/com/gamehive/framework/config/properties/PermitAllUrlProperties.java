@@ -20,12 +20,12 @@ import com.gamehive.common.annotation.Anonymous;
 
 /**
  * 设置Anonymous注解允许匿名访问的url
- * 
+ *
  * @author ruoyi
  */
 @Configuration
-public class PermitAllUrlProperties implements InitializingBean, ApplicationContextAware
-{
+public class PermitAllUrlProperties implements InitializingBean, ApplicationContextAware {
+
     private static final Pattern PATTERN = Pattern.compile("\\{(.*?)\\}");
 
     private ApplicationContext applicationContext;
@@ -35,8 +35,7 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
     public String ASTERISK = "*";
 
     @Override
-    public void afterPropertiesSet()
-    {
+    public void afterPropertiesSet() {
         RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
         Map<RequestMappingInfo, HandlerMethod> map = mapping.getHandlerMethods();
 
@@ -45,29 +44,28 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
 
             // 获取方法上边的注解 替代path variable 为 *
             Anonymous method = AnnotationUtils.findAnnotation(handlerMethod.getMethod(), Anonymous.class);
-            Optional.ofNullable(method).ifPresent(anonymous -> Objects.requireNonNull(info.getPatternsCondition().getPatterns())
-                    .forEach(url -> urls.add(RegExUtils.replaceAll(url, PATTERN, ASTERISK))));
+            Optional.ofNullable(method)
+                    .ifPresent(anonymous -> Objects.requireNonNull(info.getPatternsCondition().getPatterns())
+                            .forEach(url -> urls.add(RegExUtils.replaceAll(url, PATTERN, ASTERISK))));
 
             // 获取类上边的注解, 替代path variable 为 *
             Anonymous controller = AnnotationUtils.findAnnotation(handlerMethod.getBeanType(), Anonymous.class);
-            Optional.ofNullable(controller).ifPresent(anonymous -> Objects.requireNonNull(info.getPatternsCondition().getPatterns())
-                    .forEach(url -> urls.add(RegExUtils.replaceAll(url, PATTERN, ASTERISK))));
+            Optional.ofNullable(controller)
+                    .ifPresent(anonymous -> Objects.requireNonNull(info.getPatternsCondition().getPatterns())
+                            .forEach(url -> urls.add(RegExUtils.replaceAll(url, PATTERN, ASTERISK))));
         });
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException
-    {
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
         this.applicationContext = context;
     }
 
-    public List<String> getUrls()
-    {
+    public List<String> getUrls() {
         return urls;
     }
 
-    public void setUrls(List<String> urls)
-    {
+    public void setUrls(List<String> urls) {
         this.urls = urls;
     }
 }

@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询对局记录列表
 export function listRecord(query) {
   return request({
-    url: '/record/record/list',
+    url: '/Record/Record/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listRecord(query) {
 // 查询对局记录详细
 export function getRecord(recordId) {
   return request({
-    url: '/record/record/' + recordId,
+    url: '/Record/Record/' + recordId,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getRecord(recordId) {
 // 新增对局记录
 export function addRecord(data) {
   return request({
-    url: '/record/record',
+    url: '/Record/Record',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addRecord(data) {
 // 修改对局记录
 export function updateRecord(data) {
   return request({
-    url: '/record/record',
+    url: '/Record/Record',
     method: 'put',
     data: data
   })
@@ -38,7 +38,7 @@ export function updateRecord(data) {
 // 删除对局记录
 export function delRecord(recordId) {
   return request({
-    url: '/record/record/' + recordId,
+    url: '/Record/Record/' + recordId,
     method: 'delete'
   })
 }

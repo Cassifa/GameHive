@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamehive.mapper.ProductMapper">
+    
+    <resultMap type="Product" id="ProductResult">
+        <result property="id"    column="id"    />
+        <result property="algorithmTypeId"    column="algorithm_type_id"    />
+        <result property="algorithmTypeName"    column="algorithm_type_name"    />
+        <result property="gameTypeId"    column="game_type_id"    />
+        <result property="gameTypeName"    column="game_type_name"    />
+        <result property="maximumLevel"    column="maximum_level"    />
+        <result property="challengedCount"    column="challenged_count"    />
+        <result property="winCount"    column="win_count"    />
+    </resultMap>
+
+    <sql id="selectProductVo">
+        select id, algorithm_type_id, algorithm_type_name, game_type_id, game_type_name, maximum_level, challenged_count, win_count from product
+    </sql>
+
+    <select id="selectProductList" parameterType="Product" resultMap="ProductResult">
+        <include refid="selectProductVo"/>
+        <where>  
+            <if test="algorithmTypeName != null  and algorithmTypeName != ''"> and algorithm_type_name like concat('%', #{algorithmTypeName}, '%')</if>
+            <if test="gameTypeName != null  and gameTypeName != ''"> and game_type_name like concat('%', #{gameTypeName}, '%')</if>
+        </where>
+    </select>
+    
+    <select id="selectProductById" parameterType="Long" resultMap="ProductResult">
+        <include refid="selectProductVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertProduct" parameterType="Product" useGeneratedKeys="true" keyProperty="id">
+        insert into product
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="algorithmTypeId != null">algorithm_type_id,</if>
+            <if test="algorithmTypeName != null and algorithmTypeName != ''">algorithm_type_name,</if>
+            <if test="gameTypeId != null">game_type_id,</if>
+            <if test="gameTypeName != null and gameTypeName != ''">game_type_name,</if>
+            <if test="maximumLevel != null">maximum_level,</if>
+            <if test="challengedCount != null">challenged_count,</if>
+            <if test="winCount != null">win_count,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="algorithmTypeId != null">#{algorithmTypeId},</if>
+            <if test="algorithmTypeName != null and algorithmTypeName != ''">#{algorithmTypeName},</if>
+            <if test="gameTypeId != null">#{gameTypeId},</if>
+            <if test="gameTypeName != null and gameTypeName != ''">#{gameTypeName},</if>
+            <if test="maximumLevel != null">#{maximumLevel},</if>
+            <if test="challengedCount != null">#{challengedCount},</if>
+            <if test="winCount != null">#{winCount},</if>
+         </trim>
+    </insert>
+
+    <update id="updateProduct" parameterType="Product">
+        update product
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="algorithmTypeId != null">algorithm_type_id = #{algorithmTypeId},</if>
+            <if test="algorithmTypeName != null and algorithmTypeName != ''">algorithm_type_name = #{algorithmTypeName},</if>
+            <if test="gameTypeId != null">game_type_id = #{gameTypeId},</if>
+            <if test="gameTypeName != null and gameTypeName != ''">game_type_name = #{gameTypeName},</if>
+            <if test="maximumLevel != null">maximum_level = #{maximumLevel},</if>
+            <if test="challengedCount != null">challenged_count = #{challengedCount},</if>
+            <if test="winCount != null">win_count = #{winCount},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteProductById" parameterType="Long">
+        delete from product where id = #{id}
+    </delete>
+
+    <delete id="deleteProductByIds" parameterType="String">
+        delete from product where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

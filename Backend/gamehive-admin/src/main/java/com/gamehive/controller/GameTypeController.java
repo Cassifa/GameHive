@@ -23,24 +23,23 @@ import com.gamehive.common.core.page.TableDataInfo;
 
 /**
  * 游戏类型Controller
- * 
- * @author ruoyi
- * @date 2025-02-13
+ *
+ * @author Cassifa
+ * @date 2025-05-05
  */
 @RestController
-@RequestMapping("/aiSys/gameType")
-public class GameTypeController extends BaseController
-{
+@RequestMapping("/GameType/GameType")
+public class GameTypeController extends BaseController {
+
     @Autowired
     private IGameTypeService gameTypeService;
 
     /**
      * 查询游戏类型列表
      */
-    @PreAuthorize("@ss.hasPermi('aiSys:gameType:list')")
+    @PreAuthorize("@ss.hasPermi('system:type:list')")
     @GetMapping("/list")
-    public TableDataInfo list(GameType gameType)
-    {
+    public TableDataInfo list(GameType gameType) {
         startPage();
         List<GameType> list = gameTypeService.selectGameTypeList(gameType);
         return getDataTable(list);
@@ -49,11 +48,10 @@ public class GameTypeController extends BaseController
     /**
      * 导出游戏类型列表
      */
-    @PreAuthorize("@ss.hasPermi('aiSys:gameType:export')")
+    @PreAuthorize("@ss.hasPermi('system:type:export')")
     @Log(title = "游戏类型", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, GameType gameType)
-    {
+    public void export(HttpServletResponse response, GameType gameType) {
         List<GameType> list = gameTypeService.selectGameTypeList(gameType);
         ExcelUtil<GameType> util = new ExcelUtil<GameType>(GameType.class);
         util.exportExcel(response, list, "游戏类型数据");
@@ -62,43 +60,39 @@ public class GameTypeController extends BaseController
     /**
      * 获取游戏类型详细信息
      */
-    @PreAuthorize("@ss.hasPermi('aiSys:gameType:query')")
+    @PreAuthorize("@ss.hasPermi('system:type:query')")
     @GetMapping(value = "/{gameId}")
-    public AjaxResult getInfo(@PathVariable("gameId") Long gameId)
-    {
+    public AjaxResult getInfo(@PathVariable("gameId") Long gameId) {
         return success(gameTypeService.selectGameTypeByGameId(gameId));
     }
 
     /**
      * 新增游戏类型
      */
-    @PreAuthorize("@ss.hasPermi('aiSys:gameType:add')")
+    @PreAuthorize("@ss.hasPermi('system:type:add')")
     @Log(title = "游戏类型", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody GameType gameType)
-    {
+    public AjaxResult add(@RequestBody GameType gameType) {
         return toAjax(gameTypeService.insertGameType(gameType));
     }
 
     /**
      * 修改游戏类型
      */
-    @PreAuthorize("@ss.hasPermi('aiSys:gameType:edit')")
+    @PreAuthorize("@ss.hasPermi('system:type:edit')")
     @Log(title = "游戏类型", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody GameType gameType)
-    {
+    public AjaxResult edit(@RequestBody GameType gameType) {
         return toAjax(gameTypeService.updateGameType(gameType));
     }
 
     /**
      * 删除游戏类型
      */
-    @PreAuthorize("@ss.hasPermi('aiSys:gameType:remove')")
+    @PreAuthorize("@ss.hasPermi('system:type:remove')")
     @Log(title = "游戏类型", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{gameIds}")
-    public AjaxResult remove(@PathVariable Long[] gameIds)
-    {
+    @DeleteMapping("/{gameIds}")
+    public AjaxResult remove(@PathVariable Long[] gameIds) {
         return toAjax(gameTypeService.deleteGameTypeByGameIds(gameIds));
     }
 }

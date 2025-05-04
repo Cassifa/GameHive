@@ -25,10 +25,10 @@ import com.gamehive.common.core.page.TableDataInfo;
  * 对局记录Controller
  *
  * @author Cassifa
- * @date 2025-02-13
+ * @date 2025-05-05
  */
 @RestController
-@RequestMapping("/record/record")
+@RequestMapping("/Record/Record")
 public class RecordController extends BaseController {
 
     @Autowired
@@ -37,7 +37,7 @@ public class RecordController extends BaseController {
     /**
      * 查询对局记录列表
      */
-    @PreAuthorize("@ss.hasPermi('record:record:list')")
+    @PreAuthorize("@ss.hasPermi('system:record:list')")
     @GetMapping("/list")
     public TableDataInfo list(Record record) {
         startPage();
@@ -48,7 +48,7 @@ public class RecordController extends BaseController {
     /**
      * 导出对局记录列表
      */
-    @PreAuthorize("@ss.hasPermi('record:record:export')")
+    @PreAuthorize("@ss.hasPermi('system:record:export')")
     @Log(title = "对局记录", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Record record) {
@@ -60,7 +60,7 @@ public class RecordController extends BaseController {
     /**
      * 获取对局记录详细信息
      */
-    @PreAuthorize("@ss.hasPermi('record:record:query')")
+    @PreAuthorize("@ss.hasPermi('system:record:query')")
     @GetMapping(value = "/{recordId}")
     public AjaxResult getInfo(@PathVariable("recordId") Long recordId) {
         return success(recordService.selectRecordByRecordId(recordId));
@@ -69,7 +69,7 @@ public class RecordController extends BaseController {
     /**
      * 新增对局记录
      */
-    @PreAuthorize("@ss.hasPermi('record:record:add')")
+    @PreAuthorize("@ss.hasPermi('system:record:add')")
     @Log(title = "对局记录", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Record record) {
@@ -79,7 +79,7 @@ public class RecordController extends BaseController {
     /**
      * 修改对局记录
      */
-    @PreAuthorize("@ss.hasPermi('record:record:edit')")
+    @PreAuthorize("@ss.hasPermi('system:record:edit')")
     @Log(title = "对局记录", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody Record record) {
@@ -89,7 +89,7 @@ public class RecordController extends BaseController {
     /**
      * 删除对局记录
      */
-    @PreAuthorize("@ss.hasPermi('record:record:remove')")
+    @PreAuthorize("@ss.hasPermi('system:record:remove')")
     @Log(title = "对局记录", businessType = BusinessType.DELETE)
     @DeleteMapping("/{recordIds}")
     public AjaxResult remove(@PathVariable Long[] recordIds) {

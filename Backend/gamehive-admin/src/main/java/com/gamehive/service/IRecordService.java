@@ -7,7 +7,7 @@ import com.gamehive.pojo.Record;
  * 对局记录Service接口
  * 
  * @author Cassifa
- * @date 2025-02-13
+ * @date 2025-05-05
  */
 public interface IRecordService 
 {

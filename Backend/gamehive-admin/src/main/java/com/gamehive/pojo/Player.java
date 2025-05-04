@@ -6,29 +6,30 @@ import com.gamehive.common.annotation.Excel;
 import com.gamehive.common.core.domain.BaseEntity;
 
 /**
- * 天梯排行对象 player
+ * 玩家对象 player
  * 
  * @author Cassifa
- * @date 2025-02-13
+ * @date 2025-05-05
  */
 public class Player extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
-    /** 用户编号 */
-    @Excel(name = "用户编号")
+    /** 用户id */
     private Long userId;
+
+    /** 用户昵称 */
+    @Excel(name = "用户昵称")
+    private String userName;
 
     /** 天梯积分 */
     @Excel(name = "天梯积分")
     private Long raking;
 
-    /** 与AI对战记录 */
-    @Excel(name = "与AI对战记录")
+    /** 玩家与AI对战统计信息 */
     private String recordWithAi;
 
-    /** 与玩家对战记录 */
-    @Excel(name = "与玩家对战记录")
+    /** 玩家与其它玩家对局记录 */
     private String recordWithPlayer;
 
     public void setUserId(Long userId) 
@@ -39,6 +40,15 @@ public class Player extends BaseEntity
     public Long getUserId() 
     {
         return userId;
+    }
+    public void setUserName(String userName) 
+    {
+        this.userName = userName;
+    }
+
+    public String getUserName() 
+    {
+        return userName;
     }
     public void setRaking(Long raking) 
     {
@@ -72,6 +82,7 @@ public class Player extends BaseEntity
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("userId", getUserId())
+            .append("userName", getUserName())
             .append("raking", getRaking())
             .append("recordWithAi", getRecordWithAi())
             .append("recordWithPlayer", getRecordWithPlayer())

@@ -4,7 +4,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gamehive.mapper.GameTypeMapper">
     
-    <resultMap type="com.gamehive.pojo.GameType" id="GameTypeResult">
+    <resultMap type="GameType" id="GameTypeResult">
         <result property="gameId"    column="game_id"    />
         <result property="gameName"    column="game_name"    />
         <result property="gameIntroduction"    column="game_introduction"    />
@@ -14,45 +14,25 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="isCellCenter"    column="is_cell_center"    />
     </resultMap>
 
-    <resultMap id="GameTypeAiGameResult" type="com.gamehive.pojo.GameType" extends="GameTypeResult">
-        <collection property="aiGameList" ofType="com.gamehive.pojo.AiGame" column="game_id" select="selectAiGameList" />
-    </resultMap>
-
-    <resultMap type="com.gamehive.pojo.AiGame" id="AiGameResult">
-        <result property="id"    column="id"    />
-        <result property="aiTypeId"    column="ai_type_id"    />
-        <result property="gameTypeId"    column="game_type_id"    />
-        <result property="level"    column="level"    />
-        <result property="challengedCount"    column="challenged_count"    />
-        <result property="winCount"    column="win_count"    />
-    </resultMap>
-
     <sql id="selectGameTypeVo">
         select game_id, game_name, game_introduction, game_rule, board_size, min_valid_pieces, is_cell_center from game_type
     </sql>
 
-    <select id="selectGameTypeList" parameterType="com.gamehive.pojo.GameType" resultMap="GameTypeResult">
+    <select id="selectGameTypeList" parameterType="GameType" resultMap="GameTypeResult">
         <include refid="selectGameTypeVo"/>
         <where>  
             <if test="gameName != null  and gameName != ''"> and game_name like concat('%', #{gameName}, '%')</if>
-            <if test="params.beginBoardSize != null and params.beginBoardSize != '' and params.endBoardSize != null and params.endBoardSize != ''"> and board_size between #{params.beginBoardSize} and #{params.endBoardSize}</if>
+            <if test="gameIntroduction != null  and gameIntroduction != ''"> and game_introduction like concat('%', #{gameIntroduction}, '%')</if>
             <if test="isCellCenter != null "> and is_cell_center = #{isCellCenter}</if>
         </where>
     </select>
     
-    <select id="selectGameTypeByGameId" parameterType="Long" resultMap="GameTypeAiGameResult">
-        select game_id, game_name, game_introduction, game_rule, board_size, min_valid_pieces, is_cell_center
-        from game_type
+    <select id="selectGameTypeByGameId" parameterType="Long" resultMap="GameTypeResult">
+        <include refid="selectGameTypeVo"/>
         where game_id = #{gameId}
     </select>
 
-    <select id="selectAiGameList" resultMap="AiGameResult">
-        select id, ai_type_id, game_type_id, level, challenged_count, win_count
-        from ai_game
-        where game_type_id = #{game_type_id}
-    </select>
-
-    <insert id="insertGameType" parameterType="com.gamehive.pojo.GameType" useGeneratedKeys="true" keyProperty="gameId">
+    <insert id="insertGameType" parameterType="GameType" useGeneratedKeys="true" keyProperty="gameId">
         insert into game_type
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="gameName != null and gameName != ''">game_name,</if>
@@ -72,7 +52,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
     </insert>
 
-    <update id="updateGameType" parameterType="com.gamehive.pojo.GameType">
+    <update id="updateGameType" parameterType="GameType">
         update game_type
         <trim prefix="SET" suffixOverrides=",">
             <if test="gameName != null and gameName != ''">game_name = #{gameName},</if>
@@ -95,22 +75,4 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{gameId}
         </foreach>
     </delete>
-    
-    <delete id="deleteAiGameByGameTypeIds" parameterType="String">
-        delete from ai_game where game_type_id in 
-        <foreach item="gameTypeId" collection="array" open="(" separator="," close=")">
-            #{gameTypeId}
-        </foreach>
-    </delete>
-
-    <delete id="deleteAiGameByGameTypeId" parameterType="Long">
-        delete from ai_game where game_type_id = #{gameTypeId}
-    </delete>
-
-    <insert id="batchAiGame">
-        insert into ai_game( id, ai_type_id, game_type_id, level, challenged_count, win_count) values
-        <foreach item="item" index="index" collection="list" separator=",">
-            ( #{item.id}, #{item.aiTypeId}, #{item.gameTypeId}, #{item.level}, #{item.challengedCount}, #{item.winCount})
-        </foreach>
-    </insert>
 </mapper>
