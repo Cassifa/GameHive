@@ -59,6 +59,11 @@ namespace GameHive.View {
             moveRecords.Add(record);
         }
 
+        // 获取所有操作记录
+        public List<MoveRecord> GetMoveRecords() {
+            return moveRecords;
+        }
+
         // 清空操作记录
         private void ClearMoveRecords() {
             moveRecords.Clear();

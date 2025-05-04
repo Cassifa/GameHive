@@ -18,6 +18,11 @@ namespace GameHive.View {
         private Graphics? graphics;
         private Bitmap? boardBitmap;
 
+        // 记录最后一次下棋的位置和颜色
+        private double? lastMoveX = null;
+        private double? lastMoveY = null;
+        private int? lastMoveColor = null;  // 0为白子，1为黑子
+
         //绘制棋盘
         public void DrawBoard(GameBoardInfo boardInfo) {
             this.boardInfo = boardInfo;
@@ -49,6 +54,11 @@ namespace GameHive.View {
             currentCnt++;
             int t = currentCnt % 2;
 
+            // 如果存在上一个红点，需要清除它（重绘该位置的棋子）
+            if (lastMoveX.HasValue && lastMoveY.HasValue && lastMoveColor.HasValue) {
+                RedrawChessAtPosition(lastMoveX.Value, lastMoveY.Value, lastMoveColor.Value);
+            }
+
             // 根据 Role 或 t 值加载对应棋子图片
             Image pieceImage = t switch {
                 1 => ByteArrayToImage(Properties.Resources.BlackPieces),
@@ -65,13 +75,52 @@ namespace GameHive.View {
                     (float)(2 * boardInfo.showR),
                     (float)(2 * boardInfo.showR)
                 );
+
+                // 绘制红点标记
+                float redDotSize = (float)(boardInfo.showR * 0.3); // 红点大小为棋子半径的30%
+                using (SolidBrush redBrush = new SolidBrush(Color.Red)) {
+                    graphics.FillEllipse(
+                        redBrush,
+                        (float)(x - redDotSize / 2),
+                        (float)(y - redDotSize / 2),
+                        redDotSize,
+                        redDotSize
+                    );
+                }
             }
+
+            // 更新最后下棋位置和颜色
+            lastMoveX = x;
+            lastMoveY = y;
+            lastMoveColor = t;
 
             // 刷新 Panel 或 PictureBox
             if (mainForm.BoardPanel.InvokeRequired) {
                 mainForm.BoardPanel.Invoke(new Action(() => mainForm.BoardPanel.Refresh()));
             } else {
                 mainForm.BoardPanel.Refresh();
+            }
+        }
+
+        // 重绘指定位置的棋子（用于清除红点）
+        private void RedrawChessAtPosition(double x, double y, int color) {
+            if (graphics == null || boardBitmap == null)
+                return;
+
+            Image pieceImage = color switch {
+                1 => ByteArrayToImage(Properties.Resources.BlackPieces),
+                0 => ByteArrayToImage(Properties.Resources.WhitePieces),
+                _ => null,
+            };
+
+            if (pieceImage != null) {
+                graphics.DrawImage(
+                    pieceImage,
+                    (float)(x - boardInfo.showR),
+                    (float)(y - boardInfo.showR),
+                    (float)(2 * boardInfo.showR),
+                    (float)(2 * boardInfo.showR)
+                );
             }
         }
 
@@ -91,6 +140,11 @@ namespace GameHive.View {
             graphics.Clear(Color.White);
             DrawBoard(boardInfo); // 重新绘制空棋盘
             mainForm.BoardPanel.Refresh();
+
+            // 重置最后下棋位置和颜色
+            lastMoveX = null;
+            lastMoveY = null;
+            lastMoveColor = null;
         }
 
         //绘制会下在格子的棋子
