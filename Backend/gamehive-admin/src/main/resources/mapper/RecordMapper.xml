@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gamehive.mapper.RecordMapper">
+    
+    <resultMap type="com.gamehive.pojo.Record" id="RecordResult">
+        <result property="recordId"    column="record_id"    />
+        <result property="gameTypeId"    column="game_type_id"    />
+        <result property="recordTime"    column="record_time"    />
+        <result property="isPkAi"    column="is_pk_ai"    />
+        <result property="aiGameId"    column="ai_game_id"    />
+        <result property="isAFirst"    column="is_a_first"    />
+        <result property="winner"    column="winner"    />
+        <result property="playerAId"    column="player_a_id"    />
+        <result property="playerBId"    column="player_b_id"    />
+        <result property="playerAPieces"    column="player_a_pieces"    />
+        <result property="playerBPieces"    column="player_b_pieces"    />
+    </resultMap>
+
+    <sql id="selectRecordVo">
+        select record_id, game_type_id, record_time, is_pk_ai, ai_game_id, is_a_first, winner, player_a_id, player_b_id, player_a_pieces, player_b_pieces from record
+    </sql>
+
+    <select id="selectRecordList" parameterType="com.gamehive.pojo.Record" resultMap="RecordResult">
+        <include refid="selectRecordVo"/>
+        <where>  
+            <if test="gameTypeId != null "> and game_type_id = #{gameTypeId}</if>
+            <if test="recordTime != null "> and record_time = #{recordTime}</if>
+            <if test="isPkAi != null "> and is_pk_ai = #{isPkAi}</if>
+            <if test="aiGameId != null "> and ai_game_id = #{aiGameId}</if>
+            <if test="isAFirst != null "> and is_a_first = #{isAFirst}</if>
+            <if test="winner != null "> and winner = #{winner}</if>
+            <if test="playerAId != null "> and player_a_id = #{playerAId}</if>
+            <if test="playerBId != null "> and player_b_id = #{playerBId}</if>
+        </where>
+    </select>
+    
+    <select id="selectRecordByRecordId" parameterType="Long" resultMap="RecordResult">
+        <include refid="selectRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertRecord" parameterType="com.gamehive.pojo.Record" useGeneratedKeys="true" keyProperty="recordId">
+        insert into record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="gameTypeId != null">game_type_id,</if>
+            <if test="recordTime != null">record_time,</if>
+            <if test="isPkAi != null">is_pk_ai,</if>
+            <if test="aiGameId != null">ai_game_id,</if>
+            <if test="isAFirst != null">is_a_first,</if>
+            <if test="winner != null">winner,</if>
+            <if test="playerAId != null">player_a_id,</if>
+            <if test="playerBId != null">player_b_id,</if>
+            <if test="playerAPieces != null and playerAPieces != ''">player_a_pieces,</if>
+            <if test="playerBPieces != null and playerBPieces != ''">player_b_pieces,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="gameTypeId != null">#{gameTypeId},</if>
+            <if test="recordTime != null">#{recordTime},</if>
+            <if test="isPkAi != null">#{isPkAi},</if>
+            <if test="aiGameId != null">#{aiGameId},</if>
+            <if test="isAFirst != null">#{isAFirst},</if>
+            <if test="winner != null">#{winner},</if>
+            <if test="playerAId != null">#{playerAId},</if>
+            <if test="playerBId != null">#{playerBId},</if>
+            <if test="playerAPieces != null and playerAPieces != ''">#{playerAPieces},</if>
+            <if test="playerBPieces != null and playerBPieces != ''">#{playerBPieces},</if>
+         </trim>
+    </insert>
+
+    <update id="updateRecord" parameterType="com.gamehive.pojo.Record">
+        update record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="gameTypeId != null">game_type_id = #{gameTypeId},</if>
+            <if test="recordTime != null">record_time = #{recordTime},</if>
+            <if test="isPkAi != null">is_pk_ai = #{isPkAi},</if>
+            <if test="aiGameId != null">ai_game_id = #{aiGameId},</if>
+            <if test="isAFirst != null">is_a_first = #{isAFirst},</if>
+            <if test="winner != null">winner = #{winner},</if>
+            <if test="playerAId != null">player_a_id = #{playerAId},</if>
+            <if test="playerBId != null">player_b_id = #{playerBId},</if>
+            <if test="playerAPieces != null and playerAPieces != ''">player_a_pieces = #{playerAPieces},</if>
+            <if test="playerBPieces != null and playerBPieces != ''">player_b_pieces = #{playerBPieces},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteRecordByRecordId" parameterType="Long">
+        delete from record where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteRecordByRecordIds" parameterType="String">
+        delete from record where record_id in 
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+</mapper>
