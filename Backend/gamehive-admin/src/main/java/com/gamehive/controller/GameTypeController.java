@@ -54,7 +54,7 @@ public class GameTypeController extends BaseController {
     @PostMapping("/export")
     public void export(HttpServletResponse response, GameType gameType) {
         List<GameType> list = gameTypeService.selectGameTypeList(gameType);
-        ExcelUtil<GameType> util = new ExcelUtil<GameType>(GameType.class);
+        ExcelUtil<GameType> util = new ExcelUtil<>(GameType.class);
         util.exportExcel(response, list, "游戏类型数据");
     }
 

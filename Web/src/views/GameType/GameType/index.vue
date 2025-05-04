@@ -1,21 +1,19 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="${comment}" prop="gameName">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="110px">
+      <el-form-item label="游戏名称" prop="gameName">
         <el-input
           v-model="queryParams.gameName"
-          placeholder="请输入${comment}"
+          placeholder="请输入游戏名称"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="是否在格子中落子" prop="isCellCenter">
-        <el-input
-          v-model="queryParams.isCellCenter"
-          placeholder="请输入是否在格子中落子"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+      <el-form-item label="格子中落子" prop="isCellCenter">
+        <el-select v-model="queryParams.isCellCenter" placeholder="请选择" clearable>
+          <el-option label="是" :value="true"></el-option>
+          <el-option label="否" :value="false"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -71,12 +69,16 @@
 
     <el-table v-loading="loading" :data="GameTypeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="${comment}" align="center" prop="gameId" />
-      <el-table-column label="${comment}" align="center" prop="gameName" />
+      <el-table-column label="游戏类型ID" align="center" prop="gameId" />
+      <el-table-column label="游戏名称" align="center" prop="gameName" />
       <el-table-column label="游戏规则简介" align="center" prop="gameIntroduction" />
       <el-table-column label="棋盘格数" align="center" prop="boardSize" />
       <el-table-column label="最低记录有效步数" align="center" prop="minValidPieces" />
-      <el-table-column label="是否在格子中落子" align="center" prop="isCellCenter" />
+      <el-table-column label="是否在格子中落子" align="center" prop="isCellCenter">
+        <template slot-scope="scope">
+          <span>{{ scope.row.isCellCenter === true ? '是' : '否' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -107,9 +109,9 @@
 
     <!-- 添加或修改游戏类型对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="${comment}" prop="gameName">
-          <el-input v-model="form.gameName" placeholder="请输入${comment}" />
+      <el-form ref="form" :model="form" :rules="rules" label-width="120px">
+        <el-form-item label="游戏名称" prop="gameName">
+          <el-input v-model="form.gameName" placeholder="请输入游戏名称" />
         </el-form-item>
         <el-form-item label="游戏规则简介" prop="gameIntroduction">
           <el-input v-model="form.gameIntroduction" type="textarea" placeholder="请输入内容" />
@@ -124,7 +126,10 @@
           <el-input v-model="form.minValidPieces" placeholder="请输入最低记录有效步数" />
         </el-form-item>
         <el-form-item label="是否在格子中落子" prop="isCellCenter">
-          <el-input v-model="form.isCellCenter" placeholder="请输入是否在格子中落子" />
+          <el-select v-model="form.isCellCenter" placeholder="请选择">
+            <el-option label="是" :value="true"></el-option>
+            <el-option label="否" :value="false"></el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -173,7 +178,7 @@ export default {
       // 表单校验
       rules: {
         gameName: [
-          { required: true, message: "$comment不能为空", trigger: "blur" }
+          { required: true, message: "游戏名称不能为空", trigger: "blur" }
         ],
         boardSize: [
           { required: true, message: "棋盘格数不能为空", trigger: "blur" }
@@ -182,7 +187,7 @@ export default {
           { required: true, message: "最低记录有效步数不能为空", trigger: "blur" }
         ],
         isCellCenter: [
-          { required: true, message: "是否在格子中落子不能为空", trigger: "blur" }
+          { required: true, message: "请选择是否在格子中落子", trigger: "change" }
         ]
       }
     };

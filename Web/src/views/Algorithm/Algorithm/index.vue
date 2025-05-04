@@ -88,7 +88,10 @@
 
     <!-- 添加或修改算法类型对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="算法名称" prop="algorithmName">
+          <el-input v-model="form.algorithmName" placeholder="请输入算法名称" />
+        </el-form-item>
         <el-form-item label="算法思想简介" prop="algorithmIntroduction">
           <el-input v-model="form.algorithmIntroduction" type="textarea" placeholder="请输入内容" />
         </el-form-item>
