@@ -1,109 +1,224 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gamehive.mapper.RecordMapper">
-    
-    <resultMap type="com.gamehive.pojo.Record" id="RecordResult">
-        <result property="recordId"    column="record_id"    />
-        <result property="gameTypeId"    column="game_type_id"    />
-        <result property="gameTypeName"    column="game_type_name"    />
-        <result property="recordTime"    column="record_time"    />
-        <result property="isPkAi"    column="is_pk_ai"    />
-        <result property="algorithmId"    column="algorithm_id"    />
-        <result property="algorithmName"    column="algorithm_name"    />
-        <result property="winner"    column="winner"    />
-        <result property="firstPlayerId"    column="first_player_id"    />
-        <result property="firstPlayer"    column="first_player"    />
-        <result property="secondPlayerId"    column="second_player_id"    />
-        <result property="secondPlayerName"    column="second_player_name"    />
-        <result property="firstPlayerPieces"    column="first_player_pieces"    />
-        <result property="playerBPieces"    column="player_b_pieces"    />
-    </resultMap>
+	<resultMap type="com.gamehive.pojo.Record" id="RecordResult">
+		<result property="recordId" column="record_id"/>
+		<result property="gameTypeId" column="game_type_id"/>
+		<result property="gameTypeName" column="game_type_name"/>
+		<result property="recordTime" column="record_time"/>
+		<result property="isPkAi" column="is_pk_ai"/>
+		<result property="algorithmId" column="algorithm_id"/>
+		<result property="algorithmName" column="algorithm_name"/>
+		<result property="winner" column="winner"/>
+		<result property="firstPlayerId" column="first_player_id"/>
+		<result property="firstPlayer" column="first_player"/>
+		<result property="secondPlayerId" column="second_player_id"/>
+		<result property="secondPlayerName" column="second_player_name"/>
+		<result property="firstPlayerPieces" column="first_player_pieces"/>
+		<result property="playerBPieces" column="player_b_pieces"/>
+	</resultMap>
 
-    <sql id="selectRecordVo">
-        select record_id, game_type_id, game_type_name, record_time, is_pk_ai, algorithm_id, algorithm_name, winner, first_player_id, first_player, second_player_id, second_player_name, first_player_pieces, player_b_pieces from record
-    </sql>
+	<sql id="selectRecordVo">
+		select record_id,
+			   game_type_id,
+			   game_type_name,
+			   record_time,
+			   is_pk_ai,
+			   algorithm_id,
+			   algorithm_name,
+			   winner,
+			   first_player_id,
+			   first_player,
+			   second_player_id,
+			   second_player_name,
+			   first_player_pieces,
+			   player_b_pieces
+		from record
+	</sql>
 
-    <select id="selectRecordList" parameterType="Record" resultMap="RecordResult">
-        <include refid="selectRecordVo"/>
-        <where>  
-            <if test="gameTypeName != null  and gameTypeName != ''"> and game_type_name like concat('%', #{gameTypeName}, '%')</if>
-            <if test="isPkAi != null "> and is_pk_ai = #{isPkAi}</if>
-            <if test="algorithmName != null  and algorithmName != ''"> and algorithm_name like concat('%', #{algorithmName}, '%')</if>
-            <if test="winner != null "> and winner = #{winner}</if>
-            <if test="firstPlayer != null  and firstPlayer != ''"> and first_player = #{firstPlayer}</if>
-            <if test="secondPlayerName != null  and secondPlayerName != ''"> and second_player_name like concat('%', #{secondPlayerName}, '%')</if>
-        </where>
-    </select>
-    
-    <select id="selectRecordByRecordId" parameterType="Long" resultMap="RecordResult">
-        <include refid="selectRecordVo"/>
-        where record_id = #{recordId}
-    </select>
+	<select id="selectRecordList" parameterType="Record" resultMap="RecordResult">
+		<include refid="selectRecordVo"/>
+		<where>
+			<if test="gameTypeId != null">
+				and game_type_id = #{gameTypeId}
+			</if>
+			<if test="gameTypeName != null and gameTypeName != ''">
+				and game_type_name like concat('%', #{gameTypeName}, '%')
+			</if>
+			<if test="isPkAi != null">
+				and is_pk_ai = #{isPkAi}
+			</if>
+			<if test="algorithmId != null">
+				and algorithm_id = #{algorithmId}
+			</if>
+			<if test="algorithmName != null and algorithmName != ''">
+				and algorithm_name like concat('%', #{algorithmName}, '%')
+			</if>
+			<if test="winner != null">
+				and winner = #{winner}
+			</if>
+			<if test="firstPlayer != null and firstPlayer != ''">
+				and first_player like concat('%', #{firstPlayer}, '%')
+			</if>
+			<if test="secondPlayerName != null and secondPlayerName != ''">
+				and second_player_name like concat('%', #{secondPlayerName}, '%')
+			</if>
+			<if test="params.playerName != null and params.playerName != ''">
+				and (first_player like concat('%', #{params.playerName}, '%') or second_player_name
+				like concat('%', #{params.playerName}, '%'))
+			</if>
+		</where>
+	</select>
 
-    <insert id="insertRecord" parameterType="Record" useGeneratedKeys="true" keyProperty="recordId">
-        insert into record
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="gameTypeId != null">game_type_id,</if>
-            <if test="gameTypeName != null">game_type_name,</if>
-            <if test="recordTime != null">record_time,</if>
-            <if test="isPkAi != null">is_pk_ai,</if>
-            <if test="algorithmId != null">algorithm_id,</if>
-            <if test="algorithmName != null">algorithm_name,</if>
-            <if test="winner != null">winner,</if>
-            <if test="firstPlayerId != null">first_player_id,</if>
-            <if test="firstPlayer != null">first_player,</if>
-            <if test="secondPlayerId != null">second_player_id,</if>
-            <if test="secondPlayerName != null">second_player_name,</if>
-            <if test="firstPlayerPieces != null">first_player_pieces,</if>
-            <if test="playerBPieces != null">player_b_pieces,</if>
-         </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="gameTypeId != null">#{gameTypeId},</if>
-            <if test="gameTypeName != null">#{gameTypeName},</if>
-            <if test="recordTime != null">#{recordTime},</if>
-            <if test="isPkAi != null">#{isPkAi},</if>
-            <if test="algorithmId != null">#{algorithmId},</if>
-            <if test="algorithmName != null">#{algorithmName},</if>
-            <if test="winner != null">#{winner},</if>
-            <if test="firstPlayerId != null">#{firstPlayerId},</if>
-            <if test="firstPlayer != null">#{firstPlayer},</if>
-            <if test="secondPlayerId != null">#{secondPlayerId},</if>
-            <if test="secondPlayerName != null">#{secondPlayerName},</if>
-            <if test="firstPlayerPieces != null">#{firstPlayerPieces},</if>
-            <if test="playerBPieces != null">#{playerBPieces},</if>
-         </trim>
-    </insert>
+	<select id="selectRecordByRecordId" parameterType="Long" resultMap="RecordResult">
+		<include refid="selectRecordVo"/>
+		where record_id = #{recordId}
+	</select>
 
-    <update id="updateRecord" parameterType="Record">
-        update record
-        <trim prefix="SET" suffixOverrides=",">
-            <if test="gameTypeId != null">game_type_id = #{gameTypeId},</if>
-            <if test="gameTypeName != null">game_type_name = #{gameTypeName},</if>
-            <if test="recordTime != null">record_time = #{recordTime},</if>
-            <if test="isPkAi != null">is_pk_ai = #{isPkAi},</if>
-            <if test="algorithmId != null">algorithm_id = #{algorithmId},</if>
-            <if test="algorithmName != null">algorithm_name = #{algorithmName},</if>
-            <if test="winner != null">winner = #{winner},</if>
-            <if test="firstPlayerId != null">first_player_id = #{firstPlayerId},</if>
-            <if test="firstPlayer != null">first_player = #{firstPlayer},</if>
-            <if test="secondPlayerId != null">second_player_id = #{secondPlayerId},</if>
-            <if test="secondPlayerName != null">second_player_name = #{secondPlayerName},</if>
-            <if test="firstPlayerPieces != null">first_player_pieces = #{firstPlayerPieces},</if>
-            <if test="playerBPieces != null">player_b_pieces = #{playerBPieces},</if>
-        </trim>
-        where record_id = #{recordId}
-    </update>
+	<insert id="insertRecord" parameterType="Record" useGeneratedKeys="true" keyProperty="recordId">
+		insert into record
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="gameTypeId != null">
+				game_type_id,
+			</if>
+			<if test="gameTypeName != null">
+				game_type_name,
+			</if>
+			<if test="recordTime != null">
+				record_time,
+			</if>
+			<if test="isPkAi != null">
+				is_pk_ai,
+			</if>
+			<if test="algorithmId != null">
+				algorithm_id,
+			</if>
+			<if test="algorithmName != null">
+				algorithm_name,
+			</if>
+			<if test="winner != null">
+				winner,
+			</if>
+			<if test="firstPlayerId != null">
+				first_player_id,
+			</if>
+			<if test="firstPlayer != null">
+				first_player,
+			</if>
+			<if test="secondPlayerId != null">
+				second_player_id,
+			</if>
+			<if test="secondPlayerName != null">
+				second_player_name,
+			</if>
+			<if test="firstPlayerPieces != null">
+				first_player_pieces,
+			</if>
+			<if test="playerBPieces != null">
+				player_b_pieces,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="gameTypeId != null">
+				#{gameTypeId},
+			</if>
+			<if test="gameTypeName != null">
+				#{gameTypeName},
+			</if>
+			<if test="recordTime != null">
+				#{recordTime},
+			</if>
+			<if test="isPkAi != null">
+				#{isPkAi},
+			</if>
+			<if test="algorithmId != null">
+				#{algorithmId},
+			</if>
+			<if test="algorithmName != null">
+				#{algorithmName},
+			</if>
+			<if test="winner != null">
+				#{winner},
+			</if>
+			<if test="firstPlayerId != null">
+				#{firstPlayerId},
+			</if>
+			<if test="firstPlayer != null">
+				#{firstPlayer},
+			</if>
+			<if test="secondPlayerId != null">
+				#{secondPlayerId},
+			</if>
+			<if test="secondPlayerName != null">
+				#{secondPlayerName},
+			</if>
+			<if test="firstPlayerPieces != null">
+				#{firstPlayerPieces},
+			</if>
+			<if test="playerBPieces != null">
+				#{playerBPieces},
+			</if>
+		</trim>
+	</insert>
 
-    <delete id="deleteRecordByRecordId" parameterType="Long">
-        delete from record where record_id = #{recordId}
-    </delete>
+	<update id="updateRecord" parameterType="Record">
+		update record
+		<trim prefix="SET" suffixOverrides=",">
+			<if test="gameTypeId != null">
+				game_type_id = #{gameTypeId},
+			</if>
+			<if test="gameTypeName != null">
+				game_type_name = #{gameTypeName},
+			</if>
+			<if test="recordTime != null">
+				record_time = #{recordTime},
+			</if>
+			<if test="isPkAi != null">
+				is_pk_ai = #{isPkAi},
+			</if>
+			<if test="algorithmId != null">
+				algorithm_id = #{algorithmId},
+			</if>
+			<if test="algorithmName != null">
+				algorithm_name = #{algorithmName},
+			</if>
+			<if test="winner != null">
+				winner = #{winner},
+			</if>
+			<if test="firstPlayerId != null">
+				first_player_id = #{firstPlayerId},
+			</if>
+			<if test="firstPlayer != null">
+				first_player = #{firstPlayer},
+			</if>
+			<if test="secondPlayerId != null">
+				second_player_id = #{secondPlayerId},
+			</if>
+			<if test="secondPlayerName != null">
+				second_player_name = #{secondPlayerName},
+			</if>
+			<if test="firstPlayerPieces != null">
+				first_player_pieces = #{firstPlayerPieces},
+			</if>
+			<if test="playerBPieces != null">
+				player_b_pieces = #{playerBPieces},
+			</if>
+		</trim>
+		where record_id = #{recordId}
+	</update>
 
-    <delete id="deleteRecordByRecordIds" parameterType="String">
-        delete from record where record_id in 
-        <foreach item="recordId" collection="array" open="(" separator="," close=")">
-            #{recordId}
-        </foreach>
-    </delete>
+	<delete id="deleteRecordByRecordId" parameterType="Long">
+		delete
+		from record
+		where record_id = #{recordId}
+	</delete>
+
+	<delete id="deleteRecordByRecordIds" parameterType="String">
+		delete from record where record_id in
+		<foreach item="recordId" collection="array" open="(" separator="," close=")">
+			#{recordId}
+		</foreach>
+	</delete>
 </mapper>

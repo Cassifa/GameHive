@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.gamehive.common.annotation.Log;
 import com.gamehive.common.core.controller.BaseController;
@@ -20,6 +21,7 @@ import com.gamehive.pojo.Record;
 import com.gamehive.service.IRecordService;
 import com.gamehive.common.utils.poi.ExcelUtil;
 import com.gamehive.common.core.page.TableDataInfo;
+import com.github.pagehelper.PageHelper;
 
 /**
  * 对局记录Controller
@@ -36,11 +38,52 @@ public class RecordController extends BaseController {
 
     /**
      * 查询对局记录列表
+     * 支持的查询条件:
+     * - pageNum: 当前页码
+     * - pageSize: 每页记录数（如果为空则返回所有数据）
+     * - gameTypeId: 游戏类型ID
+     * - isPkAi: 是否与AI对局（'1'表示是，'0'表示否）
+     * - algorithmId: 算法ID
+     * - winner: 赢家
+     * - playerName: 玩家名称（用于模糊查询先手或后手玩家）
      */
     @PreAuthorize("@ss.hasPermi('system:record:list')")
     @GetMapping("/list")
-    public TableDataInfo list(Record record) {
-        startPage();
+    public TableDataInfo list(
+            @RequestParam(value = "pageNum", required = false) Integer pageNum,
+            @RequestParam(value = "pageSize", required = false) Integer pageSize,
+            @RequestParam(value = "gameTypeId", required = false) Long gameTypeId,
+            @RequestParam(value = "isPkAi", required = false) Boolean isPkAi,
+            @RequestParam(value = "algorithmId", required = false) Long algorithmId,
+            @RequestParam(value = "winner", required = false) Long winner,
+            @RequestParam(value = "playerName", required = false) String playerName,
+            Record record) {
+        
+        // 设置查询参数
+        if (gameTypeId != null) {
+            record.setGameTypeId(gameTypeId);
+        }
+        if (isPkAi != null) {
+            record.setIsPkAi(isPkAi);
+        }
+        if (algorithmId != null) {
+            record.setAlgorithmId(algorithmId);
+        }
+        if (winner != null) {
+            record.setWinner(winner);
+        }
+        if (playerName != null && !playerName.isEmpty()) {
+            record.getParams().put("playerName", playerName);
+        }
+        
+        // 如果pageSize不为空，使用分页查询
+        if (pageSize != null && pageSize > 0) {
+            // 使用PageHelper进行分页
+            int pageNumValue = (pageNum != null && pageNum > 0) ? pageNum : 1;
+            PageHelper.startPage(pageNumValue, pageSize);
+        }
+        // 否则不分页，返回所有数据
+        
         List<Record> list = recordService.selectRecordList(record);
         return getDataTable(list);
     }

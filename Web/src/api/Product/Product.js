@@ -42,3 +42,12 @@ export function delProduct(id) {
     method: 'delete'
   })
 }
+
+// 根据游戏ID获取算法列表
+export function listAlgorithmsByGameId(gameId) {
+  return request({
+    url: '/Product/Product/listAlgorithmsByGameId',
+    method: 'get',
+    params: { gameId }
+  })
+}

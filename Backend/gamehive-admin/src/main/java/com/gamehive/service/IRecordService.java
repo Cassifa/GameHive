@@ -5,15 +5,15 @@ import com.gamehive.pojo.Record;
 
 /**
  * 对局记录Service接口
- * 
+ *
  * @author Cassifa
  * @date 2025-05-05
  */
-public interface IRecordService 
-{
+public interface IRecordService {
+
     /**
      * 查询对局记录
-     * 
+     *
      * @param recordId 对局记录主键
      * @return 对局记录
      */
@@ -21,7 +21,7 @@ public interface IRecordService
 
     /**
      * 查询对局记录列表
-     * 
+     *
      * @param record 对局记录
      * @return 对局记录集合
      */
@@ -29,7 +29,7 @@ public interface IRecordService
 
     /**
      * 新增对局记录
-     * 
+     *
      * @param record 对局记录
      * @return 结果
      */
@@ -37,7 +37,7 @@ public interface IRecordService
 
     /**
      * 修改对局记录
-     * 
+     *
      * @param record 对局记录
      * @return 结果
      */
@@ -45,7 +45,7 @@ public interface IRecordService
 
     /**
      * 批量删除对局记录
-     * 
+     *
      * @param recordIds 需要删除的对局记录主键集合
      * @return 结果
      */
@@ -53,7 +53,7 @@ public interface IRecordService
 
     /**
      * 删除对局记录信息
-     * 
+     *
      * @param recordId 对局记录主键
      * @return 结果
      */

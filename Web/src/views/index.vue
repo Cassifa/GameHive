@@ -1,6 +1,40 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="90px">
+      <el-form-item label="游戏类别" prop="gameTypeId">
+        <el-select v-model="queryParams.gameTypeId" placeholder="请选择游戏类别" clearable @change="handleGameTypeChange">
+          <el-option
+            v-for="item in gameTypeOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="是否与AI对局" prop="isPkAi">
+        <el-select v-model="queryParams.isPkAi" placeholder="请选择是否与AI对局" clearable @change="handlePkAiChange">
+          <el-option label="是" value="1" />
+          <el-option label="否" value="0" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="算法类别" prop="algorithmId">
+        <el-select v-model="queryParams.algorithmId" placeholder="请选择算法类别" clearable :disabled="!isPkAiSelected">
+          <el-option
+            v-for="item in algorithmOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="玩家" prop="playerName">
+        <el-input
+          v-model="queryParams.playerName"
+          placeholder="请输入玩家名称"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="赢家" prop="winner">
         <el-select v-model="queryParams.winner" placeholder="请选择赢家" clearable>
           <el-option
@@ -10,22 +44,6 @@
             :value="dict.value"
           />
         </el-select>
-      </el-form-item>
-      <el-form-item label="先手玩家" prop="firstPlayer">
-        <el-input
-          v-model="queryParams.firstPlayer"
-          placeholder="请输入先手玩家"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="后手玩家" prop="secondPlayerName">
-        <el-input
-          v-model="queryParams.secondPlayerName"
-          placeholder="请输入后手玩家"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -81,14 +99,18 @@
 
     <el-table v-loading="loading" :data="RecordList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="对局id" align="center" prop="recordId" />
-      <el-table-column label="本局游戏名称" align="center" prop="gameTypeName" />
+      <el-table-column label="对局ID" align="center" prop="recordId" />
+      <el-table-column label="游戏类别" align="center" prop="gameTypeName" />
       <el-table-column label="对局结束时间" align="center" prop="recordTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.recordTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="是否是与ai对局" align="center" prop="isPkAi" />
+      <el-table-column label="是否与AI对局" align="center" prop="isPkAi">
+        <template slot-scope="scope">
+          <span>{{ scope.row.isPkAi == 1 ? '是' : '否' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="算法名称" align="center" prop="algorithmName" />
       <el-table-column label="赢家" align="center" prop="winner">
         <template slot-scope="scope">
@@ -139,6 +161,9 @@
 
 <script>
 import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api/Record/Record";
+import { listGameTypeOptions } from "@/api/GameType/GameType";
+import { listAlgorithmOptions } from "@/api/Algorithm/Algorithm";
+import { listAlgorithmsByGameId } from "@/api/Product/Product";
 
 export default {
   name: "Record",
@@ -163,16 +188,21 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 游戏类型选项
+      gameTypeOptions: [],
+      // 算法类型选项
+      algorithmOptions: [],
+      // 是否已选择与AI对局
+      isPkAiSelected: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        gameTypeName: null,
+        gameTypeId: null,
         isPkAi: null,
-        algorithmName: null,
+        algorithmId: null,
         winner: null,
-        firstPlayer: null,
-        secondPlayerName: null,
+        playerName: null
       },
       // 表单参数
       form: {},
@@ -183,6 +213,13 @@ export default {
   },
   created() {
     this.getList();
+    this.getGameTypeOptions();
+    // 初始化检查是否与AI对局的选择状态
+    this.isPkAiSelected = this.queryParams.isPkAi === '1' || this.queryParams.isPkAi === 1;
+    // 如果已选择游戏类型且是与AI对局，则获取算法选项
+    if (this.queryParams.gameTypeId && this.isPkAiSelected) {
+      this.getAlgorithmOptions();
+    }
   },
   methods: {
     /** 查询对局记录列表 */
@@ -193,6 +230,48 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
+    },
+    /** 获取游戏类型选项 */
+    getGameTypeOptions() {
+      listGameTypeOptions().then(response => {
+        this.gameTypeOptions = response.data;
+      });
+    },
+    /** 获取算法类型选项 */
+    getAlgorithmOptions() {
+      // 如果选择了游戏类别，则根据游戏类别获取算法
+      if (this.queryParams.gameTypeId) {
+        listAlgorithmsByGameId(this.queryParams.gameTypeId).then(response => {
+          // 转换数据格式，将后端的算法信息转为下拉框需要的格式
+          this.algorithmOptions = response.data.map(item => {
+            return {
+              value: item.algorithmId,
+              label: item.algorithmName
+            };
+          });
+        });
+      } else {
+        // 否则获取所有算法
+        listAlgorithmOptions().then(response => {
+          this.algorithmOptions = response.data;
+        });
+      }
+    },
+    /** 游戏类型变更 */
+    handleGameTypeChange() {
+      this.queryParams.algorithmId = null;
+      if (this.isPkAiSelected) {
+        this.getAlgorithmOptions();
+      }
+    },
+    /** 是否与AI对局变更 */
+    handlePkAiChange() {
+      this.queryParams.algorithmId = null;
+      // 检查是否选择了"是"(1)
+      this.isPkAiSelected = this.queryParams.isPkAi === '1' || this.queryParams.isPkAi === 1;
+      if (this.isPkAiSelected) {
+        this.getAlgorithmOptions();
+      }
     },
     // 取消按钮
     cancel() {
@@ -227,6 +306,8 @@ export default {
     /** 重置按钮操作 */
     resetQuery() {
       this.resetForm("queryForm");
+      this.isPkAiSelected = false;
+      this.algorithmOptions = [];
       this.handleQuery();
     },
     // 多选框选中数据
