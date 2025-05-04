@@ -66,7 +66,7 @@ public class Record extends BaseEntity
 
     /** 后手玩家操作序列，json格式 */
     private String playerBPieces;
-
+    
     public void setRecordId(Long recordId) 
     {
         this.recordId = recordId;
@@ -193,7 +193,6 @@ public class Record extends BaseEntity
     {
         return playerBPieces;
     }
-
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
