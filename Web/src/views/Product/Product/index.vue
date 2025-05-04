@@ -1,6 +1,26 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px">
+      <el-form-item label="算法名称" prop="algorithmTypeId">
+        <el-select v-model="queryParams.algorithmTypeId" placeholder="请选择算法名称" clearable>
+          <el-option
+            v-for="item in algorithmOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="游戏类型" prop="gameTypeId">
+        <el-select v-model="queryParams.gameTypeId" placeholder="请选择游戏类型" clearable>
+          <el-option
+            v-for="item in gameTypeOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -55,10 +75,10 @@
 
     <el-table v-loading="loading" :data="ProductList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="${comment}" align="center" prop="id" />
+      <el-table-column label="产品ID" align="center" prop="id" />
       <el-table-column label="算法名称" align="center" prop="algorithmTypeName" />
       <el-table-column label="游戏类型中文名" align="center" prop="gameTypeName" />
-      <el-table-column label="难度等级" align="center" prop="maximumLevel" />
+      <el-table-column label="最高难度等级" align="center" prop="maximumLevel" />
       <el-table-column label="被玩家挑战次数" align="center" prop="challengedCount" />
       <el-table-column label="胜利次数" align="center" prop="winCount" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -91,9 +111,29 @@
 
     <!-- 添加或修改Algorithm-Game具体产品对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="难度等级" prop="maximumLevel">
-          <el-input v-model="form.maximumLevel" placeholder="请输入难度等级" />
+      <el-form ref="form" :model="form" :rules="rules" label-width="120px">
+        <el-form-item label="算法名称" prop="algorithmTypeName">
+          <el-select v-model="form.algorithmTypeId" placeholder="请选择算法名称" @change="handleAlgorithmChange">
+            <el-option
+              v-for="item in algorithmOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="游戏类型中文名" prop="gameTypeName">
+          <el-select v-model="form.gameTypeId" placeholder="请选择游戏类型" @change="handleGameTypeChange">
+            <el-option
+              v-for="item in gameTypeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="最高难度等级" prop="maximumLevel">
+          <el-input v-model="form.maximumLevel" placeholder="请输入最高难度等级" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -106,6 +146,7 @@
 
 <script>
 import { listProduct, getProduct, delProduct, addProduct, updateProduct } from "@/api/Product/Product";
+import request from "@/utils/request";
 
 export default {
   name: "Product",
@@ -129,41 +170,84 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 算法类型选项
+      algorithmOptions: [],
+      // 游戏类型选项
+      gameTypeOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        algorithmTypeName: null,
-        gameTypeName: null,
+        algorithmTypeId: null,
+        gameTypeId: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        algorithmTypeName: [
+        algorithmTypeId: [
           { required: true, message: "算法名称不能为空", trigger: "change" }
         ],
-        gameTypeName: [
+        gameTypeId: [
           { required: true, message: "游戏类型中文名不能为空", trigger: "change" }
         ],
         maximumLevel: [
-          { required: true, message: "难度等级不能为空", trigger: "blur" }
+          { required: true, message: "最高难度等级不能为空", trigger: "blur" }
         ],
       }
     };
   },
   created() {
     this.getList();
+    this.getAlgorithmOptions();
+    this.getGameTypeOptions();
   },
   methods: {
     /** 查询Algorithm-Game具体产品列表 */
     getList() {
       this.loading = true;
-      listProduct(this.queryParams).then(response => {
+      // 构建查询参数
+      const queryParams = {
+        ...this.queryParams
+      };
+      
+      listProduct(queryParams).then(response => {
         this.ProductList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
+    },
+    /** 获取算法类型下拉框选项 */
+    getAlgorithmOptions() {
+      request({
+        url: '/Algorithm/Algorithm/options',
+        method: 'get'
+      }).then(res => {
+        this.algorithmOptions = res.data;
+      });
+    },
+    /** 获取游戏类型下拉框选项 */
+    getGameTypeOptions() {
+      request({
+        url: '/GameType/GameType/options',
+        method: 'get'
+      }).then(res => {
+        this.gameTypeOptions = res.data;
+      });
+    },
+    /** 算法选择变更处理 */
+    handleAlgorithmChange(value) {
+      const selectedAlgorithm = this.algorithmOptions.find(item => item.value === value);
+      if (selectedAlgorithm) {
+        this.form.algorithmTypeName = selectedAlgorithm.label;
+      }
+    },
+    /** 游戏类型选择变更处理 */
+    handleGameTypeChange(value) {
+      const selectedGameType = this.gameTypeOptions.find(item => item.value === value);
+      if (selectedGameType) {
+        this.form.gameTypeName = selectedGameType.label;
+      }
     },
     // 取消按钮
     cancel() {

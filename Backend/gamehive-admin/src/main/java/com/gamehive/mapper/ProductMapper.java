@@ -3,18 +3,20 @@ package com.gamehive.mapper;
 import java.util.List;
 import com.gamehive.pojo.Product;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * Algorithm-Game具体产品Mapper接口
- * 
+ *
  * @author Cassifa
  * @date 2025-05-05
  */
-public interface ProductMapper extends BaseMapper<Product>
-{
+@Mapper
+public interface ProductMapper extends BaseMapper<Product> {
+
     /**
      * 查询Algorithm-Game具体产品
-     * 
+     *
      * @param id Algorithm-Game具体产品主键
      * @return Algorithm-Game具体产品
      */
@@ -22,7 +24,7 @@ public interface ProductMapper extends BaseMapper<Product>
 
     /**
      * 查询Algorithm-Game具体产品列表
-     * 
+     *
      * @param product Algorithm-Game具体产品
      * @return Algorithm-Game具体产品集合
      */
@@ -30,7 +32,7 @@ public interface ProductMapper extends BaseMapper<Product>
 
     /**
      * 新增Algorithm-Game具体产品
-     * 
+     *
      * @param product Algorithm-Game具体产品
      * @return 结果
      */
@@ -38,7 +40,7 @@ public interface ProductMapper extends BaseMapper<Product>
 
     /**
      * 修改Algorithm-Game具体产品
-     * 
+     *
      * @param product Algorithm-Game具体产品
      * @return 结果
      */
@@ -46,7 +48,7 @@ public interface ProductMapper extends BaseMapper<Product>
 
     /**
      * 删除Algorithm-Game具体产品
-     * 
+     *
      * @param id Algorithm-Game具体产品主键
      * @return 结果
      */
@@ -54,7 +56,7 @@ public interface ProductMapper extends BaseMapper<Product>
 
     /**
      * 批量删除Algorithm-Game具体产品
-     * 
+     *
      * @param ids 需要删除的数据主键集合
      * @return 结果
      */

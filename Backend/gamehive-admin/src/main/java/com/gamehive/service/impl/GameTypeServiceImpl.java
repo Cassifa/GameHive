@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.gamehive.mapper.GameTypeMapper;
 import com.gamehive.pojo.GameType;
 import com.gamehive.service.IGameTypeService;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 /**
  * 游戏类型Service业务层处理
@@ -102,12 +101,9 @@ public class GameTypeServiceImpl implements IGameTypeService
      */
     @Override
     public List<Map<String, Object>> selectGameTypeOptions() {
-        // 使用LambdaQueryWrapper，只查询需要的字段
-        LambdaQueryWrapper<GameType> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.select(GameType::getGameId, GameType::getGameName);
-        
-        // 使用BaseMapper直接查询
-        List<GameType> list = gameTypeMapper.selectList(queryWrapper);
+        // 使用已有的查询方法
+        GameType gameType = new GameType();
+        List<GameType> list = gameTypeMapper.selectGameTypeList(gameType);
         
         // 转换为前端需要的格式
         List<Map<String, Object>> options = new ArrayList<>();

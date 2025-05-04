@@ -3,6 +3,7 @@ package com.gamehive.mapper;
 import java.util.List;
 import com.gamehive.pojo.Player;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 玩家Mapper接口
@@ -10,6 +11,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author Cassifa
  * @date 2025-05-05
  */
+@Mapper
 public interface PlayerMapper extends BaseMapper<Player> {
 
     /**

@@ -38,6 +38,13 @@ public class ProductController extends BaseController {
 
     /**
      * 查询Algorithm-Game具体产品列表
+     * 支持的查询条件:
+     * - pageNum: 当前页码
+     * - pageSize: 每页记录数
+     * - algorithmTypeId: 算法类型ID
+     * - gameTypeId: 游戏类型ID
+     * - algorithmTypeName: 算法名称（模糊查询）
+     * - gameTypeName: 游戏名称（模糊查询）
      */
     @PreAuthorize("@ss.hasPermi('system:product:list')")
     @GetMapping("/list")

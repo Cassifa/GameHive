@@ -3,6 +3,7 @@ package com.gamehive.mapper;
 import java.util.List;
 import com.gamehive.pojo.GameType;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 游戏类型Mapper接口
@@ -10,6 +11,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author Cassifa
  * @date 2025-05-05
  */
+@Mapper
 public interface GameTypeMapper extends BaseMapper<GameType> {
 
     /**

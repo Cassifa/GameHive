@@ -22,7 +22,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectProductList" parameterType="Product" resultMap="ProductResult">
         <include refid="selectProductVo"/>
         <where>  
+            <if test="algorithmTypeId != null"> and algorithm_type_id = #{algorithmTypeId}</if>
             <if test="algorithmTypeName != null  and algorithmTypeName != ''"> and algorithm_type_name like concat('%', #{algorithmTypeName}, '%')</if>
+            <if test="gameTypeId != null"> and game_type_id = #{gameTypeId}</if>
             <if test="gameTypeName != null  and gameTypeName != ''"> and game_type_name like concat('%', #{gameTypeName}, '%')</if>
         </where>
     </select>
