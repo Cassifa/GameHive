@@ -28,25 +28,37 @@ using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MCTS : AbstractAIStrategy {
-        //游戏搜索轮数
-        protected int SearchCount, baseCount;
-        bool RunBackPropagateMinMax = false;
-        //是否更新搜索次数(小规模棋盘无需更新)
-        protected bool NeedUpdateSearchCount = false;
-        //单次线程最小搜索次数，达到后释放一次锁
-        protected int MinSearchCount = 1000;
-        //互斥期间搜索次数
-        private int AIMoveSearchCount, PlayedPiecesCnt;
+        //*****MCTS抽象类内变量*****//
+        //根节点
+        private MCTSNode RootNode;
         //互斥锁
         Mutex mutex = new Mutex();
         //游戏结束信号
         private volatile bool end = false;
+        //游戏当前搜索轮数
+        private int SearchCount;
+        //互斥期间搜索次数-用于判断是否达到SearchCount
+        private int AIMoveSearchCount;
+        //是否玩家正在思考
+        private bool PlayerPlaying;
+
+        //*****游戏构造参数*****//
         //棋盘一行落子的数
         protected int TotalPiecesCnt;
-        //根节点
-        protected MCTSNode RootNode;
+        //是否启用多线程搜索
+        protected bool MultiThreadExecutionEnabled=true;
+        //是否运行反向传播MinMax
+        protected bool RunBackPropagateMinMax = false;
+        //初始搜索轮数 多线程内部最小搜索次数（达到后释放锁）
+        protected int baseCount = 1000, MinSearchCount = 1000;
+        //是否更新搜索次数(小规模棋盘无需更新)
+        protected bool NeedUpdateSearchCount = false;
+
+        //*****MCTS类共享给子类参数*****//
         //缓存表
         protected ZobristHashingCache<Role> GameOverStatusCache;
+        //总下棋数目
+        protected int PlayedPiecesCnt;
 
         //获取可行落子
         protected abstract List<Tuple<int, int>> GetAvailableMoves(List<List<Role>> board);
@@ -56,6 +68,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //争夺锁，换根
             lock (mutex) {
+                PlayerPlaying = false;
                 //根据玩家决策换根
                 if (lastX != -1) {
                     PlayedPiecesCnt++;
@@ -65,7 +78,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 AIMoveSearchCount = 0;
 
                 //释放锁并等待搜索线程通知-收到通知后判断是否达标
-                while (AIMoveSearchCount < SearchCount)
+                while (AIMoveSearchCount <= SearchCount)
                     Monitor.Wait(mutex);
                 //根据AI决策换根
                 Tuple<int, int> AIDecision = RootNode.GetGreatestUCB().PieceSelectedCompareToFather;
@@ -77,6 +90,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 //更新搜索次数
                 if (NeedUpdateSearchCount)
                     UpdateSearchCount(baseCount, TotalPiecesCnt * TotalPiecesCnt, PlayedPiecesCnt, ref SearchCount);
+                //轮到玩家
+                PlayerPlaying = true;
                 return AIDecision;
             }
         }
@@ -86,6 +101,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             //一直执行直到结束
             while (!end) {
                 lock (mutex) {
+                    //禁用多线程搜索标记
+                    if (!MultiThreadExecutionEnabled && PlayerPlaying)
+                        continue;
                     //搜最小单元后释放一次锁
                     for (int i = 0; i < MinSearchCount; i++)
                         SimulationOnce();
@@ -112,9 +130,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 board.Add(row);
             }
             //非先手者作为虚拟节点（根节点的父节点）所有人
-            Role WhoLeadTo = Role.AI;
-            if (IsAIFirst)
+            Role WhoLeadTo;
+            if (IsAIFirst) {
                 WhoLeadTo = Role.Player;
+                PlayerPlaying = false;
+            } else {
+                WhoLeadTo = Role.AI;
+                PlayerPlaying = true;
+            }
             RootNode = new MCTSNode(board, null, -1, -1, WhoLeadTo, Role.Empty, moves);
 
             //初始化缓存表

@@ -18,11 +18,17 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             TotalPiecesCnt = column;
             switch (level) {
                 case DifficultyLevel.LEVEL_1:
-                    baseCount = 100;
-                    MinSearchCount = 100;
+                    baseCount = 3;
+                    MinSearchCount = 3;
+                    RunBackPropagateMinMax = false;
+                    NeedUpdateSearchCount = false;
+                    MultiThreadExecutionEnabled=false;
                     break;
                 case DifficultyLevel.LEVEL_2:
-                    baseCount = 2000;
+                    baseCount = 200;
+                    RunBackPropagateMinMax = false;
+                    NeedUpdateSearchCount = true;
+                    MultiThreadExecutionEnabled = true;
                     break;
             }
         }
