@@ -30,18 +30,27 @@ using GameHive.Model.AIUtils.AlgorithmUtils;
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class MinMax : AbstractAIStrategy {
         /**********成员定义**********/
+        //**抽象类内变量**//
+        //算法决策
+        private Tuple<int, int> FinalDecide = new Tuple<int, int>(0, 0);
 
-        //最大搜索深度；
-        protected int maxDeep, killingMaxDeep;
+        //**游戏构造参数**//
+        //棋盘行列数
+        protected int TotalPiecesCnt;
+        //最大搜索深度、杀棋搜索深度
+        protected int maxDeep=4, killingMaxDeep=12;
+        //是启用否杀棋
         protected bool RunKillBoard = false;
         //是否需要迭代加深计算
         protected bool DeepeningKillingActivated = false;
+        //是否为VCT算杀
+        protected bool IsVCT=false;
+
+        //**共享给子类参数**//
         //当前已经落子数量
         protected int PlayedPiecesCnt;
-        protected int TotalPiecesCnt;
         //MinMax缓存表、局面估值缓存表、算杀估值表
         protected ZobristHashingCache<int> MinMaxCache;
-        private Tuple<int, int> FinalDecide = new Tuple<int, int>(0, 0);
 
         /**********1.抽象方法**********/
         //初始化棋盘

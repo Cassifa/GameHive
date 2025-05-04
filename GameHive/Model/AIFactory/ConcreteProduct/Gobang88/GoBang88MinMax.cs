@@ -14,6 +14,7 @@
 * 创 建 者：  Cassifa
 * 创建时间：  2024/11/26 18:36
 *************************************************************************************/
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIUtils.AlgorithmUtils;
@@ -23,7 +24,7 @@ using GameHive.Model.GameInfo;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88MinMax : MinMax {
         //具体产品信息 包含难度
-        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
+        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(4);
 
         /**********成员申明与初始化**********/
         //AC自动机执行工具类
@@ -37,12 +38,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //四个变化坐标映射的棋盘，用于优化估值速度
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
-        public GoBang88MinMax(Dictionary<List<Role>, int> RewardTable, Dictionary<List<Role>, KillTypeEnum> killingTable) {
-            //初始化搜索深度
-            maxDeep = 10; killingMaxDeep = 16;
-            TotalPiecesCnt = 8;
-            RunKillBoard = true;
-            DeepeningKillingActivated = true;
+        public GoBang88MinMax(int Column, DifficultyLevel level, Dictionary<List<Role>, int> RewardTable, Dictionary<List<Role>, KillTypeEnum> killingTable) {
+            TotalPiecesCnt = Column;
             //初始缓存表
             MinMaxCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
             BoardValueCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
@@ -57,6 +54,39 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             XYReversedBoard = new List<List<Role>>(TotalPiecesCnt);
             MainDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
             AntiDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
+
+            switch (level) {
+                case DifficultyLevel.LEVEL_1:
+                    //初始化搜索深度
+                    maxDeep = 4;
+                    RunKillBoard = false;
+                    DeepeningKillingActivated = true;
+                    break;
+                case DifficultyLevel.LEVEL_2:
+                    //初始化搜索深度
+                    maxDeep = 6;
+                    killingMaxDeep = 10;
+                    RunKillBoard = true;
+                    DeepeningKillingActivated = true;
+                    IsVCT = false;
+                    break;
+                case DifficultyLevel.LEVEL_3:
+                    //初始化搜索深度
+                    maxDeep = 8;
+                    killingMaxDeep = 12;
+                    RunKillBoard = true;
+                    DeepeningKillingActivated = true;
+                    IsVCT = false;
+                    break;
+                case DifficultyLevel.LEVEL_4:
+                    //初始化搜索深度
+                    maxDeep = 8;
+                    killingMaxDeep = 12;
+                    RunKillBoard = true;
+                    DeepeningKillingActivated = true;
+                    IsVCT = true;
+                    break;
+            }
         }
 
         /**********1.启发函数**********/
@@ -114,10 +144,13 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 int hasScore = 0;
                 for (int i = 0; i < scoredMoves.Count; i++) {
                     var t = scoredMoves[i];
-                    if (moves.Count != 0 && t.Item2.Item1 <= 0 && t.Item2.Item2.score <= 0) break;
-                    if (t.Item2.Item1 != 0) hasScore++;
+                    if (moves.Count != 0 && t.Item2.Item1 <= 0 && t.Item2.Item2.score <= 0)
+                        break;
+                    if (t.Item2.Item1 != 0)
+                        hasScore++;
                     moves.Add(t.Item1);
-                    if (hasScore > 8 || i > 12) break;
+                    if (hasScore > 8 || i > 12)
+                        break;
                 }
                 if (moves.Count == 0)
                     return;
@@ -135,7 +168,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 //如果已经有大量有增益的，不考虑毫无增益的
                 //如果大于10个有增益的直接终止
                 foreach (var t in scoredMoves) {
-                    if ((moves.Count > 5 && t.Item2 == 0) || moves.Count >= 8) break;
+                    if ((moves.Count > 5 && t.Item2 == 0) || moves.Count >= 8)
+                        break;
                     moves.Add(t.Item1);
                 }
                 if (moves.Count == 0)
@@ -148,7 +182,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //判断游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
-            if (x == -1) return Role.Empty;
+            if (x == -1)
+                return Role.Empty;
             Role currentPlayer = currentBoard[x][y];
             //水平、垂直、主对角线、副对角线
             int[] dx = { 1, 0, 1, 1 };
@@ -170,9 +205,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                         break;
                     count++;
                 }
-                if (count >= 5) return currentPlayer;
+                if (count >= 5)
+                    return currentPlayer;
             }
-            if (TotalPiecesCnt * TotalPiecesCnt == PlayedPiecesCnt) return Role.Draw;
+            if (TotalPiecesCnt * TotalPiecesCnt == PlayedPiecesCnt)
+                return Role.Draw;
             return Role.Empty;
         }
 
@@ -187,11 +224,13 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             foreach (var col in XYReversedBoard)
                 ans += ACAutomaton.CalculateLineValue(col);
             foreach (var mainDiagonal in MainDiagonalBoard) {
-                if (mainDiagonal.Count < 5) continue;
+                if (mainDiagonal.Count < 5)
+                    continue;
                 ans += ACAutomaton.CalculateLineValue(mainDiagonal);
             }
             foreach (var antiDiagonal in AntiDiagonalBoard) {
-                if (antiDiagonal.Count < 5) continue;
+                if (antiDiagonal.Count < 5)
+                    continue;
                 ans += ACAutomaton.CalculateLineValue(antiDiagonal);
             }
             //记录缓存值
@@ -219,10 +258,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
              -2, -1, 0, 1, -2, 2, -2, 2, -2, 2, -2, -1, 0, 1, -2, -2 };
             for (int i = 0; i < board.Count; i++) {
                 for (int j = 0; j < board[i].Count; j++) {
-                    if (board[i][j] == Role.Empty) continue;
+                    if (board[i][j] == Role.Empty)
+                        continue;
                     for (int k = 0; k < 24; k++) {
                         int x = i + dx[k], y = j + dy[k];
-                        if (x < 0 || y < 0 || x >= board.Count || y >= board[0].Count) continue;
+                        if (x < 0 || y < 0 || x >= board.Count || y >= board[0].Count)
+                            continue;
                         int power = (k < 8) ? 2 : 1; // 内圈权重更高
                         priorityMap[x, y] += power;
                     }
@@ -242,7 +283,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 usefulSteps.Add(t.Item2);
             }
             //成功获取可行点
-            if (usefulSteps.Count > 0) return usefulSteps;
+            if (usefulSteps.Count > 0)
+                return usefulSteps;
             //如果是AI先手之间下中心
             if (PlayedPiecesCnt == 0)
                 usefulSteps.Add(new Tuple<int, int>(board.Count / 2, board[0].Count / 2));
@@ -268,7 +310,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             for (int i = 0; i < 24; i++) {
                 int newX = lastX + dx[i];
                 int newY = lastY + dy[i];
-                if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt) continue;
+                if (newX < 0 || newY < 0 || newX >= TotalPiecesCnt || newY >= TotalPiecesCnt)
+                    continue;
                 if (currentBoard[newX][newY] == Role.Empty) {
                     newAvailableMoves.Add(new Tuple<int, int>(newX, newY));
                 }
@@ -276,16 +319,19 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             int newSize = newAvailableMoves.Count;
             //上次可用点加入新表，上次可用点为浅拷贝,不存重复点
             foreach (var move in lastAvailableMoves) {
-                if (move.Item1 == lastX && move.Item2 == lastY) continue;
+                if (move.Item1 == lastX && move.Item2 == lastY)
+                    continue;
                 bool flag = true;
                 //搜当前点是否在新加入点中出现过
                 for (int i = 0; i < newSize; i++) {
                     var t = newAvailableMoves[i];
                     if (move.Item1 == t.Item1 && move.Item2 == t.Item2) {
-                        flag = false; break;
+                        flag = false;
+                        break;
                     }
                 }
-                if (flag) newAvailableMoves.Add(move);
+                if (flag)
+                    newAvailableMoves.Add(move);
             }
             return newAvailableMoves;
         }
@@ -326,8 +372,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         // 初始化所有维度的棋盘
         protected override void InitGame() {
             int size = TotalPiecesCnt;
-            NormalBoard.Clear(); XYReversedBoard.Clear();
-            MainDiagonalBoard.Clear(); MainDiagonalBoard.Clear();
+            NormalBoard.Clear();
+            XYReversedBoard.Clear();
+            MainDiagonalBoard.Clear();
+            MainDiagonalBoard.Clear();
             for (int i = 0; i < size; i++) {
                 NormalBoard.Add(new List<Role>(new Role[size]));
                 XYReversedBoard.Add(new List<Role>(new Role[size]));
@@ -373,7 +421,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             if (KillingCache.GetValue(ref best) >= leftDepth)
                 if (best.Item1 != -1)
                     return best;
-                else return best;
+                else
+                    return best;
 
             // 算杀失败
             if (leftDepth == 0 || GameOver) {
@@ -398,14 +447,16 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
                 if (best.Item1 == -1) {
                     //AI还没找到可以算杀成功的棋子，继续找
-                    if (isAI) continue;
+                    if (isAI)
+                        continue;
                     //对手拦截成功，返回空表示算杀失败
                     break; //return null
                 }
                 //找到了 best,记录当前节点导致 best的节点
                 best = new Tuple<int, int>(point.Item1, point.Item2);
                 //已经找到杀棋点位
-                if (isAI) break;
+                if (isAI)
+                    break;
 
             }
             //更新缓存
@@ -437,7 +488,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     return new List<Tuple<int, int, int>> { new Tuple<int, int, int>(i, j, killingBoard.score) };
 
                 //存在危险只找可以连五的棋子，尝试连续冲四防御
-                if (isDanger) continue;
+                if (isDanger)
+                    continue;
 
                 //考虑对手的落子情况
                 KillingBoard foeKillingBoard = EvaluateKill(new Tuple<int, int>(i, j), type == Role.AI ? Role.Player : Role.AI);
@@ -479,7 +531,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     //按分数从大到小排序
                     attackPointList.Sort((p1, p2) => p2.Item3.CompareTo(p1.Item3));
                     //AI有强进攻点位,不考虑后面的点位
-                    if (isAI) return attackPointList;
+                    if (isAI)
+                        return attackPointList;
                     //对手可以选择进攻和防守
                     pointList.AddRange(attackPointList);
                 }
@@ -489,9 +542,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             if (defensePointList.Count > 0) {
                 //进行防守
                 //AI优先选择进攻，把防守点位放后面
-                if (isAI) pointList.AddRange(defensePointList);
+                if (isAI)
+                    pointList.AddRange(defensePointList);
                 //对手优先考虑防守，把防守点位放前面
-                else pointList.InsertRange(0, defensePointList);
+                else
+                    pointList.InsertRange(0, defensePointList);
             }
             return pointList;
         }
@@ -509,8 +564,10 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             if (killingBoard.typeRecord[KillTypeEnum.ThreeAlive] > three) {
                 threeAliveCount++;
                 //同时活三冲四更新活三
-                if (killingBoard.typeRecord[KillTypeEnum.FourBlocked] > four) ThreeAliveWithFourBlockedCount++;
-            } else if (killingBoard.typeRecord[KillTypeEnum.FourBlocked] > four) fourBlockedCount++;
+                if (killingBoard.typeRecord[KillTypeEnum.FourBlocked] > four)
+                    ThreeAliveWithFourBlockedCount++;
+            } else if (killingBoard.typeRecord[KillTypeEnum.FourBlocked] > four)
+                fourBlockedCount++;
         }
 
         //计算此点对于当前角色的杀棋价值

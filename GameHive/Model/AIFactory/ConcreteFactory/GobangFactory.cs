@@ -17,7 +17,7 @@ namespace GameHive.Model.AIFactory {
 
         public override MinMax GetMinMaxProduct(DifficultyLevel level) {
             SetConcreteProductInfo(GoBangMinMax.concreteProductInfo);
-            return new GoBangMinMax(RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
+            return new GoBangMinMax(boardInfo.Column, level, RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
         }
 
         /*——————————不可用———————————*/

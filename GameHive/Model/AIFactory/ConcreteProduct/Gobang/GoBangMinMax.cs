@@ -5,6 +5,7 @@
 * 创 建 者：  Cassifa
 * 创建时间：  2024/11/26 18:36
 *************************************************************************************/
+using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIUtils.AlgorithmUtils;
@@ -14,7 +15,7 @@ using GameHive.Model.GameInfo;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBangMinMax : MinMax {
         //具体产品信息 包含难度
-        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
+        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(4);
 
         /**********成员申明与初始化**********/
         //AC自动机执行工具类
@@ -28,13 +29,9 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //四个变化坐标映射的棋盘，用于优化估值速度
         private List<List<Role>> NormalBoard, XYReversedBoard;
         private List<List<Role>> MainDiagonalBoard, AntiDiagonalBoard;
-        public GoBangMinMax(Dictionary<List<Role>, int> RewardTable, Dictionary<List<Role>, KillTypeEnum> killingTable) {
-            //初始化搜索深度
-            maxDeep = 8;
-            killingMaxDeep = 12;
-            TotalPiecesCnt = 15;
-            RunKillBoard = true;
-            DeepeningKillingActivated = true;
+
+        public GoBangMinMax(int Column, DifficultyLevel level, Dictionary<List<Role>, int> RewardTable, Dictionary<List<Role>, KillTypeEnum> killingTable) {
+            TotalPiecesCnt = Column;
             //初始缓存表
             MinMaxCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
             BoardValueCache = new ZobristHashingCache<int>(TotalPiecesCnt, TotalPiecesCnt);
@@ -49,6 +46,39 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             XYReversedBoard = new List<List<Role>>(TotalPiecesCnt);
             MainDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
             AntiDiagonalBoard = new List<List<Role>>(TotalPiecesCnt * 2 - 1);
+
+            switch (level) {
+                case DifficultyLevel.LEVEL_1:
+                    //初始化搜索深度
+                    maxDeep = 4;
+                    RunKillBoard = false;
+                    DeepeningKillingActivated = true;
+                    break;
+                case DifficultyLevel.LEVEL_2:
+                    //初始化搜索深度
+                    maxDeep = 6;
+                    killingMaxDeep = 10;
+                    RunKillBoard = true;
+                    DeepeningKillingActivated = true;
+                    IsVCT = false;
+                    break;
+                case DifficultyLevel.LEVEL_3:
+                    //初始化搜索深度
+                    maxDeep = 8;
+                    killingMaxDeep = 12;
+                    RunKillBoard = true;
+                    DeepeningKillingActivated = true;
+                    IsVCT = false;
+                    break;
+                case DifficultyLevel.LEVEL_4:
+                    //初始化搜索深度
+                    maxDeep = 8;
+                    killingMaxDeep = 12;
+                    RunKillBoard = true;
+                    DeepeningKillingActivated = true;
+                    IsVCT = true;
+                    break;
+            }
         }
 
         /**********1.启发函数**********/
