@@ -24,6 +24,8 @@ namespace GameHive.Controller {
         public EventHandler LogListBoxRegister;
         //难度选择
         public EventHandler DifficultySelectorRegister;
+        // 保存难度选择器的事件处理器引用
+        private EventHandler currentDifficultySelectorHandler;
         //注册除选择AI、难度选择外事件
         public void RegisterEvent() {
             //注册配置无关组件
@@ -110,25 +112,34 @@ namespace GameHive.Controller {
                 e.DrawFocusRectangle();
             };
 
+            // 如果存在旧的事件处理器，先移除它
+            if (currentDifficultySelectorHandler != null) {
+                mainForm.DifficultySelector.SelectedIndexChanged -= currentDifficultySelectorHandler;
+            }
+
             //清空原有选择
             mainForm.DifficultySelector.Items.Clear();
             //加入所有难度等级
             foreach (DifficultyLevel level in info.DifficultyLevels) {
                 mainForm.DifficultySelector.Items.Add(level.GetChineseName());
             }
+
+            // 创建新的事件处理器并保存引用
+            currentDifficultySelectorHandler = (sender, e) => {
+                if (mainForm.DifficultySelector.SelectedIndex >= 0 && 
+                    mainForm.DifficultySelector.SelectedIndex < info.DifficultyLevels.Count) {
+                    var selectedLevel = info.DifficultyLevels[mainForm.DifficultySelector.SelectedIndex];
+                    ModelMessageSwitchDifficulty(selectedLevel);
+                }
+            };
+
+            // 绑定新的事件处理器
+            mainForm.DifficultySelector.SelectedIndexChanged += currentDifficultySelectorHandler;
+
             //设置默认选择第一项
             if (mainForm.DifficultySelector.Items.Count > 0) {
                 mainForm.DifficultySelector.SelectedIndex = 0;
             }
-            //绑定点击事件
-            mainForm.DifficultySelector.SelectedIndexChanged += (sender, e) => {
-                if (mainForm.DifficultySelector.SelectedIndex >= 0) {
-                    // 获取当前选中的难度等级
-                    var selectedLevel = info.DifficultyLevels[mainForm.DifficultySelector.SelectedIndex];
-                    // 通知模型层切换难度
-                    ModelMessageSwitchDifficulty(selectedLevel);
-                }
-            };
         }
     }
 }
