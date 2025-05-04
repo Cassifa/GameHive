@@ -2,6 +2,7 @@ package com.gamehive.mapper;
 
 import java.util.List;
 import com.gamehive.pojo.Product;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
  * Algorithm-Game具体产品Mapper接口
@@ -9,7 +10,7 @@ import com.gamehive.pojo.Product;
  * @author Cassifa
  * @date 2025-05-05
  */
-public interface ProductMapper 
+public interface ProductMapper extends BaseMapper<Product>
 {
     /**
      * 查询Algorithm-Game具体产品

@@ -4,7 +4,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gamehive.mapper.ProductMapper">
     
-    <resultMap type="Product" id="ProductResult">
+    <resultMap type="com.gamehive.pojo.Product" id="ProductResult">
         <result property="id"    column="id"    />
         <result property="algorithmTypeId"    column="algorithm_type_id"    />
         <result property="algorithmTypeName"    column="algorithm_type_name"    />

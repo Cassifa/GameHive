@@ -2,6 +2,7 @@ package com.gamehive.mapper;
 
 import java.util.List;
 import com.gamehive.pojo.Record;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
  * 对局记录Mapper接口
@@ -9,7 +10,7 @@ import com.gamehive.pojo.Record;
  * @author Cassifa
  * @date 2025-05-05
  */
-public interface RecordMapper 
+public interface RecordMapper extends BaseMapper<Record>
 {
     /**
      * 查询对局记录

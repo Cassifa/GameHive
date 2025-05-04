@@ -4,7 +4,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.gamehive.mapper.GameTypeMapper">
     
-    <resultMap type="GameType" id="GameTypeResult">
+    <resultMap type="com.gamehive.pojo.GameType" id="GameTypeResult">
         <result property="gameId"    column="game_id"    />
         <result property="gameName"    column="game_name"    />
         <result property="gameIntroduction"    column="game_introduction"    />
