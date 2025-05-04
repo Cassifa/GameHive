@@ -51,6 +51,7 @@ namespace GameHive.Controller {
             mainForm.statusSwitch.Click += statusSwitchRegister;
             //mainForm.LogListBox.SelectedIndexChanged += LogListBoxRegister;
         }
+
         //注册并绑定切换AI事件，清除原先选项
         private void RegisterAIType(GameBoardInfo info) {
             //设置居中绘制模式
@@ -73,14 +74,20 @@ namespace GameHive.Controller {
                 e.DrawFocusRectangle();
             };
 
+            //移除旧的事件处理器
+            if (currentAITypeSelectorHandler != null) {
+                mainForm.AIType.SelectedIndexChanged -= currentAITypeSelectorHandler;
+            }
+
             //清空原有选择
             mainForm.AIType.Items.Clear();
             //加入所有可用AI
             foreach (var aiType in info.AllAIType) {
                 mainForm.AIType.Items.Add(aiType.GetChineseName());
             }
-            //绑定点击事件
-            mainForm.AIType.SelectedIndexChanged += (sender, e) => {
+
+            //创建新的事件处理器并保存引用
+            currentAITypeSelectorHandler = (sender, e) => {
                 // 获取当前选中项的中文名称
                 var selectedName = mainForm.AIType.SelectedItem.ToString();
                 // 根据中文名称查找对应的枚举值
@@ -89,7 +96,16 @@ namespace GameHive.Controller {
                 ConcreteProductInfo productInfo = ModelMessageSwitchAI(selectedAI);
                 RegisterDifficultySelector(productInfo);
             };
+
+            //绑定新的事件处理器
+            mainForm.AIType.SelectedIndexChanged += currentAITypeSelectorHandler;
+
+            //设置默认选择第一项
+            if (mainForm.AIType.Items.Count > 0) {
+                mainForm.AIType.SelectedIndex = 0;
+            }
         }
+
         //注册难度等级
         private void RegisterDifficultySelector(ConcreteProductInfo info) {
             //设置居中绘制模式
@@ -112,7 +128,7 @@ namespace GameHive.Controller {
                 e.DrawFocusRectangle();
             };
 
-            // 如果存在旧的事件处理器，先移除它
+            //移除旧的事件处理器
             if (currentDifficultySelectorHandler != null) {
                 mainForm.DifficultySelector.SelectedIndexChanged -= currentDifficultySelectorHandler;
             }
@@ -124,7 +140,7 @@ namespace GameHive.Controller {
                 mainForm.DifficultySelector.Items.Add(level.GetChineseName());
             }
 
-            // 创建新的事件处理器并保存引用
+            //创建新的事件处理器并保存引用
             currentDifficultySelectorHandler = (sender, e) => {
                 if (mainForm.DifficultySelector.SelectedIndex >= 0 && 
                     mainForm.DifficultySelector.SelectedIndex < info.DifficultyLevels.Count) {
