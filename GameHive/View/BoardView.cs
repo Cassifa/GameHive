@@ -18,6 +18,7 @@ namespace GameHive.View {
         private Graphics? graphics;
         private Bitmap? boardBitmap;
 
+        //绘制棋盘
         public void DrawBoard(GameBoardInfo boardInfo) {
             this.boardInfo = boardInfo;
             currentCnt = 0;
@@ -32,15 +33,18 @@ namespace GameHive.View {
                 graphics.DrawLine(Pens.Black, (float)col, (int)boardInfo.Bias, (float)col, (float)boardInfo.BoardLength);
             }
             //绘制轴线
-            if (boardInfo.IsCenter) DrawCenterAxis();
-            else DrawUnCenterAxis();
+            if (boardInfo.IsCenter)
+                DrawCenterAxis();
+            else
+                DrawUnCenterAxis();
             // 在 Panel 或 PictureBox 上显示棋盘
             mainForm.BoardPanel.BackgroundImage = boardBitmap;
         }
 
         // 画一颗棋子在数组坐标系的 x, y 落子
         public void DrawChess(double x, double y, Role role) {
-            if (graphics == null || boardBitmap == null) return;
+            if (graphics == null || boardBitmap == null)
+                return;
 
             currentCnt++;
             int t = currentCnt % 2;
@@ -71,6 +75,7 @@ namespace GameHive.View {
             }
         }
 
+        //初始化绘图区
         private void InitializeGraphics() {
             // 创建画布
             boardBitmap = new Bitmap((int)boardInfo.totalSize, (int)boardInfo.totalSize);
@@ -80,14 +85,15 @@ namespace GameHive.View {
         }
 
         // 清空棋盘
-        public void ClearBoard() {
-            if (graphics == null || boardBitmap == null) return;
+        private void ClearBoard() {
+            if (graphics == null || boardBitmap == null)
+                return;
             graphics.Clear(Color.White);
             DrawBoard(boardInfo); // 重新绘制空棋盘
             mainForm.BoardPanel.Refresh();
         }
 
-
+        //绘制会下在格子的棋子
         private void DrawCenterAxis() {
             int fontSize = (int)boardInfo.R / 6 * 3;
             var font = new Font("Arial", fontSize, FontStyle.Regular); // 坐标字体
@@ -113,6 +119,8 @@ namespace GameHive.View {
                     (float)boardInfo.BoardLength + (float)boardInfo.Bias / 4 - (float)fontSize / 2); // y坐标
             }
         }
+
+        //绘制会下在格线的棋子
         private void DrawUnCenterAxis() {
             int fontSize = (int)boardInfo.R / 2;
             var font = new Font("Arial", fontSize, FontStyle.Regular); // 坐标字体
@@ -125,7 +133,8 @@ namespace GameHive.View {
                 string rowText;
                 if (boardInfo.Rows.Count < 10)
                     rowText = (boardInfo.Rows.Count - i - 1).ToString();
-                else rowText = (boardInfo.Rows.Count - i - 1).ToString().PadLeft(2, ' ');
+                else
+                    rowText = (boardInfo.Rows.Count - i - 1).ToString().PadLeft(2, ' ');
 
                 graphics.DrawString(rowText, font, brush,
                     0,//x坐标
@@ -144,6 +153,7 @@ namespace GameHive.View {
 
         }
 
+        //加载图片
         private Image ByteArrayToImage(byte[] byteArray) {
             using (MemoryStream ms = new MemoryStream(byteArray)) {
                 return Image.FromStream(ms);

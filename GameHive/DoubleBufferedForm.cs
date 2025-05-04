@@ -6,9 +6,9 @@
  * 创建时间：  2024/11/24 22:47
 *************************************************************************************/
 namespace GameHive.MainForm {
-    public partial class Form1 : Form {
+    public partial class DoubleBufferedForm : Form {
         private Controller.Controller controller;
-        public Form1() {
+        public DoubleBufferedForm() {
             //创建组件并初始化外观
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedDialog;

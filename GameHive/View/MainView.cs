@@ -11,13 +11,14 @@ using GameHive.MainForm;
 namespace GameHive.View {
     internal partial class View {
         private Controller.Controller controller;
-        private Form1 mainForm;
+        private DoubleBufferedForm mainForm;
 
         //设置先手
         public void SetFirst(Role role) {
             first = role;
         }
-        //开启游戏
+
+        //游戏开始
         public void StartGame() {
             ClearBoard();
             //处理组件显示
@@ -28,6 +29,8 @@ namespace GameHive.View {
             mainForm.AIType.Enabled = false;
             mainForm.DifficultySelector.Enabled = false;
         }
+
+        //游戏结束或终止
         public void EndGame(Role role) {
             //处理组件显示
             mainForm.Invoke(new Action(() => {
@@ -39,9 +42,11 @@ namespace GameHive.View {
                 mainForm.DifficultySelector.Enabled = true;
             }));
             LogWin(role);
+            //GameOverShow(role);
         }
+
         //游戏结束
-        public void GameOver(Role role) {
+        private void GameOverShow(Role role) {
             string winner = "";
             switch (role) {
                 case Role.Player:
@@ -57,16 +62,19 @@ namespace GameHive.View {
             // 弹出提示框展示赢家
             MessageBox.Show(winner, "Game Over", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+
+
         //单例模式
 #pragma warning disable CS8618
         private static View _instance;
 #pragma warning restore CS8618 
-        private View(Controller.Controller controller, Form1 form) {
+        private View(Controller.Controller controller, DoubleBufferedForm form) {
             this.controller = controller;
             this.mainForm = form;
         }
         private static readonly object _lock = new object();
-        public static View Instance(Controller.Controller controller, Form1 form) {
+        public static View Instance(Controller.Controller controller, DoubleBufferedForm form) {
             if (_instance == null) {
                 lock (_lock) {
                     if (_instance == null) {

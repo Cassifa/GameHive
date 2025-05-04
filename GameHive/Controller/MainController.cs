@@ -15,10 +15,10 @@ using GameHive.Model.GameManager;
 namespace GameHive.Controller {
     //这个函数用于执行控制器生命周期主流程
     internal partial class Controller {
-        private Form1 mainForm;
+        private DoubleBufferedForm mainForm;
         private BoardManager boardManager;
         private View.View view;
-        public Controller(Form1 mainForm) {
+        public Controller(DoubleBufferedForm mainForm) {
             //绑定页面、视图层、模型层
             this.mainForm = mainForm;
             boardManager = BoardManager.Instance(this);

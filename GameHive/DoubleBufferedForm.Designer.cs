@@ -1,5 +1,5 @@
 ﻿namespace GameHive.MainForm {
-    partial class Form1 {
+    partial class DoubleBufferedForm {
         /// <summary>
         ///  Required designer variable.
         /// </summary>

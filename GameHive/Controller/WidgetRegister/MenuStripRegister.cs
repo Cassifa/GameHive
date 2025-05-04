@@ -7,7 +7,7 @@ namespace GameHive.Controller {
         // 保存AI类型选择器的事件处理器引用
         private EventHandler currentAITypeSelectorHandler;
 
-        private void RegisterMenuStrip(Form1 mainForm) {
+        private void RegisterMenuStrip(DoubleBufferedForm mainForm) {
             MenuStrip menuStrip = mainForm.Controls.OfType<MenuStrip>().FirstOrDefault();
             if (menuStrip == null) {
                 throw new InvalidOperationException("主窗体未包含 MenuStrip 控件");
