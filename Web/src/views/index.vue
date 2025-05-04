@@ -188,9 +188,6 @@ import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api
 
 export default {
   name: "Index",
-  components: {
-    AIMatrix
-  },
   data() {
     return {
       // 对局记录数据

@@ -34,7 +34,7 @@ public class Record extends BaseEntity
     private Boolean isPkAi;
 
     /** 对战AI */
-    @Excel(name = "对战AI")
+    @Excel(name = "对战的ai产品编号,如果为匹配对战则为-1")
     private Long aiGameId;
 
     /** 玩家A是否先手 */
@@ -42,15 +42,15 @@ public class Record extends BaseEntity
     private Boolean isAFirst;
 
     /** 赢家 */
-    @Excel(name = "赢家")
+    @Excel(name = "赢家（0-A 1-B 2-平局）")
     private Long winner;
 
     /** A玩家ID */
-    @Excel(name = "A玩家ID")
+    @Excel(name = "A玩家ID,一定是玩家")
     private Long playerAId;
 
     /** B玩家ID */
-    @Excel(name = "B玩家ID")
+    @Excel(name = "如果ai为-1")
     private Long playerBId;
 
     /** 玩家A操作序列 */

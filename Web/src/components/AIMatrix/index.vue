@@ -49,9 +49,17 @@ export default {
     }
   },
   async created() {
-    await this.getList();
+    try {
+      await this.getList();
+    } catch (error) {
+      console.error('获取数据失败:', error);
+    }
   },
   mounted() {
+    this.$nextTick(() => {
+      this.initCanvas();
+      this.drawMatrix();
+    });
     window.addEventListener('resize', this.handleResize);
   },
   beforeDestroy() {
@@ -67,16 +75,21 @@ export default {
           listAiProduct()
         ]);
         
-        this.aiTypes = aiResponse.rows;
-        this.gameTypes = gameResponse.rows;
-        this.products = productResponse.rows;
+        this.aiTypes = aiResponse.rows || [];
+        this.gameTypes = gameResponse.rows || [];
+        this.products = productResponse.rows || [];
         
-        this.$nextTick(() => {
-          this.initCanvas();
-          this.drawMatrix();
-        });
+        if (this.aiTypes.length && this.gameTypes.length) {
+          this.$nextTick(() => {
+            this.initCanvas();
+            this.drawMatrix();
+          });
+        } else {
+          console.warn('AI类型或游戏类型数据为空');
+        }
       } catch (error) {
         console.error('获取数据失败:', error);
+        throw error;
       }
     },
     initCanvas() {

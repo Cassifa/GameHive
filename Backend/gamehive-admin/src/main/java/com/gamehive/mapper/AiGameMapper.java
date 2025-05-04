@@ -5,15 +5,15 @@ import com.gamehive.pojo.AiGame;
 
 /**
  * AI-Game具体产品Mapper接口
- * 
+ *
  * @author Cassifa
  * @date 2025-02-13
  */
-public interface AiGameMapper 
-{
+public interface AiGameMapper {
+
     /**
      * 查询AI-Game具体产品
-     * 
+     *
      * @param id AI-Game具体产品主键
      * @return AI-Game具体产品
      */
@@ -21,7 +21,7 @@ public interface AiGameMapper
 
     /**
      * 查询AI-Game具体产品列表
-     * 
+     *
      * @param aiGame AI-Game具体产品
      * @return AI-Game具体产品集合
      */
@@ -29,7 +29,7 @@ public interface AiGameMapper
 
     /**
      * 新增AI-Game具体产品
-     * 
+     *
      * @param aiGame AI-Game具体产品
      * @return 结果
      */
@@ -37,7 +37,7 @@ public interface AiGameMapper
 
     /**
      * 修改AI-Game具体产品
-     * 
+     *
      * @param aiGame AI-Game具体产品
      * @return 结果
      */
@@ -45,7 +45,7 @@ public interface AiGameMapper
 
     /**
      * 删除AI-Game具体产品
-     * 
+     *
      * @param id AI-Game具体产品主键
      * @return 结果
      */
@@ -53,7 +53,7 @@ public interface AiGameMapper
 
     /**
      * 批量删除AI-Game具体产品
-     * 
+     *
      * @param ids 需要删除的数据主键集合
      * @return 结果
      */
