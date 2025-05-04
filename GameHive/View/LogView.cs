@@ -10,8 +10,26 @@ using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 
 namespace GameHive.View {
+    // 操作记录类
+    public class MoveRecord {
+        public int Id { get; set; }                 // 操作编号
+        public Role Role { get; set; }              // 玩家名称
+        public int X { get; set; }                  // 数组X坐标
+        public int Y { get; set; }                  // 数组Y坐标
+
+        public MoveRecord(int id, Role role, int x, int y) {
+            Id = id;
+            Role = role;
+            X = x;
+            Y = y;
+        }
+    }
+
     //控制历史记录条目
     internal partial class View {
+        private List<MoveRecord> moveRecords = new List<MoveRecord>();
+        private int currentMoveId = 0;
+
         public void AddLog(Color color, string logContext) {
             logContext = " " + logContext;
             if (mainForm.LogListBox.InvokeRequired) {
@@ -27,11 +45,24 @@ namespace GameHive.View {
         }
         //下棋
         public void LogMove(Role role, int x, int y) {
+            //添加记录
             string name = role.GetChineseName();
             char colChar = (char)('A' + x);
-            if (name == "AI") name = "  AI  ";
-            string logMessage = $"{name} 在 ({colChar}, {boardInfo.Column - 1 - y}) 下棋了";
+            if (name == "AI")
+                name = "  AI  ";
+            string logMessage = $"{currentMoveId} {name} 在 ({colChar}, {boardInfo.Column - 1 - y}) 下棋了";
             AddLog(Color.Black, logMessage);
+
+            //维护操作序列
+            currentMoveId++;
+            var record = new MoveRecord(currentMoveId, role, x, y);
+            moveRecords.Add(record);
+        }
+
+        // 清空操作记录
+        private void ClearMoveRecords() {
+            moveRecords.Clear();
+            currentMoveId = 0;
         }
 
         //游戏结束

@@ -7,8 +7,8 @@ namespace GameHive.Controller {
     //用于向视图层发送命令
     internal partial class Controller {
         //增加一条记录
-        private void ViewMessageLogMove(Role role,int x,int y) {
-            view.LogMove(role,x,y);
+        private void ViewMessageLogMove(Role role, int x, int y) {
+            view.LogMove(role, x, y);
         }
 
         //logo弹窗
@@ -42,7 +42,7 @@ namespace GameHive.Controller {
         }
 
         //切换算法
-        private void ViewMessageSwitchAlgorithm(AIAlgorithmType algorithmType ) {
+        private void ViewMessageSwitchAlgorithm(AIAlgorithmType algorithmType) {
             view.LogSwitchAlgorithm(algorithmType);
         }
     }

@@ -28,6 +28,7 @@ namespace GameHive.View {
             mainForm.secondTurn.Enabled = false;
             mainForm.AIType.Enabled = false;
             mainForm.DifficultySelector.Enabled = false;
+            ClearMoveRecords();
         }
 
         //游戏结束或终止
