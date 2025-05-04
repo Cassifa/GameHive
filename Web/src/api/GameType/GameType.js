@@ -42,3 +42,11 @@ export function delGameType(gameId) {
     method: 'delete'
   })
 }
+
+// 获取游戏类型下拉选项
+export function listGameTypeOptions() {
+  return request({
+    url: '/GameType/GameType/options',
+    method: 'get'
+  })
+}

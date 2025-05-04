@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-// 查询Algorithm-Game具体产品列表
+// 查询AI产品列表
 export function listProduct(query) {
   return request({
     url: '/Product/Product/list',
@@ -9,7 +9,7 @@ export function listProduct(query) {
   })
 }
 
-// 查询Algorithm-Game具体产品详细
+// 查询AI产品详细
 export function getProduct(id) {
   return request({
     url: '/Product/Product/' + id,
@@ -17,7 +17,7 @@ export function getProduct(id) {
   })
 }
 
-// 新增Algorithm-Game具体产品
+// 新增AI产品
 export function addProduct(data) {
   return request({
     url: '/Product/Product',
@@ -26,7 +26,7 @@ export function addProduct(data) {
   })
 }
 
-// 修改Algorithm-Game具体产品
+// 修改AI产品
 export function updateProduct(data) {
   return request({
     url: '/Product/Product',
@@ -35,7 +35,7 @@ export function updateProduct(data) {
   })
 }
 
-// 删除Algorithm-Game具体产品
+// 删除AI产品
 export function delProduct(id) {
   return request({
     url: '/Product/Product/' + id,

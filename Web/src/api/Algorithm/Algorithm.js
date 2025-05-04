@@ -42,3 +42,11 @@ export function delAlgorithm(algorithmId) {
     method: 'delete'
   })
 }
+
+// 获取算法类型下拉选项
+export function listAlgorithmOptions() {
+  return request({
+    url: '/Algorithm/Algorithm/options',
+    method: 'get'
+  })
+}

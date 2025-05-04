@@ -12,7 +12,7 @@ import com.gamehive.service.IProductService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 /**
- * Algorithm-Game具体产品Service业务层处理
+ * AI产品Service业务层处理
  * 
  * @author Cassifa
  * @date 2025-05-05
@@ -24,10 +24,10 @@ public class ProductServiceImpl implements IProductService
     private ProductMapper productMapper;
 
     /**
-     * 查询Algorithm-Game具体产品
+     * 查询AI产品
      * 
-     * @param id Algorithm-Game具体产品主键
-     * @return Algorithm-Game具体产品
+     * @param id AI产品主键
+     * @return AI产品
      */
     @Override
     public Product selectProductById(Long id)
@@ -36,10 +36,10 @@ public class ProductServiceImpl implements IProductService
     }
 
     /**
-     * 查询Algorithm-Game具体产品列表
+     * 查询AI产品列表
      * 
-     * @param product Algorithm-Game具体产品
-     * @return Algorithm-Game具体产品
+     * @param product AI产品
+     * @return AI产品
      */
     @Override
     public List<Product> selectProductList(Product product)
@@ -48,9 +48,9 @@ public class ProductServiceImpl implements IProductService
     }
 
     /**
-     * 新增Algorithm-Game具体产品
+     * 新增AI产品
      * 
-     * @param product Algorithm-Game具体产品
+     * @param product AI产品
      * @return 结果
      */
     @Override
@@ -60,9 +60,9 @@ public class ProductServiceImpl implements IProductService
     }
 
     /**
-     * 修改Algorithm-Game具体产品
+     * 修改AI产品
      * 
-     * @param product Algorithm-Game具体产品
+     * @param product AI产品
      * @return 结果
      */
     @Override
@@ -72,9 +72,9 @@ public class ProductServiceImpl implements IProductService
     }
 
     /**
-     * 批量删除Algorithm-Game具体产品
+     * 批量删除AI产品
      * 
-     * @param ids 需要删除的Algorithm-Game具体产品主键
+     * @param ids 需要删除的AI产品主键
      * @return 结果
      */
     @Override
@@ -84,9 +84,9 @@ public class ProductServiceImpl implements IProductService
     }
 
     /**
-     * 删除Algorithm-Game具体产品信息
+     * 删除AI产品信息
      * 
-     * @param id Algorithm-Game具体产品主键
+     * @param id AI产品主键
      * @return 结果
      */
     @Override

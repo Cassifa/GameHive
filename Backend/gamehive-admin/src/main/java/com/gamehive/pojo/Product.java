@@ -6,7 +6,7 @@ import com.gamehive.common.annotation.Excel;
 import com.gamehive.common.core.domain.BaseEntity;
 
 /**
- * Algorithm-Game具体产品对象 product
+ * AI产品对象 product
  *
  * @author Cassifa
  * @date 2025-05-05

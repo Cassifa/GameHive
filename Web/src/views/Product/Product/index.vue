@@ -109,7 +109,7 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改Algorithm-Game具体产品对话框 -->
+    <!-- 添加或修改AI产品对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="算法名称" prop="algorithmTypeName">
@@ -164,7 +164,7 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // Algorithm-Game具体产品表格数据
+      // AI产品表格数据
       ProductList: [],
       // 弹出层标题
       title: "",
@@ -203,7 +203,7 @@ export default {
     this.getGameTypeOptions();
   },
   methods: {
-    /** 查询Algorithm-Game具体产品列表 */
+    /** 查询AI产品列表 */
     getList() {
       this.loading = true;
       // 构建查询参数
@@ -288,7 +288,7 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加Algorithm-Game具体产品";
+      this.title = "添加AI产品";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -297,7 +297,7 @@ export default {
       getProduct(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改Algorithm-Game具体产品";
+        this.title = "修改AI产品";
       });
     },
     /** 提交按钮 */
@@ -323,7 +323,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除Algorithm-Game具体产品编号为"' + ids + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除AI产品编号为"' + ids + '"的数据项？').then(function() {
         return delProduct(ids);
       }).then(() => {
         this.getList();

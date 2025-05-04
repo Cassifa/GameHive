@@ -22,9 +22,10 @@ import com.gamehive.pojo.Product;
 import com.gamehive.service.IProductService;
 import com.gamehive.common.utils.poi.ExcelUtil;
 import com.gamehive.common.core.page.TableDataInfo;
+import com.github.pagehelper.PageHelper;
 
 /**
- * Algorithm-Game具体产品Controller
+ * AI产品Controller
  *
  * @author Cassifa
  * @date 2025-05-05
@@ -37,10 +38,10 @@ public class ProductController extends BaseController {
     private IProductService productService;
 
     /**
-     * 查询Algorithm-Game具体产品列表
+     * 查询AI产品列表
      * 支持的查询条件:
      * - pageNum: 当前页码
-     * - pageSize: 每页记录数
+     * - pageSize: 每页记录数（如果为空则返回所有数据）
      * - algorithmTypeId: 算法类型ID
      * - gameTypeId: 游戏类型ID
      * - algorithmTypeName: 算法名称（模糊查询）
@@ -48,26 +49,37 @@ public class ProductController extends BaseController {
      */
     @PreAuthorize("@ss.hasPermi('system:product:list')")
     @GetMapping("/list")
-    public TableDataInfo list(Product product) {
-        startPage();
+    public TableDataInfo list(
+            @RequestParam(value = "pageNum", required = false) Integer pageNum,
+            @RequestParam(value = "pageSize", required = false) Integer pageSize,
+            Product product) {
+        
+        // 如果pageSize不为空，使用分页查询
+        if (pageSize != null && pageSize > 0) {
+            // 使用PageHelper进行分页
+            int pageNumValue = (pageNum != null && pageNum > 0) ? pageNum : 1;
+            PageHelper.startPage(pageNumValue, pageSize);
+        } 
+        // 否则不分页，返回所有数据
+        
         List<Product> list = productService.selectProductList(product);
         return getDataTable(list);
     }
 
     /**
-     * 导出Algorithm-Game具体产品列表
+     * 导出AI产品列表
      */
     @PreAuthorize("@ss.hasPermi('system:product:export')")
-    @Log(title = "Algorithm-Game具体产品", businessType = BusinessType.EXPORT)
+    @Log(title = "AI产品", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Product product) {
         List<Product> list = productService.selectProductList(product);
         ExcelUtil<Product> util = new ExcelUtil<Product>(Product.class);
-        util.exportExcel(response, list, "Algorithm-Game具体产品数据");
+        util.exportExcel(response, list, "AI产品数据");
     }
 
     /**
-     * 获取Algorithm-Game具体产品详细信息
+     * 获取AI产品详细信息
      */
     @PreAuthorize("@ss.hasPermi('system:product:query')")
     @GetMapping(value = "/{id}")
@@ -76,30 +88,30 @@ public class ProductController extends BaseController {
     }
 
     /**
-     * 新增Algorithm-Game具体产品
+     * 新增AI产品
      */
     @PreAuthorize("@ss.hasPermi('system:product:add')")
-    @Log(title = "Algorithm-Game具体产品", businessType = BusinessType.INSERT)
+    @Log(title = "AI产品", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Product product) {
         return toAjax(productService.insertProduct(product));
     }
 
     /**
-     * 修改Algorithm-Game具体产品
+     * 修改AI产品
      */
     @PreAuthorize("@ss.hasPermi('system:product:edit')")
-    @Log(title = "Algorithm-Game具体产品", businessType = BusinessType.UPDATE)
+    @Log(title = "AI产品", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody Product product) {
         return toAjax(productService.updateProduct(product));
     }
 
     /**
-     * 删除Algorithm-Game具体产品
+     * 删除AI产品
      */
     @PreAuthorize("@ss.hasPermi('system:product:remove')")
-    @Log(title = "Algorithm-Game具体产品", businessType = BusinessType.DELETE)
+    @Log(title = "AI产品", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids) {
         return toAjax(productService.deleteProductByIds(ids));
