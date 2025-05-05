@@ -230,29 +230,6 @@ export default {
       }
     };
   },
-  watch: {
-    // 监听查询参数变化，同步到热力图参数
-    'queryParams.gameTypeId': function(val) {
-      this.heatmapParams.gameTypeId = val;
-      this.refreshHeatmap();
-    },
-    'queryParams.isPkAi': function(val) {
-      this.heatmapParams.isPkAi = val;
-      this.refreshHeatmap();
-    },
-    'queryParams.algorithmId': function(val) {
-      this.heatmapParams.algorithmId = val;
-      this.refreshHeatmap();
-    },
-    'queryParams.winner': function(val) {
-      this.heatmapParams.winner = val;
-      this.refreshHeatmap();
-    },
-    'queryParams.playerName': function(val) {
-      this.heatmapParams.playerName = val;
-      this.refreshHeatmap();
-    }
-  },
   created() {
     this.getList();
     this.getGameTypeOptions();
@@ -353,7 +330,10 @@ export default {
         winner: this.queryParams.winner,
         playerName: this.queryParams.playerName
       };
-      this.refreshHeatmap();
+      // 刷新热力图
+      if (this.$refs.heatmap) {
+        this.$refs.heatmap.refresh();
+      }
     },
     /** 重置按钮操作 */
     resetQuery() {
@@ -369,6 +349,11 @@ export default {
         winner: null,
         playerName: null
       };
+      
+      // 刷新热力图
+      if (this.$refs.heatmap) {
+        this.$refs.heatmap.refresh();
+      }
       
       this.handleQuery();
     },
@@ -429,16 +414,6 @@ export default {
       this.download('Record/Record/export', {
         ...this.queryParams
       }, `Record_${new Date().getTime()}.xlsx`)
-    },
-    // 刷新热力图
-    refreshHeatmap() {
-      // 延迟执行，避免频繁刷新
-      clearTimeout(this.heatmapTimer);
-      this.heatmapTimer = setTimeout(() => {
-        if (this.$refs.heatmap) {
-          this.$refs.heatmap.refresh();
-        }
-      }, 500);
     }
   }
 };
