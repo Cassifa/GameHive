@@ -1,5 +1,7 @@
 package com.gamehive.service;
 
+import com.gamehive.common.core.domain.AjaxResult;
+
 import java.util.Map;
 
 /**
@@ -15,7 +17,7 @@ public interface IClientService {
      * @param password 密码
      * @return 用户信息，包含userId, userName, nickName等字段
      */
-    Object login(String username, String password);
+    AjaxResult login(String username, String password);
 
     /**
      * 上传对局结果

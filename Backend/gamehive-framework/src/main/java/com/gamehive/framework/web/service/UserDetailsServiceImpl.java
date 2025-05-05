@@ -38,13 +38,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         SysUser user = userService.selectUserByUserName(username);
         if (StringUtils.isNull(user)) {
             log.info("登录用户：{} 不存在.", username);
-            throw new ServiceException(MessageUtils.message("user.not.exists"));
+            throw new UsernameNotFoundException(MessageUtils.message("用户不存在"));
         } else if (UserStatus.DELETED.getCode().equals(user.getDelFlag())) {
             log.info("登录用户：{} 已被删除.", username);
-            throw new ServiceException(MessageUtils.message("user.password.delete"));
+            throw new UsernameNotFoundException(MessageUtils.message("用户已注销"));
         } else if (UserStatus.DISABLE.getCode().equals(user.getStatus())) {
             log.info("登录用户：{} 已被停用.", username);
-            throw new ServiceException(MessageUtils.message("user.blocked"));
+            throw new UsernameNotFoundException(MessageUtils.message("用户已停用"));
         }
 
         passwordService.validate(user);

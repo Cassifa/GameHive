@@ -1,15 +1,15 @@
 /*************************************************************************************
- * ÎÄ ¼ş Ãû:   Form1.cs
- * Ãè    Êö: 
- * °æ    ±¾£º  V2.0 .NET¿Í»§¶Ë³õ°æ
- * ´´ ½¨ Õß£º  Cassifa
- * ´´½¨Ê±¼ä£º  2024/11/24 22:47
+ * æ–‡ ä»¶ å:   Form1.cs
+ * æ    è¿°: 
+ * ç‰ˆ    æœ¬ï¼š  V2.0 .NETå®¢æˆ·ç«¯åˆç‰ˆ
+ * åˆ› å»º è€…ï¼š  Cassifa
+ * åˆ›å»ºæ—¶é—´ï¼š  2024/11/24 22:47
 *************************************************************************************/
 namespace GameHive.MainForm {
     public partial class DoubleBufferedForm : Form {
         private Controller.Controller controller;
         public DoubleBufferedForm() {
-            //´´½¨×é¼ş²¢³õÊ¼»¯Íâ¹Û
+            //åˆ›å»ºç»„ä»¶å¹¶åˆå§‹åŒ–å¤–è§‚
             InitializeComponent();
             FormBorderStyle = FormBorderStyle.FixedDialog;
             LogListBox.DrawMode = DrawMode.OwnerDrawFixed;
@@ -18,15 +18,15 @@ namespace GameHive.MainForm {
                 var listBox = sender as ListBox;
                 var item = listBox?.Items[e.Index] as ColoredListItem;
                 if (item == null) return;
-                // »æÖÆÎÄ±¾
+                // ç»˜åˆ¶æ–‡æœ¬
                 using (Brush brush = new SolidBrush(item.TextColor)) {
                     e.Graphics.DrawString(item.Text, e.Font, brush, e.Bounds);
                 }
-                // »æÖÆ½¹µã¿ò
+                // ç»˜åˆ¶ç„¦ç‚¹æ¡†
                 e.DrawFocusRectangle();
             };
 
-            //×¢²á¿ØÖÆÆ÷
+            //æ³¨å†Œæ§åˆ¶å™¨
             controller = new Controller.Controller(this);
 
         }

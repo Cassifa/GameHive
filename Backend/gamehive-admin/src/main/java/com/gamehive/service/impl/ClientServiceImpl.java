@@ -1,22 +1,17 @@
 package com.gamehive.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gamehive.common.core.domain.AjaxResult;
 import com.gamehive.common.core.domain.entity.SysUser;
-import com.gamehive.common.core.domain.model.LoginUser;
 import com.gamehive.pojo.Record;
 import com.gamehive.service.IClientService;
 import com.gamehive.service.IRecordService;
 import com.gamehive.system.service.ISysUserService;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 /**
  * 客户端服务实现
@@ -25,13 +20,13 @@ import org.springframework.stereotype.Service;
 public class ClientServiceImpl implements IClientService {
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
     private IRecordService recordService;
 
     @Autowired
     private ISysUserService userService;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -41,25 +36,28 @@ public class ClientServiceImpl implements IClientService {
      *
      * @param username 用户名
      * @param password 密码
-     * @return 包含用户ID和基本信息的Map
+     * @return AjaxResult 包含登录结果
      */
     @Override
-    public Object login(String username, String password) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+    public AjaxResult login(String username, String password) {
+        // 1. 根据用户名查询用户信息
+        SysUser user = userService.selectUserByUserName(username);
 
-        // 获取登录用户信息
-        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        SysUser user = loginUser.getUser();
+        // 2. 检查用户是否存在以及状态
+        if (user == null) {
+            return AjaxResult.error("登录失败：用户不存在");
+        }
+        // 3. 比对密码
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            return AjaxResult.error("登录失败：用户名或密码错误");
+        }
 
-        // 返回包含用户ID和用户名的信息
+        // 4. 认证成功，返回用户信息
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("userId", user.getUserId());
         userInfo.put("userName", user.getUserName());
         userInfo.put("nickName", user.getNickName());
-
-        return userInfo;
+        return AjaxResult.success(userInfo);
     }
 
     /**
@@ -124,7 +122,7 @@ public class ClientServiceImpl implements IClientService {
 
                 // 根据role和playerFirst确定该步骤是属于先手还是后手
                 boolean isFirstPlayer = (playerFirst && "Player".equals(role)) || (!playerFirst && "AI".equals(role));
-                
+
                 // 构造坐标对
                 Map<String, Object> positionPair = new HashMap<>();
                 positionPair.put("x", move.get("x"));

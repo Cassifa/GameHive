@@ -25,6 +25,7 @@
         private void InitializeComponent() {
             menuStrip = new MenuStrip();
             rightPanel = new Panel();
+            loginStatus = new Label();
             DifficultySelector = new ComboBox();
             secondTurn = new RadioButton();
             firstTurn = new RadioButton();
@@ -53,6 +54,7 @@
             // rightPanel
             // 
             rightPanel.AccessibleRole = AccessibleRole.PageTabList;
+            rightPanel.Controls.Add(loginStatus);
             rightPanel.Controls.Add(DifficultySelector);
             rightPanel.Controls.Add(secondTurn);
             rightPanel.Controls.Add(firstTurn);
@@ -65,12 +67,22 @@
             rightPanel.Size = new Size(300, 900);
             rightPanel.TabIndex = 1;
             // 
+            // loginStatus
+            // 
+            loginStatus.AutoSize = true;
+            loginStatus.Location = new Point(154, 381);
+            loginStatus.Name = "loginStatus";
+            loginStatus.Size = new Size(82, 24);
+            loginStatus.TabIndex = 0;
+            loginStatus.Text = "点此登录";
+            loginStatus.TextAlign = ContentAlignment.MiddleCenter;
+            // 
             // DifficultySelector
             // 
             DifficultySelector.Cursor = Cursors.Hand;
             DifficultySelector.DropDownStyle = ComboBoxStyle.DropDownList;
             DifficultySelector.FormattingEnabled = true;
-            DifficultySelector.Location = new Point(134, 401);
+            DifficultySelector.Location = new Point(134, 424);
             DifficultySelector.Name = "DifficultySelector";
             DifficultySelector.Size = new Size(116, 32);
             DifficultySelector.TabIndex = 7;
@@ -168,7 +180,7 @@
             BoardPanel.Size = new Size(810, 810);
             BoardPanel.TabIndex = 0;
             // 
-            // Form1
+            // DoubleBufferedForm
             // 
             AutoScaleDimensions = new SizeF(11F, 24F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -177,7 +189,7 @@
             Controls.Add(rightPanel);
             Controls.Add(menuStrip);
             MainMenuStrip = menuStrip;
-            Name = "Form1";
+            Name = "DoubleBufferedForm";
             Text = "GameHive";
             Load += Form1_Load;
             rightPanel.ResumeLayout(false);
@@ -204,5 +216,6 @@
         public ListBox LogListBox;
         public ComboBox DifficultySelector;
         public MyPanel BoardPanel;
+        public Label loginStatus;
     }
 }
