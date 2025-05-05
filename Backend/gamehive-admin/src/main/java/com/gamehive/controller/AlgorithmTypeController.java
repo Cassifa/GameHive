@@ -3,7 +3,6 @@ package com.gamehive.controller;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +37,6 @@ public class AlgorithmTypeController extends BaseController {
     /**
      * 查询算法类型列表
      */
-    @PreAuthorize("@ss.hasPermi('system:type:list')")
     @GetMapping("/list")
     public TableDataInfo list(AlgorithmType algorithmType) {
         startPage();
@@ -49,7 +47,6 @@ public class AlgorithmTypeController extends BaseController {
     /**
      * 导出算法类型列表
      */
-    @PreAuthorize("@ss.hasPermi('system:type:export')")
     @Log(title = "算法类型", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, AlgorithmType algorithmType) {
@@ -61,7 +58,6 @@ public class AlgorithmTypeController extends BaseController {
     /**
      * 获取算法类型详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:type:query')")
     @GetMapping(value = "/{algorithmId}")
     public AjaxResult getInfo(@PathVariable("algorithmId") Long algorithmId) {
         return success(algorithmTypeService.selectAlgorithmTypeByAlgorithmId(algorithmId));
@@ -70,7 +66,6 @@ public class AlgorithmTypeController extends BaseController {
     /**
      * 新增算法类型
      */
-    @PreAuthorize("@ss.hasPermi('system:type:add')")
     @Log(title = "算法类型", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody AlgorithmType algorithmType) {
@@ -80,7 +75,6 @@ public class AlgorithmTypeController extends BaseController {
     /**
      * 修改算法类型
      */
-    @PreAuthorize("@ss.hasPermi('system:type:edit')")
     @Log(title = "算法类型", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody AlgorithmType algorithmType) {
@@ -90,7 +84,6 @@ public class AlgorithmTypeController extends BaseController {
     /**
      * 删除算法类型
      */
-    @PreAuthorize("@ss.hasPermi('system:type:remove')")
     @Log(title = "算法类型", businessType = BusinessType.DELETE)
     @DeleteMapping("/{algorithmIds}")
     public AjaxResult remove(@PathVariable Long[] algorithmIds) {

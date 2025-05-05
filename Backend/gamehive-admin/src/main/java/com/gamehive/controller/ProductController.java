@@ -3,7 +3,6 @@ package com.gamehive.controller;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,7 +46,6 @@ public class ProductController extends BaseController {
      * - algorithmTypeName: 算法名称（模糊查询）
      * - gameTypeName: 游戏名称（模糊查询）
      */
-    @PreAuthorize("@ss.hasPermi('system:product:list')")
     @GetMapping("/list")
     public TableDataInfo list(
             @RequestParam(value = "pageNum", required = false) Integer pageNum,
@@ -69,7 +67,6 @@ public class ProductController extends BaseController {
     /**
      * 导出AI产品列表
      */
-    @PreAuthorize("@ss.hasPermi('system:product:export')")
     @Log(title = "AI产品", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Product product) {
@@ -81,7 +78,6 @@ public class ProductController extends BaseController {
     /**
      * 获取AI产品详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:product:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id) {
         return success(productService.selectProductById(id));
@@ -90,7 +86,6 @@ public class ProductController extends BaseController {
     /**
      * 新增AI产品
      */
-    @PreAuthorize("@ss.hasPermi('system:product:add')")
     @Log(title = "AI产品", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Product product) {
@@ -100,7 +95,6 @@ public class ProductController extends BaseController {
     /**
      * 修改AI产品
      */
-    @PreAuthorize("@ss.hasPermi('system:product:edit')")
     @Log(title = "AI产品", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody Product product) {
@@ -110,7 +104,6 @@ public class ProductController extends BaseController {
     /**
      * 删除AI产品
      */
-    @PreAuthorize("@ss.hasPermi('system:product:remove')")
     @Log(title = "AI产品", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids) {

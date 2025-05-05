@@ -7,9 +7,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.gamehive.common.core.domain.entity.SysUser;
 import com.gamehive.common.core.domain.model.LoginUser;
 import com.gamehive.common.utils.SecurityUtils;
 import com.gamehive.framework.web.service.SysPermissionService;
@@ -76,56 +74,15 @@ public class RecordServiceImpl implements IRecordService {
         }
 
         // 如果不是管理员，则只查询与当前用户相关的记录
-        // 使用Wrapper条件构建器
-        QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
+        record.getParams().put("currentUserId", userId);
 
-        // 1. 添加用户过滤条件
-        queryWrapper.and(wrapper -> wrapper
-                .eq("first_player_id", userId)
-                .or()
-                .eq("second_player_id", userId));
-
-        // 2. 添加其他查询条件
-        if (record.getGameTypeId() != null) {
-            queryWrapper.eq("game_type_id", record.getGameTypeId());
-        }
-        if (record.getGameTypeName() != null && !record.getGameTypeName().isEmpty()) {
-            queryWrapper.like("game_type_name", record.getGameTypeName());
-        }
-        if (record.getIsPkAi() != null) {
-            queryWrapper.eq("is_pk_ai", record.getIsPkAi());
-        }
-        if (record.getAlgorithmId() != null) {
-            queryWrapper.eq("algorithm_id", record.getAlgorithmId());
-        }
-        if (record.getAlgorithmName() != null && !record.getAlgorithmName().isEmpty()) {
-            queryWrapper.like("algorithm_name", record.getAlgorithmName());
-        }
-        if (record.getWinner() != null) {
-            queryWrapper.eq("winner", record.getWinner());
-        }
-        if (record.getFirstPlayer() != null && !record.getFirstPlayer().isEmpty()) {
-            queryWrapper.like("first_player", record.getFirstPlayer());
-        }
-        if (record.getSecondPlayerName() != null && !record.getSecondPlayerName().isEmpty()) {
-            queryWrapper.like("second_player_name", record.getSecondPlayerName());
-        }
-
-        // 3. 处理playerName参数
+        // 处理playerName参数
         String playerName = (String) record.getParams().get("playerName");
         if (playerName != null && !playerName.isEmpty()) {
-            // 普通用户传playerName时，需要匹配对手名称
-            queryWrapper.and(wrapper -> wrapper
-                    .and(w -> w
-                            .eq("first_player_id", userId)
-                            .like("second_player_name", playerName))
-                    .or(w -> w
-                            .eq("second_player_id", userId)
-                            .like("first_player", playerName)));
+            record.getParams().put("opponentName", playerName);
         }
 
-        // 执行查询
-        return recordMapper.selectList(queryWrapper);
+        return recordMapper.selectRecordList(record);
     }
 
     /**
@@ -186,8 +143,13 @@ public class RecordServiceImpl implements IRecordService {
     @Override
     public List<Map<String, Object>> getHeatmapData(Long userId, Long gameTypeId, Boolean isPkAi,
             Long algorithmId, Long winner, String playerName) {
-        // 在Service层构建查询条件
-
+        
+        Record record = new Record();
+        record.setGameTypeId(gameTypeId);
+        record.setIsPkAi(isPkAi);
+        record.setAlgorithmId(algorithmId);
+        record.setWinner(winner);
+        
         // 判断当前用户是否为管理员
         boolean isAdmin = false;
         LoginUser loginUser = SecurityUtils.getLoginUser();
@@ -199,60 +161,20 @@ public class RecordServiceImpl implements IRecordService {
             }
         }
 
-        // 构建QueryWrapper
-        QueryWrapper<Record> queryWrapper = new QueryWrapper<>();
-
-        // 根据不同条件过滤数据
-        // 1. 如果不是管理员，只显示与当前用户相关的对局记录
+        // 如果不是管理员，添加用户ID过滤
         if (!isAdmin && userId != null) {
-            queryWrapper.and(wrapper -> wrapper
-                    .eq("first_player_id", userId)
-                    .or()
-                    .eq("second_player_id", userId));
+            record.getParams().put("currentUserId", userId);
         }
 
-        // 2. 根据游戏类型、AI对局、算法ID、赢家等过滤
-        if (gameTypeId != null) {
-            queryWrapper.eq("game_type_id", gameTypeId);
-        }
-        if (isPkAi != null) {
-            queryWrapper.eq("is_pk_ai", isPkAi);
-        }
-        if (algorithmId != null) {
-            queryWrapper.eq("algorithm_id", algorithmId);
-        }
-        if (winner != null) {
-            queryWrapper.eq("winner", winner);
-        }
-
-        // 3. 根据玩家名称过滤
+        // 处理playerName参数
         if (playerName != null && !playerName.isEmpty()) {
             if (isAdmin) {
-                // 管理员传playerName时，匹配任意一方玩家
-                queryWrapper.and(wrapper -> wrapper
-                        .like("first_player", playerName)
-                        .or()
-                        .like("second_player_name", playerName));
-            } else if (userId != null) {
-                // 普通用户传playerName时，匹配对手名称
-                queryWrapper.and(wrapper -> wrapper
-                        .and(w -> w
-                                .eq("first_player_id", userId)
-                                .like("second_player_name", playerName))
-                        .or(w -> w
-                                .eq("second_player_id", userId)
-                                .like("first_player", playerName)));
+                record.getParams().put("playerName", playerName);
+            } else {
+                record.getParams().put("opponentName", playerName);
             }
         }
 
-        // 添加日期格式化和分组
-        queryWrapper.select("DATE_FORMAT(record_time, '%Y-%m-%d') as date", "COUNT(*) as count");
-        queryWrapper.groupBy("DATE_FORMAT(record_time, '%Y-%m-%d')");
-        queryWrapper.orderByAsc("date");
-
-        // 执行查询
-        List<Map<String, Object>> heatmapData = recordMapper.selectMaps(queryWrapper);
-
-        return heatmapData;
+        return recordMapper.selectRecordHeatmap(record);
     }
 }

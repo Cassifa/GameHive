@@ -3,7 +3,6 @@ package com.gamehive.controller;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,7 +47,6 @@ public class RecordController extends BaseController {
      * - winner: 赢家
      * - playerName: 玩家名称（用于模糊查询先手或后手玩家）
      */
-    @PreAuthorize("@ss.hasPermi('system:record:list')")
     @GetMapping("/list")
     public TableDataInfo list(
             @RequestParam(value = "pageNum", required = false) Integer pageNum,
@@ -99,7 +97,6 @@ public class RecordController extends BaseController {
     /**
      * 导出对局记录列表
      */
-    @PreAuthorize("@ss.hasPermi('system:record:export')")
     @Log(title = "对局记录", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Record record) {
@@ -111,7 +108,6 @@ public class RecordController extends BaseController {
     /**
      * 获取对局记录详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:record:query')")
     @GetMapping(value = "/{recordId}")
     public AjaxResult getInfo(@PathVariable("recordId") Long recordId) {
         return success(recordService.selectRecordByRecordId(recordId));
@@ -120,7 +116,6 @@ public class RecordController extends BaseController {
     /**
      * 新增对局记录
      */
-    @PreAuthorize("@ss.hasPermi('system:record:add')")
     @Log(title = "对局记录", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody Record record) {
@@ -130,7 +125,6 @@ public class RecordController extends BaseController {
     /**
      * 修改对局记录
      */
-    @PreAuthorize("@ss.hasPermi('system:record:edit')")
     @Log(title = "对局记录", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody Record record) {
@@ -140,7 +134,6 @@ public class RecordController extends BaseController {
     /**
      * 删除对局记录
      */
-    @PreAuthorize("@ss.hasPermi('system:record:remove')")
     @Log(title = "对局记录", businessType = BusinessType.DELETE)
     @DeleteMapping("/{recordIds}")
     public AjaxResult remove(@PathVariable Long[] recordIds) {
@@ -167,7 +160,6 @@ public class RecordController extends BaseController {
      *   ]
      * }
      */
-    @PreAuthorize("@ss.hasPermi('system:record:list')")
     @GetMapping("/heatmap")
     public AjaxResult getHeatmapData(
             @RequestParam(required = false) Long gameTypeId,

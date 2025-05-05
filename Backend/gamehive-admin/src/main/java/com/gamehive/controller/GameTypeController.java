@@ -3,7 +3,6 @@ package com.gamehive.controller;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +37,6 @@ public class GameTypeController extends BaseController {
     /**
      * 查询游戏类型列表
      */
-    @PreAuthorize("@ss.hasPermi('system:type:list')")
     @GetMapping("/list")
     public TableDataInfo list(GameType gameType) {
         startPage();
@@ -49,7 +47,6 @@ public class GameTypeController extends BaseController {
     /**
      * 导出游戏类型列表
      */
-    @PreAuthorize("@ss.hasPermi('system:type:export')")
     @Log(title = "游戏类型", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, GameType gameType) {
@@ -61,7 +58,6 @@ public class GameTypeController extends BaseController {
     /**
      * 获取游戏类型详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:type:query')")
     @GetMapping(value = "/{gameId}")
     public AjaxResult getInfo(@PathVariable("gameId") Long gameId) {
         return success(gameTypeService.selectGameTypeByGameId(gameId));
@@ -70,7 +66,6 @@ public class GameTypeController extends BaseController {
     /**
      * 新增游戏类型
      */
-    @PreAuthorize("@ss.hasPermi('system:type:add')")
     @Log(title = "游戏类型", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody GameType gameType) {
@@ -80,7 +75,6 @@ public class GameTypeController extends BaseController {
     /**
      * 修改游戏类型
      */
-    @PreAuthorize("@ss.hasPermi('system:type:edit')")
     @Log(title = "游戏类型", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody GameType gameType) {
@@ -90,7 +84,6 @@ public class GameTypeController extends BaseController {
     /**
      * 删除游戏类型
      */
-    @PreAuthorize("@ss.hasPermi('system:type:remove')")
     @Log(title = "游戏类型", businessType = BusinessType.DELETE)
     @DeleteMapping("/{gameIds}")
     public AjaxResult remove(@PathVariable Long[] gameIds) {

@@ -222,12 +222,33 @@
 		</foreach>
 	</delete>
 
-	<select id="getHeatmapData" resultType="java.util.Map">
+	<select id="selectRecordHeatmap" parameterType="Record" resultType="java.util.Map">
 		SELECT 
 			DATE_FORMAT(record_time, '%Y-%m-%d') as date,
 			COUNT(*) as count
 		FROM 
 			record
+		<where>
+			<if test="params.userId != null">
+				AND (first_player_id = #{params.userId} OR second_player_id = #{params.userId})
+			</if>
+			<if test="gameTypeId != null">
+				AND game_type_id = #{gameTypeId}
+			</if>
+			<if test="isPkAi != null">
+				AND is_pk_ai = #{isPkAi}
+			</if>
+			<if test="algorithmId != null">
+				AND algorithm_id = #{algorithmId}
+			</if>
+			<if test="winner != null">
+				AND winner = #{winner}
+			</if>
+			<if test="params.playerName != null and params.playerName != ''">
+				AND (first_player like concat('%', #{params.playerName}, '%') 
+				  OR second_player_name like concat('%', #{params.playerName}, '%'))
+			</if>
+		</where>
 		GROUP BY 
 			DATE_FORMAT(record_time, '%Y-%m-%d')
 		ORDER BY 

@@ -67,7 +67,8 @@ public interface RecordMapper extends BaseMapper<Record> {
     /**
      * 获取对局记录热力图数据
      * 
+     * @param record 查询条件
      * @return 热力图数据
      */
-    public List<Map<String, Object>> getHeatmapData();
+    public List<Map<String, Object>> selectRecordHeatmap(Record record);
 }
