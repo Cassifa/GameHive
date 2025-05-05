@@ -167,7 +167,7 @@
 </template>
 
 <script>
-import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api/Record/Record";
+import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api/record/record";
 import { listGameTypeOptions } from "@/api/GameType/GameType";
 import { listAlgorithmOptions } from "@/api/Algorithm/Algorithm";
 import { listAlgorithmsByGameId } from "@/api/Product/Product";

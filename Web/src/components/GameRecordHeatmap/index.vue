@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import { getRecordHeatmapData } from "@/api/Record/RecordHeatmap";
+import { getRecordHeatmapData } from "@/api/record/RecordHeatmap";
 
 // 热力图模拟数据服务
 class MockHeatmapService {
