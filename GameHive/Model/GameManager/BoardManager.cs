@@ -16,9 +16,9 @@ namespace GameHive.Model.GameManager {
         //控制层实例
         private Controller.Controller controller;
         //当前在玩的游戏
-        private GameType gameType;
+        public GameType gameType { get; set; }
         //当前在使用的AI算法
-        private AIAlgorithmType aIAlgorithmType;
+        public AIAlgorithmType aIAlgorithmType { get; set; }
         //当前运行游戏的编码
         private int RoundId;
         //AI正在决策
@@ -55,7 +55,7 @@ namespace GameHive.Model.GameManager {
         private bool PlayChess(Role role, int x, int y) {
             board[x][y] = role;
             //处理落子结果
-            Role winner = runningAI.CheckGameOverByPiece(board,x,y);
+            Role winner = runningAI.CheckGameOverByPiece(board, x, y);
             //胜者不为空说明 AI胜利/玩家胜利/平局
             if (winner != Role.Empty) {
                 //处理结束后工作

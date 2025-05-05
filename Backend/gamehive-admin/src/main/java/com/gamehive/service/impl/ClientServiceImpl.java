@@ -3,8 +3,13 @@ package com.gamehive.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamehive.common.core.domain.AjaxResult;
 import com.gamehive.common.core.domain.entity.SysUser;
+import com.gamehive.constants.SpecialPlayerEnum;
+import com.gamehive.pojo.AlgorithmType;
+import com.gamehive.pojo.GameType;
 import com.gamehive.pojo.Record;
+import com.gamehive.service.IAlgorithmTypeService;
 import com.gamehive.service.IClientService;
+import com.gamehive.service.IGameTypeService;
 import com.gamehive.service.IRecordService;
 import com.gamehive.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +29,12 @@ public class ClientServiceImpl implements IClientService {
 
     @Autowired
     private ISysUserService userService;
+
+    @Autowired
+    private IGameTypeService gameTypeService;
+
+    @Autowired
+    private IAlgorithmTypeService algorithmTypeService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -78,34 +89,61 @@ public class ClientServiceImpl implements IClientService {
 
             // 1. 设置基本信息
             record.setIsPkAi(true); // 必须是与AI对局
-            record.setAlgorithmName((String) gameData.get("algorithmName"));
-            record.setGameTypeName((String) gameData.get("gameTypeName"));
+            String gameTypeName = (String) gameData.get("gameTypeName");
+            String algorithmName = (String) gameData.get("algorithmName");
+            record.setGameTypeName(gameTypeName);
+            record.setAlgorithmName(algorithmName);
             record.setRecordTime(new Date()); // 设置当前时间为对局时间
+
+            // 根据游戏名称查询游戏类型ID
+            GameType queryGameType = new GameType();
+            queryGameType.setGameName(gameTypeName);
+            List<GameType> gameTypes = gameTypeService.selectGameTypeList(queryGameType);
+            if (gameTypes == null || gameTypes.isEmpty()) {
+                return false; // 游戏类型不存在
+            }
+            record.setGameTypeId(gameTypes.get(0).getGameId());
+
+            // 根据算法名称查询算法ID
+            AlgorithmType queryAlgorithm = new AlgorithmType();
+            queryAlgorithm.setAlgorithmName(algorithmName);
+            List<AlgorithmType> algorithms = algorithmTypeService.selectAlgorithmTypeList(queryAlgorithm);
+            if (algorithms == null || algorithms.isEmpty()) {
+                return false; // 算法不存在
+            }
+            record.setAlgorithmId(algorithms.get(0).getAlgorithmId());
 
             // 2. 获取玩家ID并设置玩家信息
             Long playerId = Long.valueOf(gameData.get("userId").toString());
 
-            // 验证用户是否存在
-            SysUser user = userService.selectUserById(playerId);
-            if (user == null) {
-                return false; // 用户不存在，上传失败
+            // 获取玩家名称
+            String playerName;
+            if (playerId == 0) {
+                playerName = SpecialPlayerEnum.GUEST.getChineseName();
+            } else {
+                // 验证用户是否存在
+                SysUser user = userService.selectUserById(playerId);
+                if (user == null) {
+                    return false; // 用户不存在，上传失败
+                }
+                playerName = user.getUserName();
             }
 
             // 设置玩家ID和名称
             boolean playerFirst = (Boolean) gameData.get("playerFirst");
             if (playerFirst) {
                 record.setFirstPlayerId(playerId);
-                record.setFirstPlayer(user.getNickName() != null ? user.getNickName() : user.getUserName());
-                record.setSecondPlayerId(-1L);
-                record.setSecondPlayerName(record.getAlgorithmName());
+                record.setFirstPlayer(playerName);
+                record.setSecondPlayerId(SpecialPlayerEnum.AI.getCode());
+                record.setSecondPlayerName(SpecialPlayerEnum.AI.getChineseName());
             } else {
-                record.setFirstPlayerId(-1L);
-                record.setFirstPlayer(record.getAlgorithmName());
+                record.setFirstPlayerId(SpecialPlayerEnum.AI.getCode());
+                record.setFirstPlayer(SpecialPlayerEnum.AI.getChineseName());
                 record.setSecondPlayerId(playerId);
-                record.setSecondPlayerName(user.getNickName() != null ? user.getNickName() : user.getUserName());
+                record.setSecondPlayerName(playerName);
             }
 
-            // 3. 直接使用客户端传入的整数赢家标识 (0-先手赢，1-后手赢，2-平局)
+            // 3. 直接使用客户端传入的整数赢家标识 (0-先手赢，1-后手赢，2-平局,3-终止游戏)
             Long winnerObj = Long.valueOf(gameData.get("winner").toString());
             record.setWinner(winnerObj);
 

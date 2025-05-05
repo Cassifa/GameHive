@@ -40,11 +40,11 @@ public class ClientController {
      * 上传对局结果接口
      *
      * @param requestMap 包含对局信息的请求体，参数包括：
-     *                   - userId: 玩家ID (必填)
+     *                   - userId: 玩家ID (必填 0为游客)
      *                   - algorithmName: 算法名称 (必填)
      *                   - gameTypeName: 游戏类别名称 (必填)
      *                   - playerFirst: 是否玩家先手 (必填，true/false)
-     *                   - winner: 赢家 (必填，整数：0-先手赢，1-后手赢，2-平局)
+     *                   - winner: 赢家 (必填，整数：0-先手赢，1-后手赢，2-平局 3-终止游戏)
      *                   - moves: 操作序列 (必填，数组，每个元素包含id、role("Player"/"AI")、x、y)
      * @return 上传结果
      */

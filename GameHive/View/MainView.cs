@@ -43,7 +43,8 @@ namespace GameHive.View {
                 mainForm.DifficultySelector.Enabled = true;
             }));
             LogWin(role);
-            //GameOverShow(role);
+            // 上传对局结果
+            UploadGameResult(role, first, controller.GetCurrentAIType(), controller.GetCurrentGameType());
         }
 
         //游戏结束

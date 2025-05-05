@@ -35,5 +35,23 @@ namespace GameHive.Constants.RoleTypeEnum {
         public static bool IsVictory(this Role role) {
             return role == Role.AI || role == Role.Player;
         }
+
+        /// <summary>
+        /// 将角色转换为后端需要的胜者参数
+        /// </summary>
+        /// <param name="winner">胜者角色</param>
+        /// <param name="first">先手角色</param>
+        /// <returns>0-先手赢，1-后手赢，2-平局，3-终止游戏</returns>
+        public static int ToWinnerCode(this Role winner, Role first) {
+            if (winner == Role.Empty)
+                return 3;  // 终止游戏
+            if (winner == Role.Draw)
+                return 2;   // 平局
+
+            // 判断是否是先手赢
+            bool isFirstWin = (first == Role.Player && winner == Role.Player) ||
+                            (first == Role.AI && winner == Role.AI);
+            return isFirstWin ? 0 : 1;
+        }
     }
 }

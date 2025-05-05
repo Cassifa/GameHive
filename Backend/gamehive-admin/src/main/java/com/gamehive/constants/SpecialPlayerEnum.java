@@ -6,7 +6,7 @@ package com.gamehive.constants;
  */
 public enum SpecialPlayerEnum {
     GUEST(0, "游客", "Guest"),
-    AI(-1, "人工智能", "Artificial Intelligence");
+    AI(-1, "AI", "Artificial Intelligence");
 
     private final int code;
     private final String chineseName;
@@ -18,7 +18,7 @@ public enum SpecialPlayerEnum {
         this.englishName = englishName;
     }
 
-    public int getCode() {
+    public long getCode() {
         return code;
     }
 

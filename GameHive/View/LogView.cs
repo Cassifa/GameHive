@@ -8,6 +8,7 @@
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
+using GameHive.Net;
 
 namespace GameHive.View {
     // 操作记录类
@@ -93,6 +94,38 @@ namespace GameHive.View {
             AddLog(Color.Gray, logMessage);
         }
 
+        // 上传对局结果到服务器
+        public async void UploadGameResult(Role winner, Role first, AIAlgorithmType algorithmType, GameType gameType) {
+            try {
+                var client = new GameHiveClient();
+                bool playerFirst = first == Role.Player;
+
+                // 构造请求数据
+                var requestData = new Dictionary<string, object> {
+                    ["userId"] = UserInfo.Instance.IsLoggedIn ? UserInfo.Instance.UserId : 0,
+                    ["algorithmName"] = algorithmType.GetChineseName(),
+                    ["gameTypeName"] = gameType.GetChineseName(),
+                    ["playerFirst"] = playerFirst,
+                    ["winner"] = winner.ToWinnerCode(first),
+                    ["moves"] = moveRecords.Select(r => new Dictionary<string, object> {
+                        ["id"] = r.Id,
+                        ["role"] = r.Role == Role.Player ? "Player" : "AI",
+                        ["x"] = r.X,
+                        ["y"] = r.Y
+                    }).ToList()
+                };
+
+                // 发送请求
+                var result = await client.UploadGameResultAsync(requestData);
+                if (result.Code == 200) {
+                    AddLog(Color.Gray, "对局记录已上传");
+                } else {
+                    AddLog(Color.Red, $"上传对局记录失败：{result.Msg}");
+                }
+            } catch (Exception ex) {
+                AddLog(Color.Red, $"上传对局记录失败：{ex.Message}");
+            }
+        }
 
     }
 }

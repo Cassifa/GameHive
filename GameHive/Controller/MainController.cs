@@ -79,7 +79,7 @@ namespace GameHive.Controller {
         }
 
         //设置默认难度
-        private void SetDefaultDifficulty() { 
+        private void SetDefaultDifficulty() {
             // 获取默认的难度等级（第一个可用的难度等级）
             DifficultyLevel defaultLevel = boardManager.ConcreteProductInfo.DifficultyLevels[0];
             // 获取默认难度的中文名称
@@ -99,11 +99,20 @@ namespace GameHive.Controller {
             ModelMessageEndGame();
             ViewMessageEndGame(role);
         }
+
+        public AIAlgorithmType GetCurrentAIType() {
+            return boardManager.aIAlgorithmType;
+        }
+
+        public GameType GetCurrentGameType() {
+            return boardManager.gameType;
+        }
+
         private void StartGame() {
             ModelMessageStartGame(boardManager.first == Role.AI);
             ViewMessageStartGame();
             if (boardManager.first == Role.AI)
-                ModelMessageAskAIMove(-1,-1);
+                ModelMessageAskAIMove(-1, -1);
         }
     }
 }

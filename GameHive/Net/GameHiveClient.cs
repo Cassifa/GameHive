@@ -75,19 +75,25 @@ namespace GameHive.Net {
         /// <summary>
         /// 上传对局结果
         /// </summary>
-        /// <param name="gameResult">对局结果信息</param>
-        public async Task<AjaxResult<object>> UploadGameResultAsync(GameResult gameResult) {
+        /// <param name="gameData">对局数据</param>
+        public async Task<AjaxResult<object>> UploadGameResultAsync(Dictionary<string, object> gameData) {
             try {
-                var json = JsonSerializer.Serialize(gameResult);
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                var json = JsonSerializer.Serialize(gameData);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync($"{_baseUrl}/client/upload", content);
                 var jsonString = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"上传对局结果响应: {jsonString}");
+
                 return JsonSerializer.Deserialize<AjaxResult<object>>(jsonString,
                     new JsonSerializerOptions {
                         PropertyNameCaseInsensitive = true
                     });
             } catch (Exception ex) {
+                Debug.WriteLine($"上传对局结果失败: {ex.Message}");
                 return new AjaxResult<object> {
                     Code = 500,
                     Msg = $"上传失败: {ex.Message}",
@@ -101,7 +107,6 @@ namespace GameHive.Net {
         public long UserId { get; set; }
         public string UserName { get; set; }
         public string NickName { get; set; }
-        // 可以根据实际返回数据添加更多属性
     }
 
     public class GameResult {
