@@ -6,8 +6,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,6 +58,9 @@ public class RecordController extends BaseController {
 
         // 获取当前登录用户ID
         Long userId = getUserId();
+        if (userId == null) {
+            return getDataTableByException("用户未登录");
+        }
         
         // 设置查询参数
         if (gameTypeId != null) {
@@ -79,18 +80,18 @@ public class RecordController extends BaseController {
         }
         
         // 将用户ID添加到查询参数中
-        // 在RecordServiceImpl.selectRecordList方法中会根据用户角色判断是否过滤
         record.getParams().put("userId", userId);
 
         // 如果pageSize不为空，使用分页查询
         if (pageSize != null && pageSize > 0) {
-            // 使用PageHelper进行分页
             int pageNumValue = (pageNum != null && pageNum > 0) ? pageNum : 1;
             PageHelper.startPage(pageNumValue, pageSize);
         }
-        // 否则不分页，返回所有数据
 
         List<Record> list = recordService.selectRecordList(record);
+        if (list == null) {
+            return getDataTableByException("无权限查看记录");
+        }
         return getDataTable(list);
     }
 
@@ -100,9 +101,16 @@ public class RecordController extends BaseController {
     @Log(title = "对局记录", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, Record record) {
-        List<Record> list = recordService.selectRecordList(record);
-        ExcelUtil<Record> util = new ExcelUtil<Record>(Record.class);
-        util.exportExcel(response, list, "对局记录数据");
+        // 获取当前登录用户ID
+        Long userId = getUserId();
+        if (userId != null) {
+            record.getParams().put("userId", userId);
+            List<Record> list = recordService.selectRecordList(record);
+            if (list != null) {
+                ExcelUtil<Record> util = new ExcelUtil<Record>(Record.class);
+                util.exportExcel(response, list, "对局记录数据");
+            }
+        }
     }
 
     /**
@@ -110,34 +118,11 @@ public class RecordController extends BaseController {
      */
     @GetMapping(value = "/{recordId}")
     public AjaxResult getInfo(@PathVariable("recordId") Long recordId) {
-        return success(recordService.selectRecordByRecordId(recordId));
-    }
-
-    /**
-     * 新增对局记录
-     */
-    @Log(title = "对局记录", businessType = BusinessType.INSERT)
-    @PostMapping
-    public AjaxResult add(@RequestBody Record record) {
-        return toAjax(recordService.insertRecord(record));
-    }
-
-    /**
-     * 修改对局记录
-     */
-    @Log(title = "对局记录", businessType = BusinessType.UPDATE)
-    @PutMapping
-    public AjaxResult edit(@RequestBody Record record) {
-        return toAjax(recordService.updateRecord(record));
-    }
-
-    /**
-     * 删除对局记录
-     */
-    @Log(title = "对局记录", businessType = BusinessType.DELETE)
-    @DeleteMapping("/{recordIds}")
-    public AjaxResult remove(@PathVariable Long[] recordIds) {
-        return toAjax(recordService.deleteRecordByRecordIds(recordIds));
+        Record record = recordService.selectRecordByRecordId(recordId);
+        if (record == null) {
+            return error("无权限查看该记录或记录不存在");
+        }
+        return success(record);
     }
 
     /**
@@ -170,10 +155,23 @@ public class RecordController extends BaseController {
         
         // 获取当前登录用户ID
         Long userId = getUserId();
+        if (userId == null) {
+            return error("用户未登录");
+        }
         
         // 获取热力图数据
         List<Map<String, Object>> heatmapData = recordService.getHeatmapData(userId, gameTypeId, isPkAi, algorithmId, winner, playerName);
+        if (heatmapData == null) {
+            return error("获取热力图数据失败");
+        }
         
         return success(heatmapData);
+    }
+
+    private TableDataInfo getDataTableByException(String message) {
+        TableDataInfo rspData = new TableDataInfo();
+        rspData.setCode(500);
+        rspData.setMsg(message);
+        return rspData;
     }
 }

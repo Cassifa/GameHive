@@ -38,200 +38,99 @@
 		from record
 	</sql>
 
-	<select id="selectRecordList" parameterType="Record" resultMap="RecordResult">
-		<include refid="selectRecordVo"/>
-		<where>
-			<if test="gameTypeId != null">
-				and game_type_id = #{gameTypeId}
-			</if>
-			<if test="gameTypeName != null and gameTypeName != ''">
-				and game_type_name like concat('%', #{gameTypeName}, '%')
-			</if>
-			<if test="isPkAi != null">
-				and is_pk_ai = #{isPkAi}
-			</if>
-			<if test="algorithmId != null">
-				and algorithm_id = #{algorithmId}
-			</if>
-			<if test="algorithmName != null and algorithmName != ''">
-				and algorithm_name like concat('%', #{algorithmName}, '%')
-			</if>
-			<if test="winner != null">
-				and winner = #{winner}
-			</if>
-			<if test="firstPlayer != null and firstPlayer != ''">
-				and first_player like concat('%', #{firstPlayer}, '%')
-			</if>
-			<if test="secondPlayerName != null and secondPlayerName != ''">
-				and second_player_name like concat('%', #{secondPlayerName}, '%')
-			</if>
-			<if test="params.playerName != null and params.playerName != ''">
-				and (first_player like concat('%', #{params.playerName}, '%') or second_player_name
-				like concat('%', #{params.playerName}, '%'))
-			</if>
-		</where>
-	</select>
-
 	<select id="selectRecordByRecordId" parameterType="Long" resultMap="RecordResult">
 		<include refid="selectRecordVo"/>
 		where record_id = #{recordId}
 	</select>
 
-	<insert id="insertRecord" parameterType="Record" useGeneratedKeys="true" keyProperty="recordId">
+	<select id="selectRecordList" parameterType="Record" resultMap="RecordResult">
+		<include refid="selectRecordVo"/>
+		<where>
+			<if test="gameTypeId != null">
+				AND game_type_id = #{gameTypeId}
+			</if>
+			<if test="gameTypeName != null and gameTypeName != ''">
+				AND game_type_name like concat('%', #{gameTypeName}, '%')
+			</if>
+			<if test="recordTime != null">
+				AND record_time = #{recordTime}
+			</if>
+			<if test="isPkAi != null">
+				AND is_pk_ai = #{isPkAi}
+			</if>
+			<if test="algorithmId != null">
+				AND algorithm_id = #{algorithmId}
+			</if>
+			<if test="algorithmName != null and algorithmName != ''">
+				AND algorithm_name like concat('%', #{algorithmName}, '%')
+			</if>
+			<if test="winner != null">
+				AND winner = #{winner}
+			</if>
+			<if test="firstPlayerId != null">
+				AND first_player_id = #{firstPlayerId}
+			</if>
+			<if test="firstPlayer != null and firstPlayer != ''">
+				AND first_player like concat('%', #{firstPlayer}, '%')
+			</if>
+			<if test="secondPlayerId != null">
+				AND second_player_id = #{secondPlayerId}
+			</if>
+			<if test="secondPlayerName != null and secondPlayerName != ''">
+				AND second_player_name like concat('%', #{secondPlayerName}, '%')
+			</if>
+			<if test="params.playerName != null and params.playerName != ''">
+				AND (first_player like concat('%', #{params.playerName}, '%') OR second_player_name like concat('%', #{params.playerName}, '%'))
+			</if>
+			<if test="params.currentUserId != null">
+				AND (first_player_id = #{params.currentUserId} OR second_player_id = #{params.currentUserId})
+			</if>
+		</where>
+		ORDER BY record_time DESC
+	</select>
+
+	<insert id="insertRecord" parameterType="Record">
 		insert into record
 		<trim prefix="(" suffix=")" suffixOverrides=",">
-			<if test="gameTypeId != null">
-				game_type_id,
-			</if>
-			<if test="gameTypeName != null">
-				game_type_name,
-			</if>
-			<if test="recordTime != null">
-				record_time,
-			</if>
-			<if test="isPkAi != null">
-				is_pk_ai,
-			</if>
-			<if test="algorithmId != null">
-				algorithm_id,
-			</if>
-			<if test="algorithmName != null">
-				algorithm_name,
-			</if>
-			<if test="winner != null">
-				winner,
-			</if>
-			<if test="firstPlayerId != null">
-				first_player_id,
-			</if>
-			<if test="firstPlayer != null">
-				first_player,
-			</if>
-			<if test="secondPlayerId != null">
-				second_player_id,
-			</if>
-			<if test="secondPlayerName != null">
-				second_player_name,
-			</if>
-			<if test="firstPlayerPieces != null">
-				first_player_pieces,
-			</if>
-			<if test="playerBPieces != null">
-				player_b_pieces,
-			</if>
+			<if test="recordId != null">record_id,</if>
+			<if test="gameTypeId != null">game_type_id,</if>
+			<if test="gameTypeName != null">game_type_name,</if>
+			<if test="recordTime != null">record_time,</if>
+			<if test="isPkAi != null">is_pk_ai,</if>
+			<if test="algorithmId != null">algorithm_id,</if>
+			<if test="algorithmName != null">algorithm_name,</if>
+			<if test="winner != null">winner,</if>
+			<if test="firstPlayerId != null">first_player_id,</if>
+			<if test="firstPlayer != null">first_player,</if>
+			<if test="secondPlayerId != null">second_player_id,</if>
+			<if test="secondPlayerName != null">second_player_name,</if>
+			<if test="firstPlayerPieces != null">first_player_pieces,</if>
+			<if test="playerBPieces != null">player_b_pieces,</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
-			<if test="gameTypeId != null">
-				#{gameTypeId},
-			</if>
-			<if test="gameTypeName != null">
-				#{gameTypeName},
-			</if>
-			<if test="recordTime != null">
-				#{recordTime},
-			</if>
-			<if test="isPkAi != null">
-				#{isPkAi},
-			</if>
-			<if test="algorithmId != null">
-				#{algorithmId},
-			</if>
-			<if test="algorithmName != null">
-				#{algorithmName},
-			</if>
-			<if test="winner != null">
-				#{winner},
-			</if>
-			<if test="firstPlayerId != null">
-				#{firstPlayerId},
-			</if>
-			<if test="firstPlayer != null">
-				#{firstPlayer},
-			</if>
-			<if test="secondPlayerId != null">
-				#{secondPlayerId},
-			</if>
-			<if test="secondPlayerName != null">
-				#{secondPlayerName},
-			</if>
-			<if test="firstPlayerPieces != null">
-				#{firstPlayerPieces},
-			</if>
-			<if test="playerBPieces != null">
-				#{playerBPieces},
-			</if>
+			<if test="recordId != null">#{recordId},</if>
+			<if test="gameTypeId != null">#{gameTypeId},</if>
+			<if test="gameTypeName != null">#{gameTypeName},</if>
+			<if test="recordTime != null">#{recordTime},</if>
+			<if test="isPkAi != null">#{isPkAi},</if>
+			<if test="algorithmId != null">#{algorithmId},</if>
+			<if test="algorithmName != null">#{algorithmName},</if>
+			<if test="winner != null">#{winner},</if>
+			<if test="firstPlayerId != null">#{firstPlayerId},</if>
+			<if test="firstPlayer != null">#{firstPlayer},</if>
+			<if test="secondPlayerId != null">#{secondPlayerId},</if>
+			<if test="secondPlayerName != null">#{secondPlayerName},</if>
+			<if test="firstPlayerPieces != null">#{firstPlayerPieces},</if>
+			<if test="playerBPieces != null">#{playerBPieces},</if>
 		</trim>
 	</insert>
 
-	<update id="updateRecord" parameterType="Record">
-		update record
-		<trim prefix="SET" suffixOverrides=",">
-			<if test="gameTypeId != null">
-				game_type_id = #{gameTypeId},
-			</if>
-			<if test="gameTypeName != null">
-				game_type_name = #{gameTypeName},
-			</if>
-			<if test="recordTime != null">
-				record_time = #{recordTime},
-			</if>
-			<if test="isPkAi != null">
-				is_pk_ai = #{isPkAi},
-			</if>
-			<if test="algorithmId != null">
-				algorithm_id = #{algorithmId},
-			</if>
-			<if test="algorithmName != null">
-				algorithm_name = #{algorithmName},
-			</if>
-			<if test="winner != null">
-				winner = #{winner},
-			</if>
-			<if test="firstPlayerId != null">
-				first_player_id = #{firstPlayerId},
-			</if>
-			<if test="firstPlayer != null">
-				first_player = #{firstPlayer},
-			</if>
-			<if test="secondPlayerId != null">
-				second_player_id = #{secondPlayerId},
-			</if>
-			<if test="secondPlayerName != null">
-				second_player_name = #{secondPlayerName},
-			</if>
-			<if test="firstPlayerPieces != null">
-				first_player_pieces = #{firstPlayerPieces},
-			</if>
-			<if test="playerBPieces != null">
-				player_b_pieces = #{playerBPieces},
-			</if>
-		</trim>
-		where record_id = #{recordId}
-	</update>
-
-	<delete id="deleteRecordByRecordId" parameterType="Long">
-		delete
-		from record
-		where record_id = #{recordId}
-	</delete>
-
-	<delete id="deleteRecordByRecordIds" parameterType="String">
-		delete from record where record_id in
-		<foreach item="recordId" collection="array" open="(" separator="," close=")">
-			#{recordId}
-		</foreach>
-	</delete>
-
 	<select id="selectRecordHeatmap" parameterType="Record" resultType="java.util.Map">
 		SELECT 
-			DATE_FORMAT(record_time, '%Y-%m-%d') as date,
+			DATE(record_time) as date,
 			COUNT(*) as count
-		FROM 
-			record
+		FROM record
 		<where>
-			<if test="params.userId != null">
-				AND (first_player_id = #{params.userId} OR second_player_id = #{params.userId})
-			</if>
 			<if test="gameTypeId != null">
 				AND game_type_id = #{gameTypeId}
 			</if>
@@ -245,13 +144,13 @@
 				AND winner = #{winner}
 			</if>
 			<if test="params.playerName != null and params.playerName != ''">
-				AND (first_player like concat('%', #{params.playerName}, '%') 
-				  OR second_player_name like concat('%', #{params.playerName}, '%'))
+				AND (first_player like concat('%', #{params.playerName}, '%') OR second_player_name like concat('%', #{params.playerName}, '%'))
+			</if>
+			<if test="params.currentUserId != null">
+				AND (first_player_id = #{params.currentUserId} OR second_player_id = #{params.currentUserId})
 			</if>
 		</where>
-		GROUP BY 
-			DATE_FORMAT(record_time, '%Y-%m-%d')
-		ORDER BY 
-			date ASC
+		GROUP BY DATE(record_time)
+		ORDER BY DATE(record_time)
 	</select>
 </mapper>

@@ -33,7 +33,7 @@ public class Record extends BaseEntity
     private Date recordTime;
 
     /** 是否是与ai对局 */
-    @Excel(name = "是否是与ai对局")
+    @Excel(name = "是否是与ai对局", readConverterExp = "true=是,false=否")
     private Boolean isPkAi;
 
     /** 对战的算法编号,如果为匹配对战则为-1 */
@@ -43,8 +43,8 @@ public class Record extends BaseEntity
     @Excel(name = "算法名称")
     private String algorithmName;
 
-    /** 赢家（0-先手 1-后手 2-平局） */
-    @Excel(name = "赢家", readConverterExp = "0=-先手,1=-后手,2=-平局")
+    /** 赢家（0-先手 1-后手 2-平局 3-无） */
+    @Excel(name = "赢家", readConverterExp = "0=先手,1=后手,2=平局,3=无")
     private Long winner;
 
     /** 先手id */

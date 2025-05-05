@@ -35,30 +35,6 @@ public interface IRecordService {
      * @return 结果
      */
     public int insertRecord(Record record);
-
-    /**
-     * 修改对局记录
-     *
-     * @param record 对局记录
-     * @return 结果
-     */
-    public int updateRecord(Record record);
-
-    /**
-     * 批量删除对局记录
-     *
-     * @param recordIds 需要删除的对局记录主键集合
-     * @return 结果
-     */
-    public int deleteRecordByRecordIds(Long[] recordIds);
-
-    /**
-     * 删除对局记录信息
-     *
-     * @param recordId 对局记录主键
-     * @return 结果
-     */
-    public int deleteRecordByRecordId(Long recordId);
     
     /**
      * 获取对局记录热力图数据

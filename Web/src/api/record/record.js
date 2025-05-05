@@ -42,3 +42,13 @@ export function delRecord(recordId) {
     method: 'delete'
   })
 }
+
+// 导出对局记录
+export function exportRecord(query) {
+  return request({
+    url: '/Record/Record/export',
+    method: 'post',
+    data: query,
+    responseType: 'blob'
+  })
+}
