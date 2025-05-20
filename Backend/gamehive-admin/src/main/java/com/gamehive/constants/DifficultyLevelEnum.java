@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * 游戏难度等级枚举
- * @author Claude
+ * @author Cassifa
  */
 public enum DifficultyLevelEnum {
     LEVEL_1(1, "一级", "Level 1"),

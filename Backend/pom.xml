@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	
+    <modelVersion>4.0.0</modelVersion>
+
     <groupId>com.gamehive</groupId>
     <artifactId>gamehive</artifactId>
     <version>3.8.9</version>
@@ -11,7 +11,7 @@
     <name>gamehive</name>
     <url>http://www.ruoyi.vip</url>
     <description>GameHive后台管理系统</description>
-    
+
     <properties>
         <gamehive.version>3.8.9</gamehive.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -212,6 +212,12 @@
                 <version>${gamehive.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.24</version>
+                <scope>provided</scope>
+            </dependency>
             <!-- 通用工具-->
             <dependency>
                 <groupId>com.gamehive</groupId>

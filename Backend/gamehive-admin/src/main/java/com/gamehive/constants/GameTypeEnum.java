@@ -2,7 +2,7 @@ package com.gamehive.constants;
 
 /**
  * 游戏类型枚举
- * @author Claude
+ * @author Cassifa
  */
 public enum GameTypeEnum {
     GOBANG(1, "五子棋", "Gobang"),

@@ -2,7 +2,7 @@ package com.gamehive.constants;
 
 /**
  * AI算法类型枚举
- * @author Claude
+ * @author Cassifa
  */
 public enum AIAlgorithmTypeEnum {
     MINIMAX(1, "极小值极大搜索", "Minimax"),

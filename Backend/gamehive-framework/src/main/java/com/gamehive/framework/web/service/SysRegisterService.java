@@ -1,8 +1,5 @@
 package com.gamehive.framework.web.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Component;
 import com.gamehive.common.constant.CacheConstants;
 import com.gamehive.common.constant.Constants;
 import com.gamehive.common.constant.UserConstants;
@@ -14,11 +11,14 @@ import com.gamehive.common.exception.user.CaptchaExpireException;
 import com.gamehive.common.utils.MessageUtils;
 import com.gamehive.common.utils.SecurityUtils;
 import com.gamehive.common.utils.StringUtils;
+import com.gamehive.framework.event.UserRegisteredEvent;
 import com.gamehive.framework.manager.AsyncManager;
 import com.gamehive.framework.manager.factory.AsyncFactory;
 import com.gamehive.system.service.ISysConfigService;
 import com.gamehive.system.service.ISysUserService;
-import com.gamehive.framework.event.UserRegisteredEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
 /**
  * 注册校验方法
@@ -74,7 +74,7 @@ public class SysRegisterService {
             } else {
                 // 发布用户注册成功事件
                 eventPublisher.publishEvent(new UserRegisteredEvent(this, sysUser));
-                
+
                 AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.REGISTER, MessageUtils.message("user.register.success")));
             }
         }

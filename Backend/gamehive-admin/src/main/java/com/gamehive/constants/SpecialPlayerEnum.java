@@ -2,11 +2,14 @@ package com.gamehive.constants;
 
 /**
  * 特殊玩家枚举
- * @author Claude
+ *
+ * @author lff
  */
 public enum SpecialPlayerEnum {
     GUEST(0, "游客", "Guest"),
-    AI(-1, "AI", "Artificial Intelligence");
+    AI(-1, "AI", "Artificial Intelligence"),
+    LMM(-2, "大模型", "Guest"),
+    PLAYER(1, "玩家", "Guest");
 
     private final int code;
     private final String chineseName;

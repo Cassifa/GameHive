@@ -2,7 +2,7 @@ package com.gamehive.constants;
 
 /**
  * 角色类型枚举
- * @author Claude
+ * @author Cassifa
  */
 public enum RoleEnum {
     AI("AI", "AI"),
