@@ -2,6 +2,7 @@ package com.gamehive.comsumer.utils;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.gamehive.comsumer.WebSocketServer;
 import com.kob.backend.comsumer.WebSocketServer;
 import com.kob.backend.pojo.Bot;
 import com.kob.backend.pojo.User;
@@ -19,7 +20,7 @@ public class Game extends Thread {
     private final int[][] g;
     final private int[] dx = {-1, 1, 0, 0}, dy = {0, 0, 1, -1};
     private final int[][] cpg;
-    private final Player playerA, playerB;
+    private final GamePlayer playerA, playerB;
     private Integer nextStepA = null, nextStepB = null;
     private String status = "playing";//playing finished
     private String loser = "";//a,b,all
@@ -48,20 +49,20 @@ public class Game extends Thread {
             botIdB = botB.getId();
             botCodeB = botB.getContent();
         }
-        playerA = new Player(ida, rows - 2, 1,
+        playerA = new GamePlayer(ida, rows - 2, 1,
                 botIdA, botCodeA,
                 new ArrayList<>());
-        playerB = new Player(idb, 1, cols - 2,
+        playerB = new GamePlayer(idb, 1, cols - 2,
                 botIdB, botCodeB,
                 new ArrayList<>());
     }
 
     //获取类内元素
-    public Player getPlayerA() {
+    public GamePlayer getPlayerA() {
         return playerA;
     }
 
-    public Player getPlayerB() {
+    public GamePlayer getPlayerB() {
         return playerB;
     }
 
@@ -126,9 +127,9 @@ public class Game extends Thread {
             if (draw()) break;
     }
 
-    private String getInput(Player player) {//局面转为字符串
+    private String getInput(GamePlayer player) {//局面转为字符串
         //地图#me_sx#me_sy#me_操作#you_sx#you_sy#对手操作
-        Player me, you;
+        GamePlayer me, you;
         if (playerA.getId().equals(player.getId())) {
             me = player;
             you = playerB;
@@ -145,7 +146,7 @@ public class Game extends Thread {
                 "(" + you.getStepsString() + ")";
     }
 
-    private void sendBotCode(Player player) {
+    private void sendBotCode(GamePlayer player) {
         if (player.getBotId().equals(-1)) return;//亲自出马
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user_id", player.getId().toString());
@@ -242,7 +243,7 @@ public class Game extends Thread {
         return ans.toString();
     }
 
-    private void updateUserRating(Player player, Integer rating) {
+    private void updateUserRating(GamePlayer player, Integer rating) {
         User user = WebSocketServer.userMapper.selectById(player.getId());
         user.setRating(rating);
         WebSocketServer.userMapper.updateById(user);

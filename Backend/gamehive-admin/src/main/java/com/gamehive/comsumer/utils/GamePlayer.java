@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Player {
+public class GamePlayer {
     private Integer id,sx,sy;
     private Integer botId;
     private String botCode;//-1人工
