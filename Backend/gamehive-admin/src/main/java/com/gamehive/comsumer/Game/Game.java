@@ -4,7 +4,9 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.gamehive.comsumer.WebSocketServer;
 import com.gamehive.comsumer.constants.CellRoleEnum;
+import com.gamehive.comsumer.constants.FeedBackEventTypeEnum;
 import com.gamehive.comsumer.constants.GameStatusEnum;
+import com.gamehive.comsumer.message.FeedBackObj;
 import com.gamehive.comsumer.stratey.AntiGoStrategy;
 import com.gamehive.comsumer.stratey.GameStrategy;
 import com.gamehive.comsumer.stratey.GoBangStrategy;
@@ -12,6 +14,8 @@ import com.gamehive.comsumer.stratey.MisereTicTacToeStrategy;
 import com.gamehive.comsumer.stratey.TicTocToeStrategy;
 import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.constants.SpecialPlayerEnum;
+import com.gamehive.pojo.Player;
+import com.gamehive.pojo.Record;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +27,8 @@ import org.springframework.util.MultiValueMap;
 @Getter
 public class Game extends Thread {
     private  Integer rows, cols;
+    //落子次数
+    private  Integer round=0;
     private List<List<CellRoleEnum>> map;
     private final GamePlayer playerA, playerB;
     private Cell nextStepA = null, nextStepB = null;
@@ -71,7 +77,7 @@ public class Game extends Thread {
     /**
      * 局面转为字符串，用于发送给大模型
      */
-    private String getInput( ) {
+    private String getStringMap( ) {
 
     }
 
@@ -80,7 +86,7 @@ public class Game extends Thread {
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user_id", player.getId().toString());
         data.add("bot_code", player.getBotCode());
-        data.add("input", getInput(player));
+        data.add("input", getStringMap());
         WebSocketServer.restTemplate.postForObject(addBotUrl, data, String.class);
     }
 
@@ -114,41 +120,23 @@ public class Game extends Thread {
         return false;
     }
 
-    private boolean check_valid(List<Cell> cellsA, List<Cell> cellsB) {//判断某条蛇合法
-        int n = cellsA.size();
-        Cell cell = cellsA.get(n - 1);
-        if (g[cell.getX()][cell.getY()] == 1) return false;
-        for (int i = 0; i < n - 1; i++) {
-            Cell now = cellsA.get(i);
-            if (now.getX().equals(cell.getX()) && now.getY().equals(cell.getY())) return false;
-        }
-        for (int i = 0; i < n - 1; i++) {
-            Cell now = cellsB.get(i);
-            if (now.getX().equals(cell.getX()) && now.getY().equals(cell.getY())) return false;
-        }
-        return true;
-    }
-
     private void judge() {//判断操作后局面
         status=gameStrategy.checkGameOver(map);
     }
 
     private void sendAllMessage(String x) {
         //一方断开链接则无视其操作
-        if (WebSocketServer.users.get(playerA.getId()) != null)
-            WebSocketServer.users.get(playerA.getId()).sendMessage(x);
-        if (WebSocketServer.users.get(playerB.getId()) != null)
-            WebSocketServer.users.get(playerB.getId()).sendMessage(x);
+        if (WebSocketServer.users.get(playerA.getUserId()) != null)
+            WebSocketServer.users.get(playerA.getUserId()).sendMessage(x);
+        if (WebSocketServer.users.get(playerB.getUserId()) != null)
+            WebSocketServer.users.get(playerB.getUserId()).sendMessage(x);
     }
 
     private void sendMove() {//广播操作
         lock.lock();
         try {
-            JSONObject resp = new JSONObject();
-            resp.put("event", "move");
-            resp.put("a_direction", nextStepA);
-            resp.put("b_direction", nextStepB);
-            sendAllMessage(resp.toJSONString());
+            FeedBackObj data=new FeedBackObj(FeedBackEventTypeEnum.MOVE.getType(), x,y,GameStatusEnum.UNFINISHED.getName());
+            sendAllMessage(JSONObject.toJSONString(data));
             nextStepA = nextStepB = null;
         } finally {
             lock.unlock();
@@ -163,23 +151,23 @@ public class Game extends Thread {
         return ans.toString();
     }
 
-    private void updateUserRating(GamePlayer player, Integer rating) {
-        User user = WebSocketServer.userMapper.selectById(player.getId());
-        user.setRating(rating);
-        WebSocketServer.userMapper.updateById(user);
+    private void updateUserRating(GamePlayer player, Long rating) {
+        Player user = WebSocketServer.playerMapper.selectById(player.getUserId());
+        user.setRaking(rating);
+        WebSocketServer.playerMapper.updateById(user);
     }
 
     private JSONObject saveToDataBase() {
 
         JSONObject item = new JSONObject();
-        //过滤步数小于五次的对局
-        if (playerA.getStepsString().length() < 5) {
+        //过滤步数小于对应步数次的对局
+        if (playerA.getStepsString().length() < gameStrategy.getMinRecordStepCnt()) {
             item.put("msg", false);
             return item;
         }
 
-        User userA = WebSocketServer.userMapper.selectById(playerA.getId());
-        User userB = WebSocketServer.userMapper.selectById(playerB.getId());
+        Player userA = WebSocketServer.playerMapper.selectById(playerA.getId());
+        Player userB = WebSocketServer.playerMapper.selectById(playerB.getId());
         Integer ratingA = userA.getRating();
         Integer ratingB = userB.getRating();
 
@@ -236,15 +224,14 @@ public class Game extends Thread {
         //最多会有600步
         for (int i = 0; i < 1000; i++) {
             if (!nextStep()) {//游戏终止
-                status = "finished";
                 lock.lock();
                 try {
                     if (nextStepA == null && nextStepB == null) {
-                        loser = "all";
+                        status=GameStatusEnum.DRAW;
                     } else if (nextStepA == null) {
-                        loser = "a";
+                        status=GameStatusEnum.PLAYER_B_WIN;
                     } else if (nextStepB == null) {
-                        loser = "b";
+                        status=GameStatusEnum.PLAYER_A_WIN;
                     }
                 } finally {
                     lock.unlock();
@@ -254,7 +241,7 @@ public class Game extends Thread {
                 break;
             } else {
                 judge();
-                if (status.equals("playing")) {
+                if (status.equals(GameStatusEnum.UNFINISHED)) {
                     sendMove();
                 } else {
                     sendResult();

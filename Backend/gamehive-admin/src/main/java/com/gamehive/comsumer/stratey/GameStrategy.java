@@ -29,4 +29,6 @@ public interface GameStrategy {
      * @return 游戏状态枚举值(如胜利 / 失败 / 进行中等)
      */
     GameStatusEnum checkGameOver(List<List<CellRoleEnum>> map);
+
+    int getMinRecordStepCnt();
 }

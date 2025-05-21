@@ -14,20 +14,23 @@ public enum GameStatusEnum {
     /**
      * 游戏未结束
      */
-    UNFINISHED,
+    UNFINISHED(0, "unfinished"),
 
     /**
      * 游戏平局
      */
-    DRAW,
+    DRAW(1, "draw"),
 
     /**
      * 玩家A获胜
      */
-    PLAYER_A_WIN,
+    PLAYER_A_WIN(2, "player a win"),
 
     /**
      * 玩家B获胜
      */
-    PLAYER_B_WIN
+    PLAYER_B_WIN(3, "player b win");
+
+    private final int code;
+    private final String name;
 }

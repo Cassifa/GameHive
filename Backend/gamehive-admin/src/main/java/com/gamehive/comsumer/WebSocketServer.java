@@ -35,7 +35,7 @@ public class WebSocketServer {
     private Player user;
 
     //非单例模式
-    public static PlayerMapper userMapper;
+    public static PlayerMapper playerMapper;
     public static RecordMapper recordMapper;
 
     public static RestTemplate restTemplate;//spring boot间通信
@@ -44,8 +44,8 @@ public class WebSocketServer {
 
     public Game game=null;
     @Autowired
-    public void setUserMapper(PlayerMapper userMapper){
-        WebSocketServer.userMapper=userMapper;
+    public void setUserMapper(PlayerMapper playerMapper){
+        WebSocketServer.playerMapper=playerMapper;
     }
     @Autowired
     public void setRecordMapper(RecordMapper recordMapper){
@@ -63,7 +63,7 @@ public class WebSocketServer {
         this.session=session;
         System.out.println("connected");
         Long userId= JwtAuthentication.getUserId();
-        this.user=userMapper.selectById(userId);
+        this.user=playerMapper.selectById(userId);
         if(this.user!=null){
             users.put(userId,this);
         }else{
@@ -72,7 +72,7 @@ public class WebSocketServer {
     }
 
     public static void startGame(Integer aId, SpecialPlayerEnum playerAType,SpecialPlayerEnum playerBType, Integer bId, GameTypeEnum gameTypeEnum){
-        Player a=userMapper.selectById(aId),b=userMapper.selectById(bId);
+        Player a=playerMapper.selectById(aId),b=playerMapper.selectById(bId);
         Game game=new Game(gameTypeEnum,
                 a.getUserId(),
                 b.getUserId(),
