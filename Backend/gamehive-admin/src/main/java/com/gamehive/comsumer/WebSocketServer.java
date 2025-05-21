@@ -1,11 +1,11 @@
 package com.gamehive.comsumer;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.gamehive.comsumer.utils.GamePlayer;
-import com.gamehive.comsumer.utils.WebSocketMessageObj;
-import com.gamehive.comsumer.utils.Game;
+import com.gamehive.comsumer.constants.EventTypeEnum;import com.gamehive.comsumer.message.WebSocketMessageObj;
+import com.gamehive.comsumer.Game.Game;
 import com.gamehive.comsumer.utils.JwtAuthentication;
 import com.gamehive.constants.GameTypeEnum;
+import com.gamehive.constants.SpecialPlayerEnum;
 import com.gamehive.mapper.BotMapper;
 import com.gamehive.mapper.RecordMapper;
 import com.gamehive.mapper.PlayerMapper;
@@ -69,11 +69,11 @@ public class WebSocketServer {
         }
     }
 
-    public static void startGame(Integer aId, Integer bId, GameTypeEnum gameTypeEnum){
+    public static void startGame(Integer aId, SpecialPlayerEnum playerAType,SpecialPlayerEnum playerBType, Integer bId, GameTypeEnum gameTypeEnum){
         Player a=userMapper.selectById(aId),b=userMapper.selectById(bId);
         Game game=new Game(gameTypeEnum,
                 a.getUserId(),
-                b.getUserId()
+                b.getUserId(),
         );
         game.createMap();
 
@@ -149,7 +149,7 @@ public class WebSocketServer {
     @OnMessage
     public void onMessage(String message, Session session) {
         // 从Client接收消息
-        System.out.println("recived");
+        System.out.println("接受的匹配请求");
         WebSocketMessageObj data=JSONObject.parseObject(message, WebSocketMessageObj.class);
         EventTypeEnum event=EventTypeEnum.fromType(data.getEvent());
         if (event != null) {

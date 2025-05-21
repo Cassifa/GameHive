@@ -1,10 +1,15 @@
-package com.gamehive.comsumer;
+package com.gamehive.comsumer.constants;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /*
  * @ Author     ：Li Feifei
  * @ Date       ：Created in 23:14 2025/5/20
  * @ Description：客户端事件类型
  */
+@Getter
+@AllArgsConstructor
 public enum EventTypeEnum {
     START(0, "start-matching"),
     STOP(1, "stop-matching"),
@@ -12,19 +17,6 @@ public enum EventTypeEnum {
 
     private final int code;
     private final String type;
-
-    EventTypeEnum(int code, String type) {
-        this.code = code;
-        this.type = type;
-    }
-
-    public long getCode() {
-        return code;
-    }
-
-    public String getType() {
-        return type;
-    }
 
     public static EventTypeEnum fromCode(int code) {
         for (EventTypeEnum value : values()) {

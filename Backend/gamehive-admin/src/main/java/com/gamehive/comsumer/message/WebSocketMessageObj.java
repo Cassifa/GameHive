@@ -1,4 +1,4 @@
-package com.gamehive.comsumer.utils;
+package com.gamehive.comsumer.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

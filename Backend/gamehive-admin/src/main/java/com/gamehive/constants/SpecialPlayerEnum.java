@@ -1,7 +1,7 @@
 package com.gamehive.constants;
 
 /**
- * 特殊玩家枚举
+ * 特殊玩家枚举,若不是玩家则code为其标识符，写入对局记录数据库
  *
  * @author lff
  */

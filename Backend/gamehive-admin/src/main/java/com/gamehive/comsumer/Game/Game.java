@@ -1,8 +1,17 @@
-package com.gamehive.comsumer.utils;
+package com.gamehive.comsumer.Game;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.gamehive.comsumer.WebSocketServer;
+import com.gamehive.comsumer.constants.CellRoleEnum;
+import com.gamehive.comsumer.constants.GameStatusEnum;
+import com.gamehive.comsumer.stratey.AntiGoStrategy;
+import com.gamehive.comsumer.stratey.GameStrategy;
+import com.gamehive.comsumer.stratey.GoBangStrategy;
+import com.gamehive.comsumer.stratey.MisereTicTacToeStrategy;
+import com.gamehive.comsumer.stratey.TicTocToeStrategy;
+import com.gamehive.constants.GameTypeEnum;
+import com.gamehive.constants.SpecialPlayerEnum;
 import com.kob.backend.comsumer.WebSocketServer;
 import com.kob.backend.pojo.Bot;
 import com.kob.backend.pojo.User;
@@ -16,8 +25,8 @@ import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Game extends Thread {
-    private final Integer rows, cols, inner_walls_count;
-    private final int[][] g;
+    private  Integer rows, cols;
+    private List<List<CellRoleEnum>> map;
     final private int[] dx = {-1, 1, 0, 0}, dy = {0, 0, 1, -1};
     private final int[][] cpg;
     private final GamePlayer playerA, playerB;
@@ -25,37 +34,35 @@ public class Game extends Thread {
     private String status = "playing";//playing finished
     private String loser = "";//a,b,all
     private final ReentrantLock lock = new ReentrantLock();
+    private GameStrategy gameStrategy;
     private final static String addBotUrl =
             "http://127.0.0.1:3002/bot/add/";
 
-    public Game(Integer rows, Integer cols, Integer inner_walls_count,
-                Integer ida, Bot botA,
-                Integer idb, Bot botB
+    public Game(Integer aId, SpecialPlayerEnum playerAType,SpecialPlayerEnum playerBType, Integer bId, GameTypeEnum gameTypeEnum
     ) {
-        this.cols = cols;
-        this.rows = rows;
-        this.inner_walls_count = inner_walls_count;
-        this.g = new int[rows][cols];
-        this.cpg = new int[rows][cols];
-
-        Integer botIdA = -1, botIdB = -1;
-        String botCodeA = "", botCodeB = "";
-        if (botA != null) {
-            botIdA = botA.getId();
-            botCodeA = botA.getContent();
+        switch (gameTypeEnum){
+            case GOBANG:
+            case GOBANG_88:
+                gameStrategy=new GoBangStrategy();
+                break;
+            case ANTI_GO:
+                gameStrategy=new AntiGoStrategy();
+                break;
+            case TIC_TAC_TOE:
+                gameStrategy=new TicTocToeStrategy();
+                break;
+            case MISERE_TIC_TAC_TOE:
+                gameStrategy=new MisereTicTacToeStrategy();
+                break;
         }
+        gameStrategy.initGameMap(rows,cols,map);
 
-        if (botB != null) {
-            botIdB = botB.getId();
-            botCodeB = botB.getContent();
-        }
-        playerA = new GamePlayer(ida, rows - 2, 1,
-                botIdA, botCodeA,
+        playerA = new GamePlayer(aId,playerAType,
                 new ArrayList<>());
-        playerB = new GamePlayer(idb, 1, cols - 2,
-                botIdB, botCodeB,
+        playerB = new GamePlayer(bId,playerBType,
                 new ArrayList<>());
     }
+
 
     //获取类内元素
     public GamePlayer getPlayerA() {
