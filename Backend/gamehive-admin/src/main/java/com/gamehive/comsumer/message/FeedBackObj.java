@@ -17,6 +17,7 @@ public class FeedBackObj {
     //本次事件类型
     private String event;
     private boolean isFirst;
+    private boolean isWin;
     private int x, y;
     private Long opponentId;
     private String opponentName;

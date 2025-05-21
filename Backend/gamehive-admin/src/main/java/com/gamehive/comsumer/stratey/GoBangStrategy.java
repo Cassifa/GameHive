@@ -13,17 +13,7 @@ import java.util.List;
 public class GoBangStrategy implements GameStrategy {
 
     @Override
-    public void initGameMap(Integer rows, Integer cols) {
-
-    }
-
-    @Override
     public GameStatusEnum checkGameOver(List<List<CellRoleEnum>> map) {
         return null;
-    }
-
-    @Override
-    public int getMinRecordStepCnt() {
-        return 0;
     }
 }

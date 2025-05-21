@@ -10,6 +10,7 @@ import com.gamehive.comsumer.message.ReceiveObj;
 import com.gamehive.comsumer.utils.JwtAuthentication;
 import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.constants.SpecialPlayerEnum;
+import com.gamehive.mapper.GameTypeMapper;
 import com.gamehive.mapper.PlayerMapper;
 import com.gamehive.mapper.RecordMapper;
 import com.gamehive.pojo.Player;
@@ -41,7 +42,7 @@ public class WebSocketServer {
     //非单例模式
     public static PlayerMapper playerMapper;
     public static RecordMapper recordMapper;
-
+    public static GameTypeMapper gameTypeMapper;
     public static RestTemplate restTemplate;//spring boot间通信
     private final static String addPlayerUrl = "http://127.0.0.1:3001/player/add/";
     private final static String removePlayerUrl = "http://127.0.0.1:3001/player/remove/";
@@ -56,6 +57,11 @@ public class WebSocketServer {
     @Autowired
     public void setRecordMapper(RecordMapper recordMapper) {
         WebSocketServer.recordMapper = recordMapper;
+    }
+
+    @Autowired
+    public void serGameTypeMapper(GameTypeMapper gameTypeMapper) {
+        WebSocketServer.gameTypeMapper = gameTypeMapper;
     }
 
     @Autowired

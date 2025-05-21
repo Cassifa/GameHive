@@ -13,6 +13,7 @@ import com.gamehive.comsumer.stratey.MisereTicTacToeStrategy;
 import com.gamehive.comsumer.stratey.TicTocToeStrategy;
 import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.constants.SpecialPlayerEnum;
+import com.gamehive.pojo.GameType;
 import com.gamehive.pojo.Player;
 import com.gamehive.pojo.Record;
 import java.util.ArrayList;
@@ -25,25 +26,35 @@ import org.springframework.util.MultiValueMap;
 @Getter
 public class Game extends Thread {
 
-    private Integer rows, cols;
-    //落子次数
-    private Integer round = 0;
-    private Boolean forLMM;
-    private GamePlayer invalidStepPlayer = null;
+    private final static String addBotUrl = "http://127.0.0.1:3002/bot/add/";
+    private final Integer rows, cols;
+    //是否为与大模型下棋
+    private final Boolean forLMM;
+    //游戏类型
+    private final GameType gameType;
     //是否A先手
     private final GamePlayer first;
-    private List<List<CellRoleEnum>> map;
+    //参与游戏玩家
     private final GamePlayer playerA, playerB;
-    private Cell nextStepA = null, nextStepB = null;
-    private GameStatusEnum status = GameStatusEnum.UNFINISHED;
+    //当前棋盘状态
+    private final List<List<CellRoleEnum>> map;
     private final ReentrantLock lock = new ReentrantLock();
+
+    //落子次数
+    private Integer round = 0;
+    //玩家是否有非法操作
+    private GamePlayer invalidStepPlayer = null;
+    //玩家的下一步操作
+    private Cell nextStepA = null, nextStepB = null;
+    //当前游戏状态
+    private GameStatusEnum status = GameStatusEnum.UNFINISHED;
+    //抽象策略
     private GameStrategy gameStrategy;
-    private final static String addBotUrl =
-            "http://127.0.0.1:3002/bot/add/";
 
     public Game(Long aId, SpecialPlayerEnum playerAType, Long bId, SpecialPlayerEnum playerBType,
             GameTypeEnum gameTypeEnum, Boolean forLMM) {
         this.forLMM = forLMM;
+        this.gameType = WebSocketServer.gameTypeMapper.selectGameTypeByGameId((long) gameTypeEnum.getCode());
         switch (gameTypeEnum) {
             case GOBANG:
             case GOBANG_88:
@@ -59,7 +70,8 @@ public class Game extends Thread {
                 gameStrategy = new MisereTicTacToeStrategy();
                 break;
         }
-        gameStrategy.initGameMap(rows, cols);
+        rows = gameType.getBoardSize().intValue();
+        cols = gameType.getBoardSize().intValue();
         map = new ArrayList<>(rows);
         for (int i = 0; i < rows; i++) {
             List<CellRoleEnum> row = new ArrayList<>(cols);
@@ -68,6 +80,7 @@ public class Game extends Thread {
             }
             map.add(row);
         }
+
         playerA = new GamePlayer(aId, playerAType,
                 new ArrayList<>());
         playerB = new GamePlayer(bId, playerBType,
@@ -194,12 +207,11 @@ public class Game extends Thread {
         WebSocketServer.playerMapper.updateById(user);
     }
 
-    private JSONObject saveToDataBase() {
+    private void saveToDataBase() {
         JSONObject item = new JSONObject();
         //过滤步数小于对应步数次的对局
-        if (round < gameStrategy.getMinRecordStepCnt()) {
-            item.put("msg", false);
-            return item;
+        if (round < gameType.getMinValidPieces()) {
+            return;
         }
 
         Player userA = WebSocketServer.playerMapper.selectById(playerA.getUserId());
@@ -212,34 +224,22 @@ public class Game extends Thread {
             ratingB += 5;
         } else if (status.equals(GameStatusEnum.PLAYER_A_WIN)) {
             ratingB -= 4;
+            ratingA += 5;
         }
         updateUserRating(playerA, ratingA);
-        updateUserRating(playerB, ratingB);
-        Record record = new Record();
-        WebSocketServer.recordMapper.insert(record);
-//        String data=JSON.toJSONString(record);
-        item.put("msg", true);
-        item.put("a_photo", userA.getPhoto());
-        item.put("a_username", userA.getUsername());
-        item.put("b_photo", userB.getPhoto());
-        item.put("b_username", userB.getUsername());
-        item.put("record", record);
-        String result = "平局";
-        if ("a".equals(record.getLoser())) {
-            result = "B胜";
-        } else if ("b".equals(record.getLoser())) {
-            result = "A胜";
+        if (!forLMM) {
+            updateUserRating(playerB, ratingB);
         }
-        item.put("result", result);
-
-        return item;
+        Record record = new Record();//TODO 补充写入数据库逻辑
+        WebSocketServer.recordMapper.insert(record);
     }
 
     private void sendResult() {//广播结果
-        FeedBackObj feedBackObj = new FeedBackObj();
+        FeedBackObj feedBackObj = new FeedBackObj();//TODO 补充回传胜利结果逻辑
         feedBackObj.setEvent(FeedBackEventTypeEnum.RESULT.getType());
         feedBackObj.setGameStatus(status.getName());
         sendAllMessage(JSONObject.toJSONString(feedBackObj));
+        saveToDataBase();
     }
 
     @Override
@@ -249,9 +249,7 @@ public class Game extends Thread {
             if (!nextStep()) {//游戏终止
                 lock.lock();
                 try {
-                    if (nextStepA == null && nextStepB == null) {
-                        status = GameStatusEnum.DRAW;
-                    } else if (nextStepA == null) {
+                    if (nextStepA == null) {
                         status = GameStatusEnum.PLAYER_B_WIN;
                     } else if (nextStepB == null) {
                         status = GameStatusEnum.PLAYER_A_WIN;
@@ -259,7 +257,7 @@ public class Game extends Thread {
                 } finally {
                     lock.unlock();
                 }
-                //广播结果
+                //广播结果-没输入导致终止
                 sendResult();
                 break;
             } else {
@@ -267,6 +265,7 @@ public class Game extends Thread {
                 if (status.equals(GameStatusEnum.UNFINISHED)) {
                     sendMove(round % 2 == 0 ? nextStepA : nextStepB);
                 } else {
+                    //广播结果-游戏正常结束
                     sendResult();
                     break;
                 }
