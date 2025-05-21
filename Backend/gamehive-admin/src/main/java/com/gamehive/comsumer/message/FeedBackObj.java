@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class FeedBackObj {
     //本次事件类型
     private String event;
+    private boolean isFirst;
     private int x;
     private int y;
     String gameStatus;

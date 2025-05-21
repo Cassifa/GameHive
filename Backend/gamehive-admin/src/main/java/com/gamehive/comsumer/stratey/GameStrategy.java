@@ -18,9 +18,8 @@ public interface GameStrategy {
      *
      * @param rows 地图行数
      * @param cols 地图列数
-     * @param map 二维单元格列表表示的地图
      */
-    void initGameMap(Integer rows, Integer cols, List<List<CellRoleEnum>> map);
+    void initGameMap(Integer rows, Integer cols);
 
     /**
      * 检查游戏是否结束

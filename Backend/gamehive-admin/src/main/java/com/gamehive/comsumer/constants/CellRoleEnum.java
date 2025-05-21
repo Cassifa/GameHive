@@ -14,13 +14,15 @@ public enum CellRoleEnum {
     /**
      * 空白格子
      */
-    EMPTY,
+    EMPTY("0"),
     /**
      * 玩家A的棋子
      */
-    PLAYER_A,
+    PLAYER_A("1"),
     /**
      * 玩家B的棋子
      */
-    PLAYER_B
+    PLAYER_B("2");
+
+    private final String code;
 }

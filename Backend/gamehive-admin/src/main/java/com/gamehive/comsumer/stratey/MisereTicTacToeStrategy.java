@@ -13,12 +13,17 @@ import java.util.List;
 public class MisereTicTacToeStrategy implements GameStrategy {
 
     @Override
-    public void initGameMap(Integer rows, Integer cols, List<List<CellRoleEnum>> map) {
+    public void initGameMap(Integer rows, Integer cols) {
 
     }
 
     @Override
     public GameStatusEnum checkGameOver(List<List<CellRoleEnum>> map) {
         return null;
+    }
+
+    @Override
+    public int getMinRecordStepCnt() {
+        return 0;
     }
 }

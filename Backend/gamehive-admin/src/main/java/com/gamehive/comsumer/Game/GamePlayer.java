@@ -22,6 +22,6 @@ public class GamePlayer {
     /**
      * 玩家操作序列
      */
-    private List<Integer> steps;
+    private List<Cell> steps;
 
 }
