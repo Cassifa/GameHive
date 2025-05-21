@@ -12,33 +12,27 @@ import com.gamehive.comsumer.stratey.MisereTicTacToeStrategy;
 import com.gamehive.comsumer.stratey.TicTocToeStrategy;
 import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.constants.SpecialPlayerEnum;
-import com.kob.backend.comsumer.WebSocketServer;
-import com.kob.backend.pojo.Bot;
-import com.kob.backend.pojo.User;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.Getter;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+@Getter
 public class Game extends Thread {
     private  Integer rows, cols;
     private List<List<CellRoleEnum>> map;
-    final private int[] dx = {-1, 1, 0, 0}, dy = {0, 0, 1, -1};
-    private final int[][] cpg;
     private final GamePlayer playerA, playerB;
-    private Integer nextStepA = null, nextStepB = null;
-    private String status = "playing";//playing finished
-    private String loser = "";//a,b,all
+    private Cell nextStepA = null, nextStepB = null;
+    private GameStatusEnum status = GameStatusEnum.UNFINISHED;
     private final ReentrantLock lock = new ReentrantLock();
     private GameStrategy gameStrategy;
     private final static String addBotUrl =
             "http://127.0.0.1:3002/bot/add/";
 
-    public Game(Integer aId, SpecialPlayerEnum playerAType,SpecialPlayerEnum playerBType, Integer bId, GameTypeEnum gameTypeEnum
+    public Game(Long aId, SpecialPlayerEnum playerAType,SpecialPlayerEnum playerBType, Integer bId, GameTypeEnum gameTypeEnum
     ) {
         switch (gameTypeEnum){
             case GOBANG:
@@ -64,96 +58,24 @@ public class Game extends Thread {
     }
 
 
-    //获取类内元素
-    public GamePlayer getPlayerA() {
-        return playerA;
-    }
-
-    public GamePlayer getPlayerB() {
-        return playerB;
-    }
-
-    public int[][] getG() {//返回地图
-        return g;
-    }
 
     //设置next
-    public synchronized void setNextStepA(Integer nextStepA) {
+    public synchronized void setNextStepA(Cell nextStepA) {
         this.nextStepA = nextStepA;
     }
 
-    public synchronized void setNextStepB(Integer nextStepB) {
+    public synchronized void setNextStepB(Cell nextStepB) {
         this.nextStepB = nextStepB;
     }
 
-    private boolean draw() {//画一次地图
-        for (int i = 0; i < rows; i++)//初始化
-            for (int j = 0; j < cols; j++)
-                g[i][j] = 0;
+    /**
+     * 局面转为字符串，用于发送给大模型
+     */
+    private String getInput( ) {
 
-        //四周墙
-        for (int i = 0; i < rows; i++)
-            g[i][0] = g[i][cols - 1] = 1;
-        for (int i = 0; i < cols; i++)
-            g[0][i] = g[rows - 1][i] = 1;
-
-        //随机
-        Random random = new Random();
-        for (int i = 0; i < this.inner_walls_count; i += 4) {
-            for (int j = 0; j < 1001; j++) {
-                int r = random.nextInt(rows);//返回0~x-1
-                int c = random.nextInt(cols);
-                if (g[r][c] == 1 || g[rows - r - 1][cols - c - 1] == 1 || g[rows - r - 1][c] == 1 || g[r][cols - c - 1] == 1)
-                    continue;
-                if ((r == rows - 2 && c == 1) || (r == 1 && c == cols - 2)) continue;
-                g[r][c] = g[this.rows - r - 1][this.cols - c - 1] = g[this.rows - r - 1][c] = g[r][this.cols - c - 1] = 1;
-                break;
-            }
-        }
-
-        for (int i = 0; i < rows; i++)
-            System.arraycopy(g[i], 0, cpg[i], 0, cols);
-        return is_connected(this.rows - 2, 1);
     }
 
-    //判断合法
-    private boolean is_connected(int x, int y) {
-        if (x == 1 && y == this.cols - 2) return true;
-        for (int i = 0; i < 4; i++) {
-            int a = x + dx[i], b = y + dy[i];
-            if (x < 1 || x == rows - 1 || y < 1 || y == cols - 1) continue;
-            if (cpg[a][b] == 1) continue;
-            cpg[a][b] = 1;
-            if (this.is_connected(a, b)) return true;
-        }
-        return false;
-    }
-
-    public void createMap() {
-        for (int i = 0; i < 1000; i++)
-            if (draw()) break;
-    }
-
-    private String getInput(GamePlayer player) {//局面转为字符串
-        //地图#me_sx#me_sy#me_操作#you_sx#you_sy#对手操作
-        GamePlayer me, you;
-        if (playerA.getId().equals(player.getId())) {
-            me = player;
-            you = playerB;
-        } else {
-            me = playerB;
-            you = playerA;
-        }
-        return getMapString() + "#" +
-                me.getSx() + "#" +
-                me.getSy() + "#" +
-                "(" + me.getStepsString() + ")" + "#" +
-                you.getSx() + "#" +
-                you.getSy() + "#" +
-                "(" + you.getStepsString() + ")";
-    }
-
-    private void sendBotCode(GamePlayer player) {
+    private void sendLMMCode(GamePlayer player) {
         if (player.getBotId().equals(-1)) return;//亲自出马
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user_id", player.getId().toString());
@@ -169,8 +91,8 @@ public class Game extends Thread {
             throw new RuntimeException(e);
         }
 
-        sendBotCode(playerA);
-        sendBotCode(playerB);
+        sendLMMCode(playerA);
+        sendLMMCode(playerB);
 
         for (int i = 0; i < 50; i++) {//最大等待时间5秒
             try {
@@ -207,17 +129,8 @@ public class Game extends Thread {
         return true;
     }
 
-    private void judge() {//判断操作合法
-        List<Cell> cellsA = playerA.getCells();
-        List<Cell> cellsB = playerB.getCells();
-        boolean canA = check_valid(cellsA, cellsB);
-        boolean canB = check_valid(cellsB, cellsA);
-        if (!canA || !canB) {
-            status = "finished";
-            if (!canA && !canB) loser = "all";
-            else if (!canA) loser = "a";
-            else loser = "b";
-        }
+    private void judge() {//判断操作后局面
+        status=gameStrategy.checkGameOver(map);
     }
 
     private void sendAllMessage(String x) {

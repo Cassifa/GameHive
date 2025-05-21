@@ -1,6 +1,7 @@
 package com.gamehive.comsumer;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.gamehive.comsumer.Game.Cell;
 import com.gamehive.comsumer.constants.EventTypeEnum;import com.gamehive.comsumer.message.WebSocketMessageObj;
 import com.gamehive.comsumer.Game.Game;
 import com.gamehive.comsumer.utils.JwtAuthentication;
@@ -12,6 +13,7 @@ import com.gamehive.mapper.PlayerMapper;
 import com.gamehive.pojo.Bot;
 import com.gamehive.pojo.Player;
 import com.gamehive.pojo.User;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -75,7 +77,6 @@ public class WebSocketServer {
                 a.getUserId(),
                 b.getUserId(),
         );
-        game.createMap();
 
         //一方断开链接则无视其操作
         if(users.get(a.getUserId())!=null) users.get(a.getUserId()).game=game;
@@ -138,12 +139,12 @@ public class WebSocketServer {
     }
 
     private void move(int x,int y){
-        if(game.getPlayerA().getUserId()==user.getUserId()){
-            if (game.getPlayerA().getBotId().equals(-1))
-                game.setNextStepA(d);
-        }else if(game.getPlayerB().getUserId()==user.getUserId()){
-            if (game.getPlayerB().getBotId().equals(-1))
-                game.setNextStepB(d);
+        if(Objects.equals(game.getPlayerA().getUserId(), user.getUserId())){
+            if (!game.getPlayerA().getPlayerType().equals(SpecialPlayerEnum.LMM))
+                game.setNextStepA(new Cell(x,y));
+        }else if(Objects.equals(game.getPlayerB().getUserId(), user.getUserId())){
+            if (!game.getPlayerB().getPlayerType().equals(SpecialPlayerEnum.LMM))
+                game.setNextStepB(new Cell(x,y));
         }
     }
     @OnMessage

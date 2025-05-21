@@ -242,6 +242,8 @@
         <module>gamehive-quartz</module>
         <module>gamehive-generator</module>
         <module>gamehive-common</module>
+        <module>matchingsystem</module>
+        <module>botrunningsystem</module>
     </modules>
     <packaging>pom</packaging>
 

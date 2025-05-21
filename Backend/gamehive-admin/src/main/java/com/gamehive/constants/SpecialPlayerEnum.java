@@ -8,7 +8,7 @@ package com.gamehive.constants;
 public enum SpecialPlayerEnum {
     GUEST(0, "游客", "Guest"),
     AI(-1, "AI", "Artificial Intelligence"),
-    LMM(-2, "大模型", "Guest"),
+    LMM(-2, "大模型", "LMM"),
     PLAYER(1, "玩家", "Guest");
 
     private final int code;

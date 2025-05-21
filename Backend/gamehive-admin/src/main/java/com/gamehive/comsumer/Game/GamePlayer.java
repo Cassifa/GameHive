@@ -14,7 +14,7 @@ public class GamePlayer {
     /**
      * 单玩家编号
      */
-    private Integer userId;
+    private Long userId;
     /**
      * 玩家角色类型
      */
