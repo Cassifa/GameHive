@@ -12,11 +12,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class WebSocketMessageObj {
+public class ReceiveObj {
     //本次事件类型
     private String event;
     //玩家选择的游戏类型
     private String gameType;
+    //玩家是否选择与大模型下棋
+    private Boolean playWithLMM;
     private int x;
     private int y;
     private int userId;

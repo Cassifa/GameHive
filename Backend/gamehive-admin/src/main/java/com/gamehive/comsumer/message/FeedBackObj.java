@@ -13,10 +13,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FeedBackObj {
+
     //本次事件类型
     private String event;
     private boolean isFirst;
-    private int x;
-    private int y;
+    private int x, y;
+    private Long opponentId;
+    private String opponentName;
     String gameStatus;
 }

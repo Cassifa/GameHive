@@ -10,7 +10,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum EventTypeEnum {
+public enum ReceiveEventTypeEnum {
     START(0, "start-matching"),
     STOP(1, "stop-matching"),
     MOVE(2, "move");
@@ -18,8 +18,8 @@ public enum EventTypeEnum {
     private final int code;
     private final String type;
 
-    public static EventTypeEnum fromCode(int code) {
-        for (EventTypeEnum value : values()) {
+    public static ReceiveEventTypeEnum fromCode(int code) {
+        for (ReceiveEventTypeEnum value : values()) {
             if (value.getCode() == code) {
                 return value;
             }
@@ -27,8 +27,8 @@ public enum EventTypeEnum {
         return null;
     }
 
-    public static EventTypeEnum fromType(String type) {
-        for (EventTypeEnum value : values()) {
+    public static ReceiveEventTypeEnum fromType(String type) {
+        for (ReceiveEventTypeEnum value : values()) {
             if (value.getType() == type) {
                 return value;
             }

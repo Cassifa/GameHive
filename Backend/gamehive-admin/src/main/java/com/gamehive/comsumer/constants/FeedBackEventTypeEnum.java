@@ -13,7 +13,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum FeedBackEventTypeEnum {
     MOVE(0, "move"),
-    RESULT(1, "result");
+    RESULT(1, "result"),
+    START(2, "start");
 
     private final int code;
     private final String type;

@@ -28,6 +28,7 @@ public class Game extends Thread {
     private Integer rows, cols;
     //落子次数
     private Integer round = 0;
+    private Boolean forLMM;
     private GamePlayer invalidStepPlayer = null;
     //是否A先手
     private final GamePlayer first;
@@ -40,9 +41,9 @@ public class Game extends Thread {
     private final static String addBotUrl =
             "http://127.0.0.1:3002/bot/add/";
 
-    public Game(Long aId, SpecialPlayerEnum playerAType, SpecialPlayerEnum playerBType, Long bId,
-            GameTypeEnum gameTypeEnum
-    ) {
+    public Game(Long aId, SpecialPlayerEnum playerAType, Long bId, SpecialPlayerEnum playerBType,
+            GameTypeEnum gameTypeEnum, Boolean forLMM) {
+        this.forLMM = forLMM;
         switch (gameTypeEnum) {
             case GOBANG:
             case GOBANG_88:
@@ -142,7 +143,6 @@ public class Game extends Thread {
                         }
                         map.get(nextStepB.getY()).set(nextStepB.getY(), CellRoleEnum.PLAYER_B);
                         playerB.getSteps().add(nextStepB);
-
                     }
                 } finally {
                     lock.unlock();
@@ -167,16 +167,19 @@ public class Game extends Thread {
         if (WebSocketServer.users.get(playerA.getUserId()) != null) {
             WebSocketServer.users.get(playerA.getUserId()).sendMessage(x);
         }
-        if (WebSocketServer.users.get(playerB.getUserId()) != null) {
+        if (!forLMM && WebSocketServer.users.get(playerB.getUserId()) != null) {
             WebSocketServer.users.get(playerB.getUserId()).sendMessage(x);
         }
     }
 
-    private void sendMove() {//广播操作
+    private void sendMove(Cell move) {//广播操作
         lock.lock();
         try {
-            FeedBackObj data = new FeedBackObj(FeedBackEventTypeEnum.MOVE.getType(), x, y,
-                    GameStatusEnum.UNFINISHED.getName());
+            FeedBackObj data = new FeedBackObj();
+            data.setEvent(FeedBackEventTypeEnum.MOVE.getType());
+            data.setGameStatus(GameStatusEnum.UNFINISHED.getName());
+            data.setX(move.getX());
+            data.setY(move.getY());
             sendAllMessage(JSONObject.toJSONString(data));
             nextStepA = nextStepB = null;
         } finally {
@@ -262,11 +265,12 @@ public class Game extends Thread {
             } else {
                 judge();
                 if (status.equals(GameStatusEnum.UNFINISHED)) {
-                    sendMove();
+                    sendMove(round % 2 == 0 ? nextStepA : nextStepB);
                 } else {
                     sendResult();
                     break;
                 }
+                round++;
             }
         }
     }

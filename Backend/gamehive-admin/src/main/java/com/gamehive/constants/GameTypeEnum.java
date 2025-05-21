@@ -1,9 +1,15 @@
 package com.gamehive.constants;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * 游戏类型枚举
+ *
  * @author Cassifa
  */
+@Getter
+@AllArgsConstructor
 public enum GameTypeEnum {
     GOBANG(1, "五子棋", "Gobang"),
     GOBANG_88(2, "8*8五子棋", "8*8Gobang"),
@@ -15,23 +21,6 @@ public enum GameTypeEnum {
     private final String chineseName;
     private final String englishName;
 
-    GameTypeEnum(int code, String chineseName, String englishName) {
-        this.code = code;
-        this.chineseName = chineseName;
-        this.englishName = englishName;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getChineseName() {
-        return chineseName;
-    }
-
-    public String getEnglishName() {
-        return englishName;
-    }
 
     public static GameTypeEnum fromCode(int code) {
         for (GameTypeEnum value : values()) {
@@ -40,5 +29,21 @@ public enum GameTypeEnum {
             }
         }
         throw new IllegalArgumentException("未知游戏类型: " + code);
+    }
+
+    /**
+     * 根据中文名称获取枚举
+     *
+     * @param chineseName 中文名称
+     * @return 对应的枚举值
+     * @throws IllegalArgumentException 如果找不到匹配的枚举值
+     */
+    public static GameTypeEnum fromChineseName(String chineseName) {
+        for (GameTypeEnum value : values()) {
+            if (value.getChineseName().equals(chineseName)) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("未知游戏类型: " + chineseName);
     }
 } 
