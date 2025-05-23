@@ -15,6 +15,17 @@ public class StartGameController {
     @Autowired
     private StartGameService startGameService;
 
+    /**
+     * 开始一场新的对战游戏
+     *
+     * 从请求参数中解析玩家ID和游戏类型，并调用服务开始游戏
+     *
+     * @param data 请求参数，包含以下字段：
+     *         - a_id: 玩家A的ID
+     *         - b_id: 玩家B的ID
+     *         - game_type: 游戏类型中文名称(如"五子棋"、"井字棋"等)
+     * @return 游戏开始结果信息
+     */
     @PostMapping("/api/pk/start/game/")
     public String startGame(@RequestParam MultiValueMap<String, String> data) {
         // 解析玩家ID

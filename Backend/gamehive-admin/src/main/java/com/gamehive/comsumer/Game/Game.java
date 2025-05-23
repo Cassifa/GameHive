@@ -102,6 +102,10 @@ public class Game extends Thread {
         this.nextStepB = nextStepB;
     }
 
+    public synchronized void setLMMNextMove(Integer x, Integer y) {
+        this.nextStepB = new Cell(x, y);
+    }
+
     /**
      * 局面转为字符串，用于发送给大模型
      *
