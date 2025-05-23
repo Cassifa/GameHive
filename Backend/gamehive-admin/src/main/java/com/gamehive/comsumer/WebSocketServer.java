@@ -84,6 +84,9 @@ public class WebSocketServer {
         }
     }
 
+    /**
+     * 开启游戏 特判LMM方，LMM永远为玩家b
+     */
     public static void startGame(Long aId, SpecialPlayerEnum playerAType, Long bId, SpecialPlayerEnum playerBType,
             GameTypeEnum gameTypeEnum, Boolean forLMM) {
         Player a = playerMapper.selectById(aId), b;
@@ -91,11 +94,10 @@ public class WebSocketServer {
             b = playerMapper.selectById(bId);
         } else {
             b = new Player();
-            b.setUserId(SpecialPlayerEnum.LMM.getCode());
+            b.setUserId((long) SpecialPlayerEnum.LMM.getCode());
             b.setUserName(SpecialPlayerEnum.LMM.getChineseName());
         }
-        Game game = new Game(a.getUserId(), playerAType,
-                b.getUserId(), playerBType, gameTypeEnum, forLMM);
+        Game game = new Game(a, b, playerAType, playerBType, gameTypeEnum, forLMM);
 
         //一方断开链接则无视其操作
         if (users.get(a.getUserId()) != null) {
@@ -136,11 +138,14 @@ public class WebSocketServer {
         }
     }
 
-    //根据开始游戏请求进行匹配
+
+    /**
+     * 玩家开始匹配
+     */
     private void startMatching(ReceiveObj matchData) {
         System.out.println("startMatching");
         if (matchData.getPlayWithLMM()) {
-            startGame(this.user.getUserId(), SpecialPlayerEnum.PLAYER, SpecialPlayerEnum.LMM.getCode(),
+            startGame(this.user.getUserId(), SpecialPlayerEnum.PLAYER, (long) SpecialPlayerEnum.LMM.getCode(),
                     SpecialPlayerEnum.LMM, GameTypeEnum.fromChineseName(matchData.getGameType()), true);
             return;
         }
@@ -152,6 +157,9 @@ public class WebSocketServer {
         restTemplate.postForObject(addPlayerUrl, data, String.class);
     }
 
+    /**
+     * 玩家停止匹配
+     */
     private void stopMatching() {
 //        System.out.println("stopMatching");
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
@@ -161,6 +169,9 @@ public class WebSocketServer {
 
     }
 
+    /**
+     * 接受人类玩家下棋，根据会话找是那个玩家操作
+     */
     private void move(int x, int y) {
         if (Objects.equals(game.getPlayerA().getUserId(), user.getUserId())) {
             if (!game.getPlayerA().getPlayerType().equals(SpecialPlayerEnum.LMM)) {
@@ -175,7 +186,7 @@ public class WebSocketServer {
 
     @OnMessage
     public void onMessage(String message, Session session) {
-        // 从Client接收消息
+        //从Client接收消息
         System.out.println("接受的匹配请求");
         ReceiveObj data = JSONObject.parseObject(message, ReceiveObj.class);
         ReceiveEventTypeEnum event = ReceiveEventTypeEnum.fromType(data.getEvent());

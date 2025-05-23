@@ -42,8 +42,6 @@ public class Game extends Thread {
 
     //落子次数
     private Integer round = 0;
-    //玩家是否有非法操作
-    private GamePlayer invalidStepPlayer = null;
     //玩家的下一步操作
     private Cell nextStepA = null, nextStepB = null;
     //当前游戏状态
@@ -51,10 +49,14 @@ public class Game extends Thread {
     //抽象策略
     private GameStrategy gameStrategy;
 
-    public Game(Long aId, SpecialPlayerEnum playerAType, Long bId, SpecialPlayerEnum playerBType,
+    /**
+     * 开启游戏
+     */
+    public Game(Player a, Player b, SpecialPlayerEnum playerAType, SpecialPlayerEnum playerBType,
             GameTypeEnum gameTypeEnum, Boolean forLMM) {
         this.forLMM = forLMM;
         this.gameType = WebSocketServer.gameTypeMapper.selectGameTypeByGameId((long) gameTypeEnum.getCode());
+        //初始化判负策略
         switch (gameTypeEnum) {
             case GOBANG:
             case GOBANG_88:
@@ -70,6 +72,7 @@ public class Game extends Thread {
                 gameStrategy = new MisereTicTacToeStrategy();
                 break;
         }
+        //初始化地图
         rows = gameType.getBoardSize().intValue();
         cols = gameType.getBoardSize().intValue();
         map = new ArrayList<>(rows);
@@ -81,86 +84,75 @@ public class Game extends Thread {
             map.add(row);
         }
 
-        playerA = new GamePlayer(aId, playerAType,
-                new ArrayList<>());
-        playerB = new GamePlayer(bId, playerBType,
-                new ArrayList<>());
+        //构建玩家信息
+        playerA = new GamePlayer(a.getUserId(), a.getUserName(), playerAType, new ArrayList<>());
+        playerB = new GamePlayer(b.getUserId(), b.getUserName(), playerBType, new ArrayList<>());
+        //决定先后手
         boolean isAFirst = Math.random() < 0.5;
         if (isAFirst) {
             first = playerA;
         } else {
             first = playerB;
         }
+        //回传先后手信息
+        FeedBackObj forA = new FeedBackObj(), forB = new FeedBackObj();
+        forA.setEvent(FeedBackEventTypeEnum.START.getType());
+        forB.setEvent(FeedBackEventTypeEnum.START.getType());
+        forA.setFirst(isAFirst);
+        forB.setFirst(!isAFirst);
+        forA.setOpponentId(b.getUserId());
+        forB.setOpponentId(a.getUserId());
+        forA.setOpponentName(b.getUserName());
+        forB.setOpponentName(a.getUserName());
+        sendAMessage(JSONObject.toJSONString(forA));
+        sendBMessage(JSONObject.toJSONString(forB));
     }
 
-    //设置next
-    public synchronized void setNextStepA(Cell nextStepA) {
-        this.nextStepA = nextStepA;
-    }
-
-    public synchronized void setNextStepB(Cell nextStepB) {
-        this.nextStepB = nextStepB;
-    }
-
-    public synchronized void setLMMNextMove(Integer x, Integer y) {
-        this.nextStepB = new Cell(x, y);
-    }
 
     /**
-     * 局面转为字符串，用于发送给大模型
-     *
-     * @return 由012组成的字符串，表示棋盘状态，每行用换行符分隔
+     * 要求LMM输出
      */
-    private String getStringMap() {
-        StringBuilder sb = new StringBuilder();
-        for (List<CellRoleEnum> row : map) {
-            for (CellRoleEnum cell : row) {
-                sb.append(cell.getCode()); // 使用枚举的code值
-            }
-            sb.append("\n"); // 每行结束后添加换行符
-        }
-        return sb.toString();
-    }
-
     private void sendLMMCode(GamePlayer player) {
-        if (!player.getPlayerType().equals(SpecialPlayerEnum.LMM)) {
-            return;//亲自出马
-        }
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("input", getStringMap());
         data.add("LLMFlag", player == playerA ? CellRoleEnum.PLAYER_A.getCode() : CellRoleEnum.PLAYER_B.getCode());
         WebSocketServer.restTemplate.postForObject(addBotUrl, data, String.class);
     }
 
+    /**
+     * 游戏推进到下一步，如果没在规定时间内输入或输入非法则返回false
+     */
     private boolean nextStep() {
-        invalidStepPlayer = null;
         boolean askA = (round % 2) == 0;
-        if (askA) {
-            sendLMMCode(playerA);
-        } else {
+        //如果LMM输入则则发送信息
+        if (!askA && forLMM) {
             sendLMMCode(playerB);
         }
 
-        for (int i = 0; i < 500; i++) {//最大等待时间50秒
+        //最大等待时间60秒
+        for (int i = 0; i < 600; i++) {
             try {
                 Thread.sleep(100);
                 lock.lock();
                 try {
+                    //检查A玩家是否有输入
                     if (askA && nextStepA != null) {
                         if (map.get(nextStepA.getX()).get(nextStepA.getY()) != CellRoleEnum.EMPTY) {
-                            invalidStepPlayer = playerA;
+                            //非法输入不记录，之间判负
                             return false;
                         }
                         map.get(nextStepA.getY()).set(nextStepA.getY(), CellRoleEnum.PLAYER_A);
                         playerA.getSteps().add(nextStepA);
-                    } else if (!askA && nextStepB != null) {
+                        return true;
+                    }//检查B玩家是否有输入
+                    else if (!askA && nextStepB != null) {
                         if (map.get(nextStepB.getX()).get(nextStepB.getY()) != CellRoleEnum.EMPTY) {
-                            invalidStepPlayer = playerB;
                             return false;
                         }
                         map.get(nextStepB.getY()).set(nextStepB.getY(), CellRoleEnum.PLAYER_B);
                         playerB.getSteps().add(nextStepB);
                     }
+                    return true;
                 } finally {
                     lock.unlock();
                 }
@@ -171,25 +163,54 @@ public class Game extends Thread {
         return false;
     }
 
-    private void judge() {//判断操作后局面
-        //如果有人进行非法操作，直接判断负
-        if (invalidStepPlayer != null) {
-            status = invalidStepPlayer == playerA ? GameStatusEnum.PLAYER_B_WIN : GameStatusEnum.PLAYER_A_WIN;
+
+    @Override
+    public void run() {
+        //步数收到棋盘大小限制
+        for (int i = 0; i < 1000; i++) {
+            //内部回等待50秒，超时视为失败
+            if (!nextStep()) {
+                //没有输入或输入非法
+                lock.lock();
+                try {
+                    boolean askA = (round % 2) == 0;
+                    if (askA) {
+                        status = GameStatusEnum.PLAYER_B_WIN;
+                    } else {
+                        status = GameStatusEnum.PLAYER_A_WIN;
+                    }
+                    sendResult();
+                } finally {
+                    lock.unlock();
+                }
+                break;
+            } else {
+                //合法输入
+                judge();
+                if (status.equals(GameStatusEnum.UNFINISHED)) {
+                    //游戏还在继续，广播上一步操作
+                    sendMove(round % 2 == 0 ? nextStepA : nextStepB);
+                } else {
+                    //广播结果-游戏正常结束
+                    sendResult();
+                    break;
+                }
+                round++;
+            }
         }
+    }
+
+    /**
+     * 判断操作后局面
+     */
+    private void judge() {
         status = gameStrategy.checkGameOver(map);
     }
 
-    private void sendAllMessage(String x) {
-        //一方断开链接则无视其操作
-        if (WebSocketServer.users.get(playerA.getUserId()) != null) {
-            WebSocketServer.users.get(playerA.getUserId()).sendMessage(x);
-        }
-        if (!forLMM && WebSocketServer.users.get(playerB.getUserId()) != null) {
-            WebSocketServer.users.get(playerB.getUserId()).sendMessage(x);
-        }
-    }
-
-    private void sendMove(Cell move) {//广播操作
+    /**
+     * 广播操作信息
+     */
+    private void sendMove(Cell move) {
         lock.lock();
         try {
             FeedBackObj data = new FeedBackObj();
@@ -204,13 +225,22 @@ public class Game extends Thread {
         }
     }
 
-
-    private void updateUserRating(GamePlayer player, Long rating) {
-        Player user = WebSocketServer.playerMapper.selectById(player.getUserId());
-        user.setRaking(rating);
-        WebSocketServer.playerMapper.updateById(user);
+    /**
+     * 广播对局结束信息
+     */
+    private void sendResult() {
+        FeedBackObj feedBackObj = new FeedBackObj();//TODO 补充回传胜利结果逻辑
+        feedBackObj.setEvent(FeedBackEventTypeEnum.RESULT.getType());
+        feedBackObj.setGameStatus(status.getName());
+        sendAllMessage(JSONObject.toJSONString(feedBackObj));
+        saveToDataBase();
     }
 
+    //*****工具函数*****//
+
+    /**
+     * 对局存入数据库
+     */
     private void saveToDataBase() {
         JSONObject item = new JSONObject();
         //过滤步数小于对应步数次的对局
@@ -238,43 +268,60 @@ public class Game extends Thread {
         WebSocketServer.recordMapper.insert(record);
     }
 
-    private void sendResult() {//广播结果
-        FeedBackObj feedBackObj = new FeedBackObj();//TODO 补充回传胜利结果逻辑
-        feedBackObj.setEvent(FeedBackEventTypeEnum.RESULT.getType());
-        feedBackObj.setGameStatus(status.getName());
-        sendAllMessage(JSONObject.toJSONString(feedBackObj));
-        saveToDataBase();
+    //设置next
+    public synchronized void setNextStepA(Cell nextStepA) {
+        this.nextStepA = nextStepA;
     }
 
-    @Override
-    public void run() {
-        //最多会有600步
-        for (int i = 0; i < 1000; i++) {
-            if (!nextStep()) {//游戏终止
-                lock.lock();
-                try {
-                    if (nextStepA == null) {
-                        status = GameStatusEnum.PLAYER_B_WIN;
-                    } else if (nextStepB == null) {
-                        status = GameStatusEnum.PLAYER_A_WIN;
-                    }
-                } finally {
-                    lock.unlock();
-                }
-                //广播结果-没输入导致终止
-                sendResult();
-                break;
-            } else {
-                judge();
-                if (status.equals(GameStatusEnum.UNFINISHED)) {
-                    sendMove(round % 2 == 0 ? nextStepA : nextStepB);
-                } else {
-                    //广播结果-游戏正常结束
-                    sendResult();
-                    break;
-                }
-                round++;
-            }
+    public synchronized void setNextStepB(Cell nextStepB) {
+        this.nextStepB = nextStepB;
+    }
+
+    public synchronized void setLMMNextMove(Integer x, Integer y) {
+        this.nextStepB = new Cell(x, y);
+    }
+
+
+    private void sendAMessage(String x) {
+        if (WebSocketServer.users.get(playerA.getUserId()) != null) {
+            WebSocketServer.users.get(playerA.getUserId()).sendMessage(x);
         }
+    }
+
+    private void sendBMessage(String x) {
+        //大模型只会被获取输入，其余信息都不同步大模型
+        if (!forLMM && WebSocketServer.users.get(playerB.getUserId()) != null) {
+            WebSocketServer.users.get(playerB.getUserId()).sendMessage(x);
+        }
+    }
+
+    private void sendAllMessage(String x) {
+        sendAMessage(x);
+        sendBMessage(x);
+    }
+
+    /**
+     * 更新玩家积分
+     */
+    private void updateUserRating(GamePlayer player, Long rating) {
+        Player user = WebSocketServer.playerMapper.selectById(player.getUserId());
+        user.setRaking(rating);
+        WebSocketServer.playerMapper.updateById(user);
+    }
+
+    /**
+     * 局面转为字符串，用于发送给大模型
+     *
+     * @return 由012组成的字符串，表示棋盘状态，每行用换行符分隔
+     */
+    private String getStringMap() {
+        StringBuilder sb = new StringBuilder();
+        for (List<CellRoleEnum> row : map) {
+            for (CellRoleEnum cell : row) {
+                sb.append(cell.getCode()); // 使用枚举的code值
+            }
+            sb.append("\n"); // 每行结束后添加换行符
+        }
+        return sb.toString();
     }
 }

@@ -1,5 +1,6 @@
 package com.gamehive.comsumer.Game;
 
+import com.gamehive.common.annotation.Excel;
 import com.gamehive.constants.SpecialPlayerEnum;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -12,9 +13,13 @@ import lombok.NoArgsConstructor;
 public class GamePlayer {
 
     /**
-     * 单玩家编号
+     * 玩家的编号，用户编号或SpecialPlayerEnum.code(对于LMM为-2)
      */
     private Long userId;
+    /**
+     * 名称
+     */
+    private String userName;
     /**
      * 玩家角色类型
      */

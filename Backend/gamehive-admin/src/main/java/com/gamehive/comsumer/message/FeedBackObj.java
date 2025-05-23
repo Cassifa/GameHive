@@ -14,12 +14,43 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FeedBackObj {
 
-    //本次事件类型
+    /**
+     * 事件类型，对应FeedBackEventTypeEnum中的类型值
+     */
     private String event;
+
+    /**
+     * 是否先手，true表示当前玩家是先手
+     */
     private boolean isFirst;
+
+    /**
+     * 是否获胜，true表示当前玩家获胜
+     */
     private boolean isWin;
-    private int x, y;
+
+    /**
+     * 落子/操作的x坐标
+     */
+    private int x;
+
+    /**
+     * 落子/操作的y坐标
+     */
+    private int y;
+
+    /**
+     * 对手玩家ID
+     */
     private Long opponentId;
+
+    /**
+     * 对手玩家名称
+     */
     private String opponentName;
-    String gameStatus;
+
+    /**
+     * 游戏状态信息，JSON格式字符串
+     */
+    private String gameStatus;
 }

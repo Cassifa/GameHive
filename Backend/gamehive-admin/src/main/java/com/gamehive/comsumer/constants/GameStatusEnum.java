@@ -24,12 +24,12 @@ public enum GameStatusEnum {
     /**
      * 玩家A获胜
      */
-    PLAYER_A_WIN(2, "player a win"),
+    PLAYER_A_WIN(2, "aWin"),
 
     /**
      * 玩家B获胜
      */
-    PLAYER_B_WIN(3, "player b win");
+    PLAYER_B_WIN(3, "bWin");
 
     private final int code;
     private final String name;
