@@ -51,7 +51,7 @@ public class Record extends BaseEntity {
     private Boolean isPkAi;
 
     /**
-     * 对战的算法编号,如果为匹配对战则为-1
+     * 对战的算法编号,如果为匹配对战则为-1,与大模型为-2
      */
     private Long algorithmId;
 

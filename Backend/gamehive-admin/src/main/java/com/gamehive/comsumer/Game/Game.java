@@ -108,7 +108,6 @@ public class Game extends Thread {
         sendBMessage(JSONObject.toJSONString(forB));
     }
 
-
     /**
      * 要求LMM输出
      */
@@ -247,11 +246,13 @@ public class Game extends Thread {
             return;
         }
 
+        //筛选出两位玩家
         Player userA = WebSocketServer.playerMapper.selectById(playerA.getUserId());
         Player userB = WebSocketServer.playerMapper.selectById(playerB.getUserId());
         Long ratingA = userA.getRaking();
         Long ratingB = userB.getRaking();
 
+        //更新积分
         if (status.equals(GameStatusEnum.PLAYER_B_WIN)) {
             ratingA -= 4;
             ratingB += 5;
@@ -263,7 +264,21 @@ public class Game extends Thread {
         if (!forLMM) {
             updateUserRating(playerB, ratingB);
         }
+        //写入对局表
         Record record = new Record();//TODO 补充写入数据库逻辑
+        record.setGameTypeId(gameType.getGameId());
+        record.setGameTypeName(gameType.getGameName());
+        record.setAlgorithmId(forLMM ? -2L : -1L);
+        record.setAlgorithmName(forLMM ? "LMM" : "联机对战");
+        record.setWinner((long) status.getCode());
+        //先后手
+        record.setFirstPlayerId(playerA.getUserId());
+        record.setFirstPlayer(playerA.getUserName());
+        record.setSecondPlayerId(playerB.getUserId());
+        record.setSecondPlayerName(playerB.getUserName());
+        //操作序列
+        record.setFirstPlayerPieces(JSONObject.toJSONString(playerA.getSteps()));
+        record.setPlayerBPieces(JSONObject.toJSONString(playerB.getSteps()));
         WebSocketServer.recordMapper.insert(record);
     }
 
@@ -317,9 +332,9 @@ public class Game extends Thread {
         StringBuilder sb = new StringBuilder();
         for (List<CellRoleEnum> row : map) {
             for (CellRoleEnum cell : row) {
-                sb.append(cell.getCode()); // 使用枚举的code值
+                sb.append(cell.getCode()); //使用枚举的code值
             }
-            sb.append("\n"); // 每行结束后添加换行符
+            sb.append("\n"); //每行结束后添加换行符
         }
         return sb.toString();
     }

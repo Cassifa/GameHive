@@ -11,25 +11,26 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum GameStatusEnum {
-    /**
-     * 游戏未结束
-     */
-    UNFINISHED(0, "unfinished"),
-
-    /**
-     * 游戏平局
-     */
-    DRAW(1, "draw"),
 
     /**
      * 玩家A获胜
      */
-    PLAYER_A_WIN(2, "aWin"),
+    PLAYER_A_WIN(0, "aWin"),
 
     /**
      * 玩家B获胜
      */
-    PLAYER_B_WIN(3, "bWin");
+    PLAYER_B_WIN(1, "bWin"),
+
+    /**
+     * 游戏平局
+     */
+    DRAW(2, "draw"),
+    /**
+     * 游戏未结束
+     */
+    UNFINISHED(3, "unfinished");
+
 
     private final int code;
     private final String name;
