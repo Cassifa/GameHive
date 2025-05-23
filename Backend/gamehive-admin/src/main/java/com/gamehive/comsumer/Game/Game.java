@@ -26,7 +26,7 @@ import org.springframework.util.MultiValueMap;
 @Getter
 public class Game extends Thread {
 
-    private final static String addBotUrl = "http://127.0.0.1:3002/bot/add/";
+    private final static String addBotUrl = "http://127.0.0.1:3002/LMMRunning/add/";
     private final Integer rows, cols;
     //是否为与大模型下棋
     private final Boolean forLMM;
@@ -113,8 +113,11 @@ public class Game extends Thread {
      */
     private void sendLMMCode(GamePlayer player) {
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
-        data.add("input", getStringMap());
+        data.add("currentMap", getStringMap());
         data.add("LLMFlag", player == playerA ? CellRoleEnum.PLAYER_A.getCode() : CellRoleEnum.PLAYER_B.getCode());
+        data.add("gameType", gameType.getGameName());
+        data.add("gameRole", gameType.getGameRule());
+        data.add("historySteps", "稍后实现，测试数据");
         WebSocketServer.restTemplate.postForObject(addBotUrl, data, String.class);
     }
 
