@@ -153,6 +153,7 @@ public class WebSocketServer {
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user_id", this.user.getUserId().toString());
         data.add("rating", this.user.getRaking().toString());
+        data.add("game_type", matchData.getGameType());
         //spring boot通信，接收方地址 数据 返回值class(反射机制)
         restTemplate.postForObject(addPlayerUrl, data, String.class);
     }

@@ -265,7 +265,7 @@ public class Game extends Thread {
             updateUserRating(playerB, ratingB);
         }
         //写入对局表
-        Record record = new Record();//TODO 补充写入数据库逻辑
+        Record record = new Record();
         record.setGameTypeId(gameType.getGameId());
         record.setGameTypeName(gameType.getGameName());
         record.setAlgorithmId(forLMM ? -2L : -1L);
