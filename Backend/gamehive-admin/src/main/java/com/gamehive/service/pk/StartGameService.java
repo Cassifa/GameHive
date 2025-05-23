@@ -1,5 +1,8 @@
 package com.gamehive.service.pk;
 
+import com.gamehive.constants.GameTypeEnum;
+
 public interface StartGameService {
-    String startGame(Integer aId,Integer aBotId, Integer bId,Integer bBotId);
+
+    String startGame(Long aId, Long bId, GameTypeEnum gameTypeEnum);
 }
