@@ -25,9 +25,10 @@ public class FeedBackObj {
     private boolean isFirst;
 
     /**
-     * 是否获胜，true表示当前玩家获胜
+     * GameStatusEnum.name
+     * draw、aWin、bWin
      */
-    private boolean isWin;
+    private String winStatus;
 
     /**
      * 落子/操作的x坐标

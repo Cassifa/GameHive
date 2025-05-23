@@ -229,10 +229,9 @@ public class Game extends Thread {
      * 广播对局结束信息
      */
     private void sendResult() {
-        FeedBackObj feedBackObj = new FeedBackObj();//TODO 补充回传胜利结果逻辑
-        feedBackObj.setEvent(FeedBackEventTypeEnum.RESULT.getType());
-        feedBackObj.setGameStatus(status.getName());
-        sendAllMessage(JSONObject.toJSONString(feedBackObj));
+        FeedBackObj result = new FeedBackObj();
+        result.setEvent(FeedBackEventTypeEnum.RESULT.getType());
+        result.setWinStatus(status.getName());
         saveToDataBase();
     }
 
