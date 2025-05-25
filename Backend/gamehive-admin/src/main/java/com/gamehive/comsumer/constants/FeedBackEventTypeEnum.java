@@ -3,6 +3,8 @@ package com.gamehive.comsumer.constants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Objects;
+
 /**
  * @Description
  * @Author calciferli
@@ -30,7 +32,7 @@ public enum FeedBackEventTypeEnum {
 
     public static FeedBackEventTypeEnum fromType(String type) {
         for (FeedBackEventTypeEnum value : values()) {
-            if (value.getType() == type) {
+            if (Objects.equals(value.getType(), type)) {
                 return value;
             }
         }

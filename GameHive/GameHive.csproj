@@ -33,4 +33,8 @@
     <PackageReference Include="OnnxStack.Core" Version="0.39.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Net\Constants\" />
+  </ItemGroup>
+
 </Project>

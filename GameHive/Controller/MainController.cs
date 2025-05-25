@@ -13,6 +13,9 @@ using GameHive.Constants.RoleTypeEnum;
 using GameHive.MainForm;
 using GameHive.Model.GameInfo;
 using GameHive.Model.GameManager;
+using GameHive.Net;
+using System.Diagnostics;
+
 namespace GameHive.Controller {
     //这个函数用于执行控制器生命周期主流程
     internal partial class Controller {
@@ -20,6 +23,11 @@ namespace GameHive.Controller {
         private BoardManager boardManager;
         private View.View view;
         public GameMode CurrentGameMode { get; private set; } = GameMode.LocalGame;
+
+        //联机游戏相关字段
+        private GameSession gameSession;
+        private bool isMyTurn = false;
+
         public Controller(DoubleBufferedForm mainForm) {
             //绑定页面、视图层、模型层
             this.mainForm = mainForm;
@@ -95,11 +103,47 @@ namespace GameHive.Controller {
             }
         }
 
+        private async void StartGame() {
+            if (CurrentGameMode == GameMode.LocalGame) {
+                ModelMessageStartGame(boardManager.first == Role.AI);
+                ViewMessageStartGame();
+                if (boardManager.first == Role.AI)
+                    ModelMessageAskAIMove(-1, -1);
+            } else {
+                try {
+                    gameSession = new GameSession("ws://localhost:3000", UserInfo.Instance.Token);
+                    gameSession.OnGameStart += (s, e) => isMyTurn = e.IsFirst;
+                    gameSession.OnOpponentMove += (s, e) => {
+                        ViewMessagePlayChess(e.X, e.Y, Role.AI);
+                        ViewMessageLogMove(Role.AI, e.Y, e.X);
+                        isMyTurn = true;
+                    };
+                    gameSession.OnGameResult += (s, e) => EndGame(e.Winner);
+                    gameSession.OnError += (s, e) => {
+                        Debug.WriteLine($"[GameSession] 游戏错误: {e.Message}");
+                        MessageBox.Show("游戏发生错误，请重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    };
 
-        private void EndGame(Role role) {
-            //终止游戏,公布赢家
-            ModelMessageEndGame();
-            ViewMessageEndGame(role);
+                    await gameSession.StartSessionAsync(GetCurrentGameType().GetChineseName());
+                } catch (Exception ex) {
+                    Debug.WriteLine($"[GameSession] 开始游戏时发生错误: {ex.Message}");
+                    MessageBox.Show("连接服务器失败，请稍后重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private async void EndGame(Role role) {
+            if (CurrentGameMode == GameMode.LocalGame) {
+                ModelMessageEndGame();
+                ViewMessageEndGame(role);
+            } else {
+                try {
+                    await gameSession.EndSessionAsync();
+                    ViewMessageEndGame(role);
+                } catch (Exception ex) {
+                    Debug.WriteLine($"[GameSession] 结束游戏时发生错误: {ex.Message}");
+                }
+            }
         }
 
         public AIAlgorithmType GetCurrentAIType() {
@@ -108,13 +152,6 @@ namespace GameHive.Controller {
 
         public GameType GetCurrentGameType() {
             return boardManager.gameType;
-        }
-
-        private void StartGame() {
-            ModelMessageStartGame(boardManager.first == Role.AI);
-            ViewMessageStartGame();
-            if (boardManager.first == Role.AI)
-                ModelMessageAskAIMove(-1, -1);
         }
     }
 }
