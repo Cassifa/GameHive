@@ -7,6 +7,7 @@
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.DifficultyLevelEnum;
+using GameHive.Constants.GameModeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.MainForm;
@@ -18,6 +19,7 @@ namespace GameHive.Controller {
         private DoubleBufferedForm mainForm;
         private BoardManager boardManager;
         private View.View view;
+        public GameMode CurrentGameMode { get; private set; } = GameMode.LocalGame;
         public Controller(DoubleBufferedForm mainForm) {
             //绑定页面、视图层、模型层
             this.mainForm = mainForm;

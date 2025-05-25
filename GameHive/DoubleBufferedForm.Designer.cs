@@ -25,6 +25,7 @@
         private void InitializeComponent() {
             menuStrip = new MenuStrip();
             rightPanel = new Panel();
+            GameModeSelector = new ComboBox();
             loginStatus = new Label();
             DifficultySelector = new ComboBox();
             secondTurn = new RadioButton();
@@ -54,6 +55,7 @@
             // rightPanel
             // 
             rightPanel.AccessibleRole = AccessibleRole.PageTabList;
+            rightPanel.Controls.Add(GameModeSelector);
             rightPanel.Controls.Add(loginStatus);
             rightPanel.Controls.Add(DifficultySelector);
             rightPanel.Controls.Add(secondTurn);
@@ -67,31 +69,42 @@
             rightPanel.Size = new Size(300, 900);
             rightPanel.TabIndex = 1;
             // 
+            // GameModeSelector
+            // 
+            GameModeSelector.Cursor = Cursors.Hand;
+            GameModeSelector.DropDownStyle = ComboBoxStyle.DropDownList;
+            GameModeSelector.FormattingEnabled = true;
+            GameModeSelector.Location = new Point(127, 325);
+            GameModeSelector.Name = "GameModeSelector";
+            GameModeSelector.Size = new Size(150, 32);
+            GameModeSelector.TabIndex = 8;
+            // 
             // loginStatus
             // 
             loginStatus.AutoSize = true;
-            loginStatus.Location = new Point(154, 381);
+            loginStatus.Location = new Point(28, 333);
             loginStatus.Name = "loginStatus";
             loginStatus.Size = new Size(82, 24);
             loginStatus.TabIndex = 0;
             loginStatus.Text = "点此登录";
             loginStatus.TextAlign = ContentAlignment.MiddleCenter;
+            loginStatus.Click += loginStatus_Click;
             // 
             // DifficultySelector
             // 
             DifficultySelector.Cursor = Cursors.Hand;
             DifficultySelector.DropDownStyle = ComboBoxStyle.DropDownList;
             DifficultySelector.FormattingEnabled = true;
-            DifficultySelector.Location = new Point(134, 424);
+            DifficultySelector.Location = new Point(127, 436);
             DifficultySelector.Name = "DifficultySelector";
-            DifficultySelector.Size = new Size(116, 32);
+            DifficultySelector.Size = new Size(150, 32);
             DifficultySelector.TabIndex = 7;
             // 
             // secondTurn
             // 
             secondTurn.AutoSize = true;
             secondTurn.Cursor = Cursors.Hand;
-            secondTurn.Location = new Point(50, 428);
+            secondTurn.Location = new Point(39, 440);
             secondTurn.Name = "secondTurn";
             secondTurn.Size = new Size(71, 28);
             secondTurn.TabIndex = 6;
@@ -103,7 +116,7 @@
             // 
             firstTurn.AutoSize = true;
             firstTurn.Cursor = Cursors.Hand;
-            firstTurn.Location = new Point(50, 379);
+            firstTurn.Location = new Point(39, 382);
             firstTurn.Name = "firstTurn";
             firstTurn.Size = new Size(71, 28);
             firstTurn.TabIndex = 5;
@@ -115,9 +128,9 @@
             // 
             statusSwitch.Cursor = Cursors.Hand;
             statusSwitch.Font = new Font("Microsoft YaHei UI", 14F, FontStyle.Italic, GraphicsUnit.Point, 134);
-            statusSwitch.Location = new Point(50, 475);
+            statusSwitch.Location = new Point(39, 491);
             statusSwitch.Name = "statusSwitch";
-            statusSwitch.Size = new Size(200, 66);
+            statusSwitch.Size = new Size(238, 61);
             statusSwitch.TabIndex = 4;
             statusSwitch.Text = "开始";
             statusSwitch.UseVisualStyleBackColor = true;
@@ -127,10 +140,11 @@
             AIType.Cursor = Cursors.Hand;
             AIType.DropDownStyle = ComboBoxStyle.DropDownList;
             AIType.FormattingEnabled = true;
-            AIType.Location = new Point(50, 325);
+            AIType.Location = new Point(127, 378);
             AIType.Name = "AIType";
-            AIType.Size = new Size(200, 32);
+            AIType.Size = new Size(150, 32);
             AIType.TabIndex = 3;
+            AIType.SelectedIndexChanged += AIType_SelectedIndexChanged;
             // 
             // LogPanel
             // 
@@ -217,5 +231,6 @@
         public ComboBox DifficultySelector;
         public MyPanel BoardPanel;
         public Label loginStatus;
+        public ComboBox GameModeSelector;
     }
 }

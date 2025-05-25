@@ -1,13 +1,12 @@
 ﻿/*************************************************************************************
  * 文 件 名:   LoginRegister.cs
- * 描    述:   登录状态组件注册
+ * 描    述: 
  * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
  * 创 建 者：  Cassifa
- * 创建时间：  2025/5/5 12:31
+ * 创建时间：  2025/5/25 2:56
 *************************************************************************************/
-using GameHive.Net;
 using GameHive.MainForm;
-using System.Text.Json;
+using GameHive.Net;
 
 namespace GameHive.Controller {
     internal partial class Controller {
@@ -130,7 +129,7 @@ namespace GameHive.Controller {
                     // 尝试登录
                     var client = new GameHiveClient();
                     var result = await client.LoginAsync(usernameBox.Text, passwordBox.Text);
-                    
+
                     // 只检查code是否为200
                     if (result.Code == 200) {
                         // 登录成功

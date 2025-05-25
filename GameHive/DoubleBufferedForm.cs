@@ -14,10 +14,12 @@ namespace GameHive.MainForm {
             FormBorderStyle = FormBorderStyle.FixedDialog;
             LogListBox.DrawMode = DrawMode.OwnerDrawFixed;
             LogListBox.DrawItem += (sender, e) => {
-                if (e.Index < 0) return;
+                if (e.Index < 0)
+                    return;
                 var listBox = sender as ListBox;
                 var item = listBox?.Items[e.Index] as ColoredListItem;
-                if (item == null) return;
+                if (item == null)
+                    return;
                 // 绘制文本
                 using (Brush brush = new SolidBrush(item.TextColor)) {
                     e.Graphics.DrawString(item.Text, e.Font, brush, e.Bounds);
@@ -35,6 +37,13 @@ namespace GameHive.MainForm {
 
         }
 
+        private void AIType_SelectedIndexChanged(object sender, EventArgs e) {
+
+        }
+
+        private void loginStatus_Click(object sender, EventArgs e) {
+
+        }
     }
 }
 

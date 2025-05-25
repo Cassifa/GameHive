@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace GameHive.Net {
     public class GameHiveClient {
         private readonly HttpClient _httpClient;
-        private const string _baseUrl = "http://localhost:8080";
+        private const string _baseUrl = "http://localhost:3000";
 
         public GameHiveClient() {
             _httpClient = new HttpClient();
@@ -52,7 +52,7 @@ namespace GameHive.Net {
                         );
                         Console.WriteLine($"用户信息更新成功: {result.Data.UserName}");
                     }
-                    
+
                     return result;
                 } catch (JsonException jsonEx) {
                     Console.WriteLine($"JSON解析错误: {jsonEx.Message}");

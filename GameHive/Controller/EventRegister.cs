@@ -7,6 +7,7 @@
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.DifficultyLevelEnum;
+using GameHive.Constants.GameModeEnum;
 using GameHive.Model.GameInfo;
 
 namespace GameHive.Controller {
@@ -28,6 +29,9 @@ namespace GameHive.Controller {
         public EventHandler LoginStatusRegister;
         // 保存难度选择器的事件处理器引用
         private EventHandler currentDifficultySelectorHandler;
+        // 保存游戏模式选择器的事件处理器引用
+        private EventHandler currentGameModeSelectorHandler;
+
         //注册除选择AI、难度选择外事件
         public void RegisterEvent() {
             //注册配置无关组件
@@ -38,6 +42,7 @@ namespace GameHive.Controller {
             RegisterLogList();
             RegisterStatusSwitch();
             RegisterBoardPanel();
+            RegisterGameModeSelector(); // 注册游戏模式选择器
             //注册导航并读取配置加入导航栏目
             RegisterMenuStrip(mainForm);
             //绑定到 mainForm.Controls的对应组件上
@@ -61,17 +66,20 @@ namespace GameHive.Controller {
         private void RegisterAIType(GameBoardInfo info) {
             //设置居中绘制模式
             mainForm.AIType.DrawMode = DrawMode.OwnerDrawFixed;
+            mainForm.AIType.DropDownStyle = ComboBoxStyle.DropDownList;
             mainForm.AIType.DrawItem += (sender, e) => {
                 if (e.Index < 0)
                     return;
                 e.DrawBackground();
-                if (e.State == DrawItemState.Selected) {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected && 
+                    (e.State & DrawItemState.Focus) == DrawItemState.Focus) {
                     e.Graphics.FillRectangle(new SolidBrush(SystemColors.Highlight), e.Bounds);
                 }
                 if (sender is ComboBox combo) {
                     string text = combo.Items[e.Index].ToString();
                     var textSize = e.Graphics.MeasureString(text, e.Font);
-                    var brush = (e.State & DrawItemState.Selected) == DrawItemState.Selected ?
+                    var brush = ((e.State & DrawItemState.Selected) == DrawItemState.Selected && 
+                               (e.State & DrawItemState.Focus) == DrawItemState.Focus) ?
                         new SolidBrush(SystemColors.HighlightText) : new SolidBrush(combo.ForeColor);
                     e.Graphics.DrawString(text, e.Font, brush,
                         e.Bounds.Left + (e.Bounds.Width - textSize.Width) / 2,
@@ -94,13 +102,15 @@ namespace GameHive.Controller {
 
             //创建新的事件处理器并保存引用
             currentAITypeSelectorHandler = (sender, e) => {
-                // 获取当前选中项的中文名称
+                //获取当前选中项的中文名称
                 var selectedName = mainForm.AIType.SelectedItem.ToString();
-                // 根据中文名称查找对应的枚举值
+                //根据中文名称查找对应的枚举值
                 var selectedAI = info.AllAIType.FirstOrDefault(aiType => aiType.GetChineseName() == selectedName);
-                // 切换到选中的 AI 类型
+                //切换到选中的 AI 类型
                 ConcreteProductInfo productInfo = ModelMessageSwitchAI(selectedAI);
                 RegisterDifficultySelector(productInfo);
+                // 让下拉框失去焦点
+                mainForm.AIType.Parent.Focus();
             };
 
             //绑定新的事件处理器
@@ -116,17 +126,20 @@ namespace GameHive.Controller {
         private void RegisterDifficultySelector(ConcreteProductInfo info) {
             //设置居中绘制模式
             mainForm.DifficultySelector.DrawMode = DrawMode.OwnerDrawFixed;
+            mainForm.DifficultySelector.DropDownStyle = ComboBoxStyle.DropDownList;
             mainForm.DifficultySelector.DrawItem += (sender, e) => {
                 if (e.Index < 0)
                     return;
                 e.DrawBackground();
-                if (e.State == DrawItemState.Selected) {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected && 
+                    (e.State & DrawItemState.Focus) == DrawItemState.Focus) {
                     e.Graphics.FillRectangle(new SolidBrush(SystemColors.Highlight), e.Bounds);
                 }
                 if (sender is ComboBox combo) {
                     string text = combo.Items[e.Index].ToString();
                     var textSize = e.Graphics.MeasureString(text, e.Font);
-                    var brush = (e.State & DrawItemState.Selected) == DrawItemState.Selected ?
+                    var brush = ((e.State & DrawItemState.Selected) == DrawItemState.Selected && 
+                               (e.State & DrawItemState.Focus) == DrawItemState.Focus) ?
                         new SolidBrush(SystemColors.HighlightText) : new SolidBrush(combo.ForeColor);
                     e.Graphics.DrawString(text, e.Font, brush,
                         e.Bounds.Left + (e.Bounds.Width - textSize.Width) / 2,
@@ -154,6 +167,8 @@ namespace GameHive.Controller {
                     var selectedLevel = info.DifficultyLevels[mainForm.DifficultySelector.SelectedIndex];
                     ModelMessageSwitchDifficulty(selectedLevel);
                 }
+                // 让下拉框失去焦点
+                mainForm.DifficultySelector.Parent.Focus();
             };
 
             // 绑定新的事件处理器
@@ -162,6 +177,87 @@ namespace GameHive.Controller {
             //设置默认选择第一项
             if (mainForm.DifficultySelector.Items.Count > 0) {
                 mainForm.DifficultySelector.SelectedIndex = 0;
+            }
+        }
+
+        // 注册游戏模式选择器事件
+        private void RegisterGameModeSelector() {
+            //居中
+            mainForm.GameModeSelector.DrawMode = DrawMode.OwnerDrawFixed;
+            mainForm.GameModeSelector.DropDownStyle = ComboBoxStyle.DropDownList;
+            mainForm.GameModeSelector.DrawItem += (sender, e) => {
+                if (e.Index < 0)
+                    return;
+                e.DrawBackground();
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected && 
+                    (e.State & DrawItemState.Focus) == DrawItemState.Focus) {
+                    e.Graphics.FillRectangle(new SolidBrush(SystemColors.Highlight), e.Bounds);
+                }
+                if (sender is ComboBox combo) {
+                    string text = combo.Items[e.Index].ToString();
+                    var textSize = e.Graphics.MeasureString(text, e.Font);
+                    var brush = ((e.State & DrawItemState.Selected) == DrawItemState.Selected && 
+                               (e.State & DrawItemState.Focus) == DrawItemState.Focus) ?
+                        new SolidBrush(SystemColors.HighlightText) : new SolidBrush(combo.ForeColor);
+                    e.Graphics.DrawString(text, e.Font, brush,
+                        e.Bounds.Left + (e.Bounds.Width - textSize.Width) / 2,
+                        e.Bounds.Top + (e.Bounds.Height - textSize.Height) / 2);
+                }
+                e.DrawFocusRectangle();
+            };
+
+            // 订阅登录状态改变事件
+            GameHive.Net.UserInfo.Instance.LoginStatusChanged += (sender, e) => {
+                RefreshGameModeSelector();
+            };
+
+            RefreshGameModeSelector();
+        }
+
+        // 刷新游戏模式选择器
+        private void RefreshGameModeSelector() {
+            //移除旧的事件处理器
+            if (currentGameModeSelectorHandler != null) {
+                mainForm.GameModeSelector.SelectedIndexChanged -= currentGameModeSelectorHandler;
+            }
+
+            //清空原有选择
+            mainForm.GameModeSelector.Items.Clear();
+            //加入所有游戏模式
+            foreach (GameMode mode in Enum.GetValues(typeof(GameMode))) {
+                // 只有在登录状态下才添加AI和联机对战选项
+                if (mode == GameMode.LocalGame || GameHive.Net.UserInfo.Instance.IsLoggedIn) {
+                    mainForm.GameModeSelector.Items.Add(mode.GetChineseName());
+                }
+            }
+
+            //创建新的事件处理器并保存引用
+            currentGameModeSelectorHandler = (sender, e) => {
+                if (mainForm.GameModeSelector.SelectedIndex >= 0) {
+                    var selectedMode = (GameMode)mainForm.GameModeSelector.SelectedIndex;
+                    CurrentGameMode = selectedMode;
+
+                    //禁用或启用相关组件
+                    bool isLocalGame = selectedMode == GameMode.LocalGame;
+                    mainForm.firstTurn.Enabled = isLocalGame;
+                    mainForm.secondTurn.Enabled = isLocalGame;
+                    mainForm.AIType.Enabled = isLocalGame;
+                    mainForm.DifficultySelector.Enabled = isLocalGame;
+
+                    // 设置文字颜色
+                    mainForm.AIType.ForeColor = isLocalGame ? SystemColors.WindowText : SystemColors.GrayText;
+                    mainForm.DifficultySelector.ForeColor = isLocalGame ? SystemColors.WindowText : SystemColors.GrayText;
+                }
+                // 让下拉框失去焦点
+                mainForm.GameModeSelector.Parent.Focus();
+            };
+
+            //绑定新的事件处理器
+            mainForm.GameModeSelector.SelectedIndexChanged += currentGameModeSelectorHandler;
+
+            //设置默认选择第一项
+            if (mainForm.GameModeSelector.Items.Count > 0) {
+                mainForm.GameModeSelector.SelectedIndex = 0;
             }
         }
     }

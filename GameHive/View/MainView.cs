@@ -28,6 +28,7 @@ namespace GameHive.View {
             mainForm.secondTurn.Enabled = false;
             mainForm.AIType.Enabled = false;
             mainForm.DifficultySelector.Enabled = false;
+            mainForm.GameModeSelector.Enabled = false;
             ClearMoveRecords();
         }
 
