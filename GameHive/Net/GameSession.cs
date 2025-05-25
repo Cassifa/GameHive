@@ -35,12 +35,13 @@ namespace GameHive.Net {
         }
 
         //开始游戏会话
-        public async Task StartSessionAsync(string gameType) {
+        public async Task StartSessionAsync(string gameType, bool playerWittLMM) {
             try {
                 await webSocketClient.ConnectAsync();
                 var startMessage = new GameMessage {
                     Event = ClientEventType.Start,
-                    GameType = gameType
+                    GameType = gameType,
+                    PlayWithLMM = playerWittLMM
                 };
                 await webSocketClient.SendMessageAsync(startMessage);
             } catch (Exception ex) {

@@ -92,13 +92,13 @@ public class WebSocketServer {
      */
     public static void startGame(Long aId, SpecialPlayerEnum playerAType, Long bId, SpecialPlayerEnum playerBType,
                                  GameTypeEnum gameTypeEnum, Boolean forLMM) {
-        Player a = playerMapper.selectById(aId), b;
+        Player a = playerMapper.selectPlayerByUserId(aId), b;
         if (forLMM) {
-            b = playerMapper.selectPlayerByUserId(bId);
-        } else {
             b = new Player();
             b.setUserId((long) SpecialPlayerEnum.LMM.getCode());
             b.setUserName(SpecialPlayerEnum.LMM.getChineseName());
+        } else {
+            b = playerMapper.selectPlayerByUserId(bId);
         }
         Game game = new Game(a, b, playerAType, playerBType, gameTypeEnum, forLMM);
         System.out.println("开启一场对局：");

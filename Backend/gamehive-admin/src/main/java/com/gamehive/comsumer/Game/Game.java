@@ -116,6 +116,7 @@ public class Game extends Thread {
         data.add("gameType", gameType.getGameName());
         data.add("gameRole", gameType.getGameRule());
         data.add("historySteps", "稍后实现，测试数据");
+        System.out.println("尝试像LMM运行服务发送信息" + data);
         WebSocketServer.restTemplate.postForObject(addBotUrl, data, String.class);
     }
 
@@ -151,8 +152,8 @@ public class Game extends Thread {
                         }
                         map.get(nextStepB.getY()).set(nextStepB.getY(), CellRoleEnum.PLAYER_B);
                         playerB.getSteps().add(nextStepB);
+                        return true;
                     }
-                    return true;
                 } finally {
                     lock.unlock();
                 }

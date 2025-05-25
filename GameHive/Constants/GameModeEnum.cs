@@ -8,21 +8,21 @@
 namespace GameHive.Constants.GameModeEnum {
     public enum GameMode {
         LocalGame,           // 本地对战
-        AIGame,             // 与大模型对战
+        LMMGame,             // 与大模型对战
         OnlineGame,         // 联机对战
     }
 
     public static class GameModeExtensions {
         public static string GetChineseName(this GameMode mode) => mode switch {
             GameMode.LocalGame => "本地对战",
-            GameMode.AIGame => "与大模型对战",
+            GameMode.LMMGame => "与大模型对战",
             GameMode.OnlineGame => "联机对战",
             _ => "未知模式"
         };
 
         public static string GetEnglishName(this GameMode mode) => mode switch {
             GameMode.LocalGame => "Local Game",
-            GameMode.AIGame => "AI Game",
+            GameMode.LMMGame => "AI Game",
             GameMode.OnlineGame => "Online Game",
             _ => "Unknown Mode"
         };

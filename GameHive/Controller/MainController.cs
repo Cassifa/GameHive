@@ -132,10 +132,9 @@ namespace GameHive.Controller {
                     };
 
                     ViewMessageStartMatching();
-                    await gameSession.StartSessionAsync(GetCurrentGameType().GetChineseName());
+                    await gameSession.StartSessionAsync(GetCurrentGameType().GetChineseName(), CurrentGameMode ==GameMode.LMMGame);
                 } catch (Exception ex) {
                     CurrentGameStatus = GameStatus.NotStarted;
-                    MessageBox.Show("连接服务器失败，请稍后重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
