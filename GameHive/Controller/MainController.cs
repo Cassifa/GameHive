@@ -111,10 +111,7 @@ namespace GameHive.Controller {
                     ModelMessageAskAIMove(-1, -1);
             } else {
                 try {
-                    // 只传入基础 URL
                     string wsUrl = "ws://localhost:3000";
-                    Debug.WriteLine($"[GameSession] 尝试连接到: {wsUrl}");
-                    
                     gameSession = new GameSession(wsUrl, UserInfo.Instance.UserId.ToString());
                     gameSession.OnGameStart += (s, e) => isMyTurn = e.IsFirst;
                     gameSession.OnOpponentMove += (s, e) => {
@@ -124,13 +121,11 @@ namespace GameHive.Controller {
                     };
                     gameSession.OnGameResult += (s, e) => EndGame(e.Winner);
                     gameSession.OnError += (s, e) => {
-                        Debug.WriteLine($"[GameSession] 游戏错误: {e.Message}");
                         MessageBox.Show("游戏发生错误，请重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     };
 
                     await gameSession.StartSessionAsync(GetCurrentGameType().GetChineseName());
                 } catch (Exception ex) {
-                    Debug.WriteLine($"[GameSession] 开始游戏时发生错误: {ex.Message}");
                     MessageBox.Show("连接服务器失败，请稍后重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -144,8 +139,8 @@ namespace GameHive.Controller {
                 try {
                     await gameSession.EndSessionAsync();
                     ViewMessageEndGame(role);
-                } catch (Exception ex) {
-                    Debug.WriteLine($"[GameSession] 结束游戏时发生错误: {ex.Message}");
+                } catch (Exception) {
+                    // 忽略错误
                 }
             }
         }

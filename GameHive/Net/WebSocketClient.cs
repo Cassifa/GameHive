@@ -37,13 +37,11 @@ namespace GameHive.Net {
         public WebSocketClient(string baseUrl, string userId) {
             this.baseUrl = baseUrl;
             this.userId = userId;
-            Debug.WriteLine($"[WebSocket] 初始化客户端 - URL: {baseUrl}, 用户ID: {userId}");
         }
 
         //连接到WebSocket服务器
         public async Task ConnectAsync() {
             if (isConnected) {
-                Debug.WriteLine("[WebSocket] 已经连接，跳过连接");
                 return;
             }
 
@@ -51,30 +49,22 @@ namespace GameHive.Net {
                 webSocket = new ClientWebSocket();
                 webSocketCts = new CancellationTokenSource();
 
-                // 构建完整的 WebSocket URL，添加 /websocket 路径
                 string wsUrl = $"{baseUrl.TrimEnd('/')}/websocket/{userId}";
-                Debug.WriteLine($"[WebSocket] 尝试连接到: {wsUrl}");
-
                 await webSocket.ConnectAsync(new Uri(wsUrl), webSocketCts.Token);
 
                 isConnected = true;
-                Debug.WriteLine("[WebSocket] 连接成功");
                 OnConnected?.Invoke(this, EventArgs.Empty);
 
-                //启动消息接收循环
                 _ = ReceiveMessagesAsync();
             } catch (WebSocketException wsEx) {
-                Debug.WriteLine($"[WebSocket] WebSocket连接失败: {wsEx.Message}, 错误代码: {wsEx.ErrorCode}");
                 isConnected = false;
                 OnError?.Invoke(this, wsEx);
                 throw;
             } catch (UriFormatException uriEx) {
-                Debug.WriteLine($"[WebSocket] URL格式错误: {uriEx.Message}");
                 isConnected = false;
                 OnError?.Invoke(this, uriEx);
                 throw;
             } catch (Exception ex) {
-                Debug.WriteLine($"[WebSocket] 连接失败: {ex.Message}, 类型: {ex.GetType().Name}");
                 isConnected = false;
                 OnError?.Invoke(this, ex);
                 throw;
@@ -84,7 +74,6 @@ namespace GameHive.Net {
         //断开WebSocket连接
         public async Task DisconnectAsync() {
             if (!isConnected) {
-                Debug.WriteLine("[WebSocket] 未连接，跳过断开");
                 return;
             }
 
@@ -94,7 +83,6 @@ namespace GameHive.Net {
                     await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Game ended", CancellationToken.None);
                 }
             } catch (Exception ex) {
-                Debug.WriteLine($"[WebSocket] 断开连接时发生错误: {ex.Message}, 类型: {ex.GetType().Name}");
                 OnError?.Invoke(this, ex);
             } finally {
                 isConnected = false;
@@ -103,7 +91,6 @@ namespace GameHive.Net {
                 webSocketCts?.Dispose();
                 webSocketCts = null;
                 OnDisconnected?.Invoke(this, EventArgs.Empty);
-                Debug.WriteLine("[WebSocket] 已断开连接");
             }
         }
 
@@ -114,18 +101,15 @@ namespace GameHive.Net {
                 while (isConnected && webSocket?.State == WebSocketState.Open) {
                     var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), webSocketCts.Token);
                     if (result.MessageType == WebSocketMessageType.Close) {
-                        Debug.WriteLine("[WebSocket] 收到关闭消息");
                         break;
                     }
 
                     var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    Debug.WriteLine($"[WebSocket] 收到消息: {message}");
                     HandleMessage(message);
                 }
             } catch (OperationCanceledException) {
-                Debug.WriteLine("[WebSocket] 消息接收已取消");
+                // 忽略取消操作
             } catch (Exception ex) {
-                Debug.WriteLine($"[WebSocket] 接收消息时发生错误: {ex.Message}, 类型: {ex.GetType().Name}");
                 OnError?.Invoke(this, ex);
             }
         }
@@ -135,16 +119,11 @@ namespace GameHive.Net {
             try {
                 var response = JsonSerializer.Deserialize<GameResponse>(message);
                 if (response != null) {
-                    Debug.WriteLine($"[WebSocket] 解析消息成功: {response.Event}");
                     OnMessageReceived?.Invoke(this, response);
-                } else {
-                    Debug.WriteLine("[WebSocket] 解析消息失败: 返回对象为空");
                 }
             } catch (JsonException jsonEx) {
-                Debug.WriteLine($"[WebSocket] JSON解析错误: {jsonEx.Message}, 原始消息: {message}");
                 OnError?.Invoke(this, jsonEx);
             } catch (Exception ex) {
-                Debug.WriteLine($"[WebSocket] 处理消息时发生错误: {ex.Message}, 类型: {ex.GetType().Name}");
                 OnError?.Invoke(this, ex);
             }
         }
@@ -152,17 +131,14 @@ namespace GameHive.Net {
         //发送消息到WebSocket服务器
         public async Task SendMessageAsync(GameMessage message) {
             if (!isConnected || webSocket?.State != WebSocketState.Open) {
-                Debug.WriteLine("[WebSocket] 未连接或连接已关闭，无法发送消息");
                 return;
             }
 
             try {
                 var json = JsonSerializer.Serialize(message);
-                Debug.WriteLine($"[WebSocket] 发送消息: {json}");
                 var bytes = Encoding.UTF8.GetBytes(json);
                 await webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, webSocketCts.Token);
             } catch (Exception ex) {
-                Debug.WriteLine($"[WebSocket] 发送消息时发生错误: {ex.Message}, 类型: {ex.GetType().Name}");
                 OnError?.Invoke(this, ex);
             }
         }

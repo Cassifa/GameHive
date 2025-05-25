@@ -42,6 +42,7 @@ namespace GameHive.View {
                 mainForm.secondTurn.Enabled = true;
                 mainForm.AIType.Enabled = true;
                 mainForm.DifficultySelector.Enabled = true;
+                mainForm.GameModeSelector.Enabled = true;
             }));
             LogWin(role);
             // 上传对局结果

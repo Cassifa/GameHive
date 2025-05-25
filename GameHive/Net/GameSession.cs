@@ -44,7 +44,6 @@ namespace GameHive.Net {
                 };
                 await webSocketClient.SendMessageAsync(startMessage);
             } catch (Exception ex) {
-                Debug.WriteLine($"[GameSession] 开始游戏会话失败: {ex.Message}");
                 throw;
             }
         }
@@ -58,7 +57,6 @@ namespace GameHive.Net {
                 await webSocketClient.SendMessageAsync(endMessage);
                 await webSocketClient.DisconnectAsync();
             } catch (Exception ex) {
-                Debug.WriteLine($"[GameSession] 结束游戏会话失败: {ex.Message}");
                 throw;
             }
         }
@@ -74,7 +72,6 @@ namespace GameHive.Net {
                 await webSocketClient.SendMessageAsync(moveMessage);
                 isMyTurn = false;
             } catch (Exception ex) {
-                Debug.WriteLine($"[GameSession] 发送落子消息失败: {ex.Message}");
                 throw;
             }
         }
