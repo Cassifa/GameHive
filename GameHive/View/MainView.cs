@@ -32,6 +32,28 @@ namespace GameHive.View {
             ClearMoveRecords();
         }
 
+        //开始匹配
+        public void StartMatching() {
+            mainForm.statusSwitch.Text = "终止匹配";
+            mainForm.statusSwitch.BackColor = Color.Red;
+            mainForm.firstTurn.Enabled = false;
+            mainForm.secondTurn.Enabled = false;
+            mainForm.AIType.Enabled = false;
+            mainForm.DifficultySelector.Enabled = false;
+            mainForm.GameModeSelector.Enabled = false;
+        }
+
+        //终止匹配
+        public void StopMatching() {
+            mainForm.statusSwitch.Text = "开始匹配";
+            mainForm.statusSwitch.BackColor = Color.Green;
+            mainForm.firstTurn.Enabled = true;
+            mainForm.secondTurn.Enabled = true;
+            mainForm.AIType.Enabled = true;
+            mainForm.DifficultySelector.Enabled = true;
+            mainForm.GameModeSelector.Enabled = true;
+        }
+
         //游戏结束或终止
         public void EndGame(Role role) {
             //处理组件显示

@@ -8,13 +8,13 @@
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.GameModeEnum;
+using GameHive.Constants.GameStatusEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.MainForm;
 using GameHive.Model.GameInfo;
 using GameHive.Model.GameManager;
 using GameHive.Net;
-using System.Diagnostics;
 
 namespace GameHive.Controller {
     //这个函数用于执行控制器生命周期主流程
@@ -23,6 +23,7 @@ namespace GameHive.Controller {
         private BoardManager boardManager;
         private View.View view;
         public GameMode CurrentGameMode { get; private set; } = GameMode.LocalGame;
+        public GameStatus CurrentGameStatus { get; private set; } = GameStatus.NotStarted;
 
         //联机游戏相关字段
         private GameSession gameSession;
@@ -105,15 +106,21 @@ namespace GameHive.Controller {
 
         private async void StartGame() {
             if (CurrentGameMode == GameMode.LocalGame) {
+                CurrentGameStatus = GameStatus.Playing;
                 ModelMessageStartGame(boardManager.first == Role.AI);
                 ViewMessageStartGame();
                 if (boardManager.first == Role.AI)
                     ModelMessageAskAIMove(-1, -1);
             } else {
                 try {
+                    CurrentGameStatus = GameStatus.Matching;
                     string wsUrl = "ws://localhost:3000";
                     gameSession = new GameSession(wsUrl, UserInfo.Instance.UserId.ToString());
-                    gameSession.OnGameStart += (s, e) => isMyTurn = e.IsFirst;
+                    gameSession.OnGameStart += (s, e) => {
+                        CurrentGameStatus = GameStatus.Playing;
+                        isMyTurn = e.IsFirst;
+                        ViewMessageStartGame();
+                    };
                     gameSession.OnOpponentMove += (s, e) => {
                         ViewMessagePlayChess(e.X, e.Y, Role.AI);
                         ViewMessageLogMove(Role.AI, e.Y, e.X);
@@ -124,8 +131,10 @@ namespace GameHive.Controller {
                         MessageBox.Show("游戏发生错误，请重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     };
 
+                    ViewMessageStartMatching();
                     await gameSession.StartSessionAsync(GetCurrentGameType().GetChineseName());
                 } catch (Exception ex) {
+                    CurrentGameStatus = GameStatus.NotStarted;
                     MessageBox.Show("连接服务器失败，请稍后重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -133,14 +142,22 @@ namespace GameHive.Controller {
 
         private async void EndGame(Role role) {
             if (CurrentGameMode == GameMode.LocalGame) {
+                CurrentGameStatus = GameStatus.NotStarted;
                 ModelMessageEndGame();
                 ViewMessageEndGame(role);
             } else {
                 try {
-                    await gameSession.EndSessionAsync();
+                    if (gameSession != null) {
+                        await gameSession.EndSessionAsync();
+                        gameSession = null;
+                    }
+                    CurrentGameStatus = GameStatus.NotStarted;
                     ViewMessageEndGame(role);
                 } catch (Exception) {
-                    // 忽略错误
+                    // 如果发生错误，强制清理
+                    gameSession = null;
+                    CurrentGameStatus = GameStatus.NotStarted;
+                    ViewMessageEndGame(role);
                 }
             }
         }

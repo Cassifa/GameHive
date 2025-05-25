@@ -80,7 +80,7 @@ namespace GameHive.Net {
             try {
                 webSocketCts?.Cancel();
                 if (webSocket?.State == WebSocketState.Open) {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Game ended", CancellationToken.None);
+                    webSocket.Abort();
                 }
             } catch (Exception ex) {
                 OnError?.Invoke(this, ex);

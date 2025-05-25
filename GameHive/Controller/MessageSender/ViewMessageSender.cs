@@ -36,6 +36,16 @@ namespace GameHive.Controller {
             view.EndGame(role);
         }
 
+        //开始匹配
+        private void ViewMessageStartMatching() {
+            view.StartMatching();
+        }
+
+        //终止匹配
+        private void ViewMessageStopMatching() {
+            view.StopMatching();
+        }
+
         //切换先手
         private void ViewMessageSwitchGame(GameType game) {
             view.LogSwitchGame(game);

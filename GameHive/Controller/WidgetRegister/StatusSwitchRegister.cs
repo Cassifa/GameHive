@@ -5,6 +5,8 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 1:32
 *************************************************************************************/
+using GameHive.Constants.GameModeEnum;
+using GameHive.Constants.GameStatusEnum;
 using GameHive.Constants.RoleTypeEnum;
 
 namespace GameHive.Controller {
@@ -13,12 +15,31 @@ namespace GameHive.Controller {
         private void RegisterStatusSwitch() {
             statusSwitchRegister += StatusSwitchClick;
         }
+
         private void StatusSwitchClick(object sender, EventArgs e) {
-            //运行中-终止 非运行-开始/清空
-            if (boardManager.gameRunning) {
-                EndGame(Role.Empty);
+            if (CurrentGameMode == GameMode.OnlineGame) {
+                switch (CurrentGameStatus) {
+                    case GameStatus.NotStarted:
+                        StartGame();
+                        break;
+                    case GameStatus.Matching:
+                        try {
+                            gameSession.EndSessionAsync().Wait();
+                            gameSession = null;
+                            CurrentGameStatus = GameStatus.NotStarted;
+                            ViewMessageStopMatching();
+                        } catch { }
+                        break;
+                    case GameStatus.Playing:
+                        EndGame(Role.Empty);
+                        break;
+                }
             } else {
-                StartGame();
+                if (CurrentGameStatus == GameStatus.Playing) {
+                    EndGame(Role.Empty);
+                } else {
+                    StartGame();
+                }
             }
         }
     }
