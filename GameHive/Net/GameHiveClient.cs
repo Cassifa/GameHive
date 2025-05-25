@@ -1,6 +1,6 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using System.Diagnostics;
 
 namespace GameHive.Net {
     public class GameHiveClient {
@@ -109,22 +109,6 @@ namespace GameHive.Net {
         public string UserName { get; set; }
         public string NickName { get; set; }
         public string Token { get; set; }
-    }
-
-    public class GameResult {
-        public string UserId { get; set; }
-        public string AlgorithmName { get; set; }
-        public string GameTypeName { get; set; }
-        public bool PlayerFirst { get; set; }
-        public int Winner { get; set; }  // 0-先手赢，1-后手赢，2-平局
-        public List<GameMove> Moves { get; set; }
-    }
-
-    public class GameMove {
-        public int Id { get; set; }
-        public string Role { get; set; }  // "Player" or "AI"
-        public int X { get; set; }
-        public int Y { get; set; }
     }
 
     public class AjaxResult<T> {

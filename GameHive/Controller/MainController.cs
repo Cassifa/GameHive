@@ -111,7 +111,11 @@ namespace GameHive.Controller {
                     ModelMessageAskAIMove(-1, -1);
             } else {
                 try {
-                    gameSession = new GameSession("ws://localhost:3000", UserInfo.Instance.Token);
+                    // 只传入基础 URL
+                    string wsUrl = "ws://localhost:3000";
+                    Debug.WriteLine($"[GameSession] 尝试连接到: {wsUrl}");
+                    
+                    gameSession = new GameSession(wsUrl, UserInfo.Instance.UserId.ToString());
                     gameSession.OnGameStart += (s, e) => isMyTurn = e.IsFirst;
                     gameSession.OnOpponentMove += (s, e) => {
                         ViewMessagePlayChess(e.X, e.Y, Role.AI);

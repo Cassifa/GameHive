@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 
 @Component
 public class JwtAuthentication implements ApplicationContextAware {
@@ -36,6 +38,29 @@ public class JwtAuthentication implements ApplicationContextAware {
                 return -1L;
             }
             return tokenService.getLoginUser(request).getUserId();
+        } catch (Exception e) {
+            return -1L;
+        }
+    }
+
+    /**
+     * 从token中获取用户ID
+     * @param token JWT token
+     * @return 用户ID，如果token无效返回-1
+     */
+    public static Long getUserId(String token) {
+        try {
+            if (StringUtils.isNotEmpty(token) && token.startsWith(Constants.TOKEN_PREFIX)) {
+                token = token.replace(Constants.TOKEN_PREFIX, "");
+            }
+            if (StringUtils.isEmpty(token)) {
+                return -1L;
+            }
+            Claims claims = Jwts.parser()
+                    .setSigningKey(tokenService.getSecret())
+                    .parseClaimsJws(token)
+                    .getBody();
+            return Long.parseLong(claims.get(Constants.JWT_USERID).toString());
         } catch (Exception e) {
             return -1L;
         }

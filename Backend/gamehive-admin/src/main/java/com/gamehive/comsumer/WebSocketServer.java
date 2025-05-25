@@ -7,31 +7,27 @@ import com.gamehive.comsumer.constants.FeedBackEventTypeEnum;
 import com.gamehive.comsumer.constants.ReceiveEventTypeEnum;
 import com.gamehive.comsumer.message.FeedBackObj;
 import com.gamehive.comsumer.message.ReceiveObj;
-import com.gamehive.comsumer.utils.JwtAuthentication;
 import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.constants.SpecialPlayerEnum;
 import com.gamehive.mapper.GameTypeMapper;
 import com.gamehive.mapper.PlayerMapper;
 import com.gamehive.mapper.RecordMapper;
 import com.gamehive.pojo.Player;
-import java.io.IOException;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import javax.websocket.server.PathParam;
-import javax.websocket.server.ServerEndpoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.websocket.*;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Component
-@ServerEndpoint("/websocket/{token}")  // 注意不要以'/'结尾
+@ServerEndpoint("/websocket/{userId}")  // 修改为直接接收用户ID
 public class WebSocketServer {
 
     public static ConcurrentHashMap<Long, WebSocketServer> users = new ConcurrentHashMap<>();
@@ -71,15 +67,22 @@ public class WebSocketServer {
     }
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("token") String token) throws IOException {
+    public void onOpen(Session session, @PathParam("userId") String userIdStr) throws IOException {
         // 建立连接
         this.session = session;
-        System.out.println("connected");
-        Long userId = JwtAuthentication.getUserId();
-        this.user = playerMapper.selectById(userId);
-        if (this.user != null) {
-            users.put(userId, this);
-        } else {
+        System.out.println("WebSocket连接建立，用户ID: " + userIdStr);
+        try {
+            Long userId = Long.parseLong(userIdStr);
+            this.user = playerMapper.selectPlayerByUserId(userId);
+            if (this.user != null) {
+                System.out.println("用户验证成功，用户ID: " + userId + ", 用户名: " + this.user.getUserName());
+                users.put(userId, this);
+            } else {
+                System.out.println("用户不存在于数据库中，关闭连接");
+                this.session.close();
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("无效的用户ID格式，关闭连接");
             this.session.close();
         }
     }
@@ -88,10 +91,10 @@ public class WebSocketServer {
      * 开启游戏 特判LMM方，LMM永远为玩家b
      */
     public static void startGame(Long aId, SpecialPlayerEnum playerAType, Long bId, SpecialPlayerEnum playerBType,
-            GameTypeEnum gameTypeEnum, Boolean forLMM) {
+                                 GameTypeEnum gameTypeEnum, Boolean forLMM) {
         Player a = playerMapper.selectById(aId), b;
         if (forLMM) {
-            b = playerMapper.selectById(bId);
+            b = playerMapper.selectPlayerByUserId(bId);
         } else {
             b = new Player();
             b.setUserId((long) SpecialPlayerEnum.LMM.getCode());

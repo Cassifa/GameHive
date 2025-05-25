@@ -208,4 +208,11 @@ public class TokenService {
     private String getTokenKey(String uuid) {
         return CacheConstants.LOGIN_TOKEN_KEY + uuid;
     }
+
+    /**
+     * 获取令牌秘钥
+     */
+    public String getSecret() {
+        return secret;
+    }
 }

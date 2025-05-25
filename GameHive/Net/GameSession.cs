@@ -6,6 +6,7 @@
  * 创建时间：  2025/5/25 23:39
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using GameHive.Net.Constants;
 using System.Diagnostics;
 
 namespace GameHive.Net {
@@ -27,8 +28,8 @@ namespace GameHive.Net {
         public bool IsMyTurn => isMyTurn;
 
         //构造函数
-        public GameSession(string baseUrl, string token) {
-            webSocketClient = new WebSocketClient(baseUrl, token);
+        public GameSession(string baseUrl, string userId) {
+            webSocketClient = new WebSocketClient(baseUrl, userId);
             webSocketClient.OnMessageReceived += HandleWebSocketMessage;
             webSocketClient.OnError += (s, e) => OnError?.Invoke(this, e);
         }
@@ -38,7 +39,7 @@ namespace GameHive.Net {
             try {
                 await webSocketClient.ConnectAsync();
                 var startMessage = new GameMessage {
-                    Event = "START",
+                    Event = ClientEventType.Start,
                     GameType = gameType
                 };
                 await webSocketClient.SendMessageAsync(startMessage);
@@ -52,7 +53,7 @@ namespace GameHive.Net {
         public async Task EndSessionAsync() {
             try {
                 var endMessage = new GameMessage {
-                    Event = "END"
+                    Event = ClientEventType.Stop
                 };
                 await webSocketClient.SendMessageAsync(endMessage);
                 await webSocketClient.DisconnectAsync();
@@ -66,7 +67,7 @@ namespace GameHive.Net {
         public async Task SendMoveAsync(int x, int y) {
             try {
                 var moveMessage = new GameMessage {
-                    Event = "MOVE",
+                    Event = ClientEventType.Move,
                     X = x,
                     Y = y
                 };
@@ -81,13 +82,13 @@ namespace GameHive.Net {
         //处理WebSocket消息
         private void HandleWebSocketMessage(object sender, GameResponse response) {
             switch (response.Event) {
-                case "START":
+                case ServerEventType.Start:
                     HandleGameStart(response);
                     break;
-                case "MOVE":
+                case ServerEventType.Move:
                     HandleOpponentMove(response);
                     break;
-                case "RESULT":
+                case ServerEventType.Result:
                     HandleGameResult(response);
                     break;
             }
@@ -112,9 +113,11 @@ namespace GameHive.Net {
 
         //处理游戏结束消息
         private void HandleGameResult(GameResponse response) {
-            Role winner = response.WinStatus switch {
-                "PLAYER_A_WIN" => Role.Player,
-                "PLAYER_B_WIN" => Role.AI,
+            GameStatus status = GameStatusExtensions.FromName(response.WinStatus);
+            Role winner = status switch {
+                GameStatus.PlayerAWin => Role.Player,
+                GameStatus.PlayerBWin => Role.AI,
+                GameStatus.Draw => Role.Empty,
                 _ => Role.Empty
             };
 
