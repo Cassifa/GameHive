@@ -2,6 +2,7 @@ package com.gamehive.comsumer.stratey;
 
 import com.gamehive.comsumer.constants.CellRoleEnum;
 import com.gamehive.comsumer.constants.GameStatusEnum;
+
 import java.util.List;
 
 /**
@@ -12,6 +13,13 @@ import java.util.List;
  * @Date 2025/5/21 16:31
  */
 public interface GameStrategy {
+    //方向数组：水平、垂直、对角线、反对角线
+    int[][] DIRECTIONS = {
+            {1, 0},   // 水平
+            {0, 1},   // 垂直
+            {1, 1},   // 对角线
+            {1, -1}   // 反对角线
+    };
 
     /**
      * 检查游戏是否结束
