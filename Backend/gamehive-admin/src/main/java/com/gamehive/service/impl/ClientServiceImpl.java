@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamehive.common.core.domain.AjaxResult;
 import com.gamehive.common.core.domain.entity.SysUser;
 import com.gamehive.constants.SpecialPlayerEnum;
+import com.gamehive.framework.web.service.SysLoginService;
 import com.gamehive.pojo.AlgorithmType;
 import com.gamehive.pojo.GameType;
 import com.gamehive.pojo.Record;
@@ -42,6 +43,9 @@ public class ClientServiceImpl implements IClientService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private SysLoginService sysLoginService;
+
     /**
      * 客户端登录
      *
@@ -51,24 +55,25 @@ public class ClientServiceImpl implements IClientService {
      */
     @Override
     public AjaxResult login(String username, String password) {
-        // 1. 根据用户名查询用户信息
-        SysUser user = userService.selectUserByUserName(username);
+        try {
+            // 使用SysLoginService的login方法进行登录验证
+            // 注意：客户端登录不需要验证码，所以传入null
+            String token = sysLoginService.login(username, password, null, null);
 
-        // 2. 检查用户是否存在以及状态
-        if (user == null) {
-            return AjaxResult.error("登录失败：用户不存在");
-        }
-        // 3. 比对密码
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            return AjaxResult.error("登录失败：用户名或密码错误");
-        }
+            // 获取用户信息
+            SysUser user = userService.selectUserByUserName(username);
 
-        // 4. 认证成功，返回用户信息
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("userId", user.getUserId());
-        userInfo.put("userName", user.getUserName());
-        userInfo.put("nickName", user.getNickName());
-        return AjaxResult.success(userInfo);
+            // 返回用户信息和token
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userId", user.getUserId());
+            userInfo.put("userName", user.getUserName());
+            userInfo.put("nickName", user.getNickName());
+            userInfo.put("token", token);
+
+            return AjaxResult.success(userInfo);
+        } catch (Exception e) {
+            return AjaxResult.error(e.getMessage());
+        }
     }
 
     /**
@@ -134,10 +139,10 @@ public class ClientServiceImpl implements IClientService {
             if (playerFirst) {
                 record.setFirstPlayerId(playerId);
                 record.setFirstPlayer(playerName);
-                record.setSecondPlayerId((long)SpecialPlayerEnum.AI.getCode());
+                record.setSecondPlayerId((long) SpecialPlayerEnum.AI.getCode());
                 record.setSecondPlayerName(SpecialPlayerEnum.AI.getChineseName());
             } else {
-                record.setFirstPlayerId((long)SpecialPlayerEnum.AI.getCode());
+                record.setFirstPlayerId((long) SpecialPlayerEnum.AI.getCode());
                 record.setFirstPlayer(SpecialPlayerEnum.AI.getChineseName());
                 record.setSecondPlayerId(playerId);
                 record.setSecondPlayerName(playerName);

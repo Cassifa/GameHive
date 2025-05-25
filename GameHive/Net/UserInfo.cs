@@ -9,6 +9,7 @@ namespace GameHive.Net {
         public string UserName { get; private set; }
         public string NickName { get; private set; }
         public bool IsLoggedIn { get; private set; }
+        public string Token { get; private set; }
 
         // 添加登录状态改变事件
         public event EventHandler LoginStatusChanged;
@@ -31,18 +32,19 @@ namespace GameHive.Net {
             }
         }
 
-        public void UpdateUserInfo(long userId, string userName, string nickName) {
-            Debug.WriteLine($"[UserInfo.UpdateUserInfo] 更新前: UserId={UserId}, UserName={UserName}, NickName={NickName}, IsLoggedIn={IsLoggedIn}");
+        public void UpdateUserInfo(long userId, string userName, string nickName, string token) {
+            Debug.WriteLine($"[UserInfo.UpdateUserInfo] 更新前: UserId={UserId}, UserName={UserName}, NickName={NickName}, IsLoggedIn={IsLoggedIn}, Token={Token}");
 
             UserId = userId;
             UserName = userName;
             NickName = nickName;
+            Token = token;
             IsLoggedIn = true;
 
             // 触发登录状态改变事件
             LoginStatusChanged?.Invoke(this, EventArgs.Empty);
 
-            Debug.WriteLine($"[UserInfo.UpdateUserInfo] 更新后: UserId={UserId}, UserName={UserName}, NickName={NickName}, IsLoggedIn={IsLoggedIn}");
+            Debug.WriteLine($"[UserInfo.UpdateUserInfo] 更新后: UserId={UserId}, UserName={UserName}, NickName={NickName}, IsLoggedIn={IsLoggedIn}, Token={Token}");
         }
 
         public void Clear() {
@@ -50,6 +52,7 @@ namespace GameHive.Net {
             UserId = 0;
             UserName = null;
             NickName = null;
+            Token = null;
             IsLoggedIn = false;
 
             // 触发登录状态改变事件

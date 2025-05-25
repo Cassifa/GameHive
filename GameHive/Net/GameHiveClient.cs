@@ -48,7 +48,8 @@ namespace GameHive.Net {
                         UserInfo.Instance.UpdateUserInfo(
                             result.Data.UserId,
                             result.Data.UserName,
-                            result.Data.NickName
+                            result.Data.NickName,
+                            result.Data.Token
                         );
                         Console.WriteLine($"用户信息更新成功: {result.Data.UserName}");
                     }
@@ -107,6 +108,7 @@ namespace GameHive.Net {
         public long UserId { get; set; }
         public string UserName { get; set; }
         public string NickName { get; set; }
+        public string Token { get; set; }
     }
 
     public class GameResult {
