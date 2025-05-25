@@ -6,22 +6,19 @@ import com.gamehive.comsumer.constants.CellRoleEnum;
 import com.gamehive.comsumer.constants.FeedBackEventTypeEnum;
 import com.gamehive.comsumer.constants.GameStatusEnum;
 import com.gamehive.comsumer.message.FeedBackObj;
-import com.gamehive.comsumer.stratey.AntiGoStrategy;
-import com.gamehive.comsumer.stratey.GameStrategy;
-import com.gamehive.comsumer.stratey.GoBangStrategy;
-import com.gamehive.comsumer.stratey.MisereTicTacToeStrategy;
-import com.gamehive.comsumer.stratey.TicTocToeStrategy;
+import com.gamehive.comsumer.stratey.*;
 import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.constants.SpecialPlayerEnum;
 import com.gamehive.pojo.GameType;
 import com.gamehive.pojo.Player;
 import com.gamehive.pojo.Record;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
 public class Game extends Thread {
@@ -53,7 +50,7 @@ public class Game extends Thread {
      * 开启游戏
      */
     public Game(Player a, Player b, SpecialPlayerEnum playerAType, SpecialPlayerEnum playerBType,
-            GameTypeEnum gameTypeEnum, Boolean forLMM) {
+                GameTypeEnum gameTypeEnum, Boolean forLMM) {
         this.forLMM = forLMM;
         this.gameType = WebSocketServer.gameTypeMapper.selectGameTypeByGameId((long) gameTypeEnum.getCode());
         //初始化判负策略
@@ -114,6 +111,7 @@ public class Game extends Thread {
     private void sendLMMCode(GamePlayer player) {
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("currentMap", getStringMap());
+        data.add("userId", playerA.getUserId().toString());
         data.add("LLMFlag", player == playerA ? CellRoleEnum.PLAYER_A.getCode() : CellRoleEnum.PLAYER_B.getCode());
         data.add("gameType", gameType.getGameName());
         data.add("gameRole", gameType.getGameRule());
@@ -329,7 +327,7 @@ public class Game extends Thread {
     /**
      * 局面转为字符串，用于发送给大模型
      *
-     * @return 由012组成的字符串，表示棋盘状态，每行用换行符分隔
+     * @return 由012组成的字符串，表示棋盘状态，每行用换行符分隔。未下棋位置0，人类下棋位置1，大模型为2
      */
     private String getStringMap() {
         StringBuilder sb = new StringBuilder();

@@ -11,28 +11,16 @@ public class LMMRunningServiceImpl implements LMMRunningService {
 
     @Override
     public String addLMM(
+            Long userId,
             String currentMap,
             String LLMFlag,
             String gameType,
             String gameRule,
-            String historySteps
+            String historySteps,
+            String gridSize
     ) {
-        // 构建完整的游戏上下文信息
-        String context = String.format(
-                "游戏类型: %s\n" +
-                        "游戏规则: %s\n" +
-                        "玩家标志: %s\n" +
-                        "棋盘状态:\n%s\n" +
-                        "历史步骤: %s",
-                gameType,
-                gameRule,
-                LLMFlag,
-                currentMap,
-                historySteps
-        );
-
-        // 调用LMM池处理(使用固定用户ID和空botCode)
-        LMM_POOL.addBot(0, "", context);
+        // 直接传递所有参数到 LMMPool
+        LMM_POOL.addBot(userId, currentMap, LLMFlag, gameType, gameRule, historySteps, gridSize);
         return "大模型请求处理成功";
     }
 }

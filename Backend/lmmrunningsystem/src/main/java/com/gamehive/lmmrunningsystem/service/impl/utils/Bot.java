@@ -2,13 +2,16 @@ package com.gamehive.lmmrunningsystem.service.impl.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class Bot {
-    Integer userId;
-    String botCode;
-    String input;
+    private Long userId;
+    private String currentMap;
+    private String LLMFlag;
+    private String gameType;
+    private String gameRule;
+    private String historySteps;
+    private String gridSize;
+
 }

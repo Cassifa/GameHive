@@ -1,12 +1,13 @@
 package com.gamehive.controller.pk;
 
 import com.gamehive.service.pk.ReceiveLMMoveService;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Objects;
 
 @RestController
 public class ReceiveLMMMoveController {
@@ -16,16 +17,16 @@ public class ReceiveLMMMoveController {
 
     /**
      * 处理语言模型(LMM)的移动请求
-     *
+     * <p>
      * 从请求参数中解析出用户ID、移动坐标、模型名称和移动原因，
      * 并调用服务层处理该移动请求
      *
      * @param data 请求参数，包含以下字段：
-     *         - user_id: 用户ID
-     *         - x: 移动目标的x坐标
-     *         - y: 移动目标的y坐标
-     *         - model_name: 使用的语言模型名称
-     *         - reason: 模型给出的移动原因说明
+     *             - user_id: 用户ID
+     *             - x: 移动目标的x坐标
+     *             - y: 移动目标的y坐标
+     *             - model_name: 使用的语言模型名称
+     *             - reason: 模型给出的移动原因说明
      * @return 执行结果字符串，表示操作是否成功
      */
     @PostMapping("/api/pk/receive/bot/move/")

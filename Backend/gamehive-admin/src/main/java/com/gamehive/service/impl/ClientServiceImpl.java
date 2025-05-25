@@ -134,10 +134,10 @@ public class ClientServiceImpl implements IClientService {
             if (playerFirst) {
                 record.setFirstPlayerId(playerId);
                 record.setFirstPlayer(playerName);
-                record.setSecondPlayerId(SpecialPlayerEnum.AI.getCode());
+                record.setSecondPlayerId((long)SpecialPlayerEnum.AI.getCode());
                 record.setSecondPlayerName(SpecialPlayerEnum.AI.getChineseName());
             } else {
-                record.setFirstPlayerId(SpecialPlayerEnum.AI.getCode());
+                record.setFirstPlayerId((long)SpecialPlayerEnum.AI.getCode());
                 record.setFirstPlayer(SpecialPlayerEnum.AI.getChineseName());
                 record.setSecondPlayerId(playerId);
                 record.setSecondPlayerName(playerName);
