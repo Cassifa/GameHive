@@ -17,6 +17,7 @@ public class MatchingController {
 
     /**
      * 添加玩家到匹配池
+     *
      * @param data 请求参数，包含：
      *             - user_id: 用户ID
      *             - rating: 玩家评分
@@ -24,7 +25,8 @@ public class MatchingController {
      * @return 匹配结果信息
      */
     @PostMapping("/player/add/")
-    public String addPlayer(@RequestParam MultiValueMap<String,String> data){
+    public String addPlayer(@RequestParam MultiValueMap<String, String> data) {
+        System.out.println("接受到添加玩家请求");
         Integer userId = Integer.parseInt(Objects.requireNonNull(data.getFirst("user_id")));
         Integer rating = Integer.parseInt(Objects.requireNonNull(data.getFirst("rating")));
         String gameTypeName = Objects.requireNonNull(data.getFirst("game_type"));
@@ -33,9 +35,10 @@ public class MatchingController {
     }
 
     @PostMapping("/player/remove/")
-    public String removePlayer(@RequestParam MultiValueMap<String,String> data){
-        Integer userId=Integer.parseInt(Objects.requireNonNull(data.getFirst("user_id")));
-        Integer rating=Integer.parseInt(Objects.requireNonNull(data.getFirst("rating")));
-        return matchingService.removePlayer(userId,rating);
+    public String removePlayer(@RequestParam MultiValueMap<String, String> data) {
+        System.out.println("接受到移除玩家请求");
+        Integer userId = Integer.parseInt(Objects.requireNonNull(data.getFirst("user_id")));
+        Integer rating = Integer.parseInt(Objects.requireNonNull(data.getFirst("rating")));
+        return matchingService.removePlayer(userId, rating);
     }
 }

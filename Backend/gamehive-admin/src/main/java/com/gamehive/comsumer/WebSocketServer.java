@@ -101,7 +101,13 @@ public class WebSocketServer {
             b.setUserName(SpecialPlayerEnum.LMM.getChineseName());
         }
         Game game = new Game(a, b, playerAType, playerBType, gameTypeEnum, forLMM);
-
+        System.out.println("开启一场对局：");
+        System.out.println("玩家A: ID=" + a.getUserId() + ", 名称=" + a.getUserName() + ", 类型=" + playerAType.getChineseName());
+        System.out.println("玩家B: ID=" + b.getUserId() + ", 名称=" + b.getUserName() + ", 类型=" + playerBType.getChineseName());
+        System.out.println("游戏类型: " + gameTypeEnum.getChineseName());
+        System.out.println("是否为LMM对局: " + forLMM);
+        System.out.println("先手玩家: " + (game.getFirst().equals(game.getPlayerA()) ? "玩家A" : "玩家B"));
+        //一方断开链接则无视其操作
         //一方断开链接则无视其操作
         if (users.get(a.getUserId()) != null) {
             users.get(a.getUserId()).game = game;
@@ -191,9 +197,9 @@ public class WebSocketServer {
     @OnMessage
     public void onMessage(String message, Session session) {
         //从Client接收消息
-        System.out.println("接受的匹配请求");
+        System.out.println("接受到消息" + message);
         ReceiveObj data = JSONObject.parseObject(message, ReceiveObj.class);
-        ReceiveEventTypeEnum event = ReceiveEventTypeEnum.fromType(data.getEvent());
+        ReceiveEventTypeEnum event = ReceiveEventTypeEnum.fromCode(Integer.parseInt(data.getEvent()));
         if (event != null) {
             switch (event) {
                 case MOVE:

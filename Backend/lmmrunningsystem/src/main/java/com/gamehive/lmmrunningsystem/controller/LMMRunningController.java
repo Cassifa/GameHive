@@ -33,6 +33,7 @@ public class LMMRunningController {
      */
     @PostMapping("/bot/add/")
     public String addLMM(@RequestParam MultiValueMap<String, String> data) {
+        System.out.println("接受的大模型运行请求");
         // 解析新增参数
         Long userId = Long.parseLong(Objects.requireNonNull(data.getFirst("userId")));      // 玩家ID
         String currentMap = data.getFirst("currentMap");  // 当前棋盘状态

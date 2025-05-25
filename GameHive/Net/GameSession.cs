@@ -93,7 +93,7 @@ namespace GameHive.Net {
 
         //处理游戏开始消息
         private void HandleGameStart(GameResponse response) {
-            isMyTurn = response.First;
+            isMyTurn = response.IsFirst;
             OnGameStart?.Invoke(this, new GameStartEventArgs {
                 IsFirst = isMyTurn
             });
