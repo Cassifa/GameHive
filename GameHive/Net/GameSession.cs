@@ -79,22 +79,30 @@ namespace GameHive.Net {
 
         //处理WebSocket消息
         private void HandleWebSocketMessage(object sender, GameResponse response) {
-            switch (response.Event) {
+            // 将字符串类型的事件转换为枚举
+            ServerEventType eventType = ServerEventTypeExtensions.FromType(response.Event);
+            
+            switch (eventType) {
                 case ServerEventType.Start:
                     HandleGameStart(response);
                     break;
                 case ServerEventType.Move:
-                    HandleOpponentMove(response);
+                    if (response.X.HasValue && response.Y.HasValue) {
+                        HandleOpponentMove(response);
+                    }
                     break;
                 case ServerEventType.Result:
-                    HandleGameResult(response);
+                    if (!string.IsNullOrEmpty(response.WinStatus)) {
+                        HandleGameResult(response);
+                    }
                     break;
             }
         }
 
         //处理游戏开始消息
         private void HandleGameStart(GameResponse response) {
-            isMyTurn = response.IsFirst;
+            if (response.IsFirst != null)
+                isMyTurn = (bool)response.IsFirst;
             OnGameStart?.Invoke(this, new GameStartEventArgs {
                 IsFirst = isMyTurn
             });
@@ -103,8 +111,8 @@ namespace GameHive.Net {
         //处理对手落子消息
         private void HandleOpponentMove(GameResponse response) {
             OnOpponentMove?.Invoke(this, new OpponentMoveEventArgs {
-                X = response.X,
-                Y = response.Y
+                X = response.X.Value,
+                Y = response.Y.Value
             });
             isMyTurn = true;
         }

@@ -29,7 +29,7 @@ public class ReceiveLMMMoveController {
      *             - reason: 模型给出的移动原因说明
      * @return 执行结果字符串，表示操作是否成功
      */
-    @PostMapping("/api/pk/receive/bot/move/")
+    @PostMapping("/api/pk/receive/LMM/move/")
     public String receiveBotMove(@RequestParam MultiValueMap<String, String> data) {
         //解析出人类玩家ID
         Long userId = Long.parseLong(Objects.requireNonNull(data.getFirst("user_id")));

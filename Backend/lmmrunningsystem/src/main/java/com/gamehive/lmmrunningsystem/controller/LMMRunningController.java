@@ -31,7 +31,7 @@ public class LMMRunningController {
      *         - gridSize: 游戏棋盘格数
      * @return String 返回处理结果字符串，通常为操作成功或失败信息
      */
-    @PostMapping("/bot/add/")
+    @PostMapping("/LMMRunning/add/")
     public String addLMM(@RequestParam MultiValueMap<String, String> data) {
         System.out.println("接受的大模型运行请求");
         // 解析新增参数

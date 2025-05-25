@@ -116,6 +116,7 @@ public class Game extends Thread {
         data.add("gameType", gameType.getGameName());
         data.add("gameRole", gameType.getGameRule());
         data.add("historySteps", "稍后实现，测试数据");
+        data.add("gridSize", gameType.getBoardSize().toString());
         System.out.println("尝试像LMM运行服务发送信息" + data);
         WebSocketServer.restTemplate.postForObject(addBotUrl, data, String.class);
     }
@@ -124,7 +125,7 @@ public class Game extends Thread {
      * 游戏推进到下一步，如果没在规定时间内输入或输入非法则返回false
      */
     private boolean nextStep() {
-        boolean askA = (round % 2) == 0;
+        boolean askA = isNextA();
         //如果LMM输入则则发送信息
         if (!askA && forLMM) {
             sendLMMCode(playerB);
@@ -174,7 +175,7 @@ public class Game extends Thread {
                 //没有输入或输入非法
                 lock.lock();
                 try {
-                    boolean askA = (round % 2) == 0;
+                    boolean askA = isNextA();
                     if (askA) {
                         status = GameStatusEnum.PLAYER_B_WIN;
                     } else {
@@ -190,7 +191,8 @@ public class Game extends Thread {
                 judge();
                 if (status.equals(GameStatusEnum.UNFINISHED)) {
                     //游戏还在继续，广播上一步操作
-                    sendMove(round % 2 == 0 ? nextStepA : nextStepB);
+                    System.out.println(isNextA() ? "玩家A" : "玩家B" + "在" + (isNextA() ? nextStepA : nextStepB) + "下棋了");
+                    sendMove(isNextA() ? nextStepA : nextStepB);
                 } else {
                     //广播结果-游戏正常结束
                     sendResult();
@@ -339,5 +341,9 @@ public class Game extends Thread {
             sb.append("\n"); //每行结束后添加换行符
         }
         return sb.toString();
+    }
+
+    private boolean isNextA() {
+        return ((round + (first == playerA ? 0 : 1)) % 2) == 0;
     }
 }

@@ -15,22 +15,22 @@ namespace GameHive.Net {
         public ClientEventType Event { get; set; }
 
         [JsonPropertyName("gameType")]
-        public string GameType { get; set; }
+        public string? GameType { get; set; }
 
         [JsonPropertyName("playWithLMM")]
-        public bool PlayWithLMM { get; set; }
+        public bool? PlayWithLMM { get; set; }
 
         [JsonPropertyName("x")]
-        public int X { get; set; }
+        public int? X { get; set; }
 
         [JsonPropertyName("y")]
-        public int Y { get; set; }
+        public int? Y { get; set; }
 
         [JsonPropertyName("userId")]
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
         [JsonPropertyName("userName")]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
 
         //用于JSON序列化
         [JsonIgnore]
@@ -43,34 +43,34 @@ namespace GameHive.Net {
     //服务器返回给客户端的消息对象
     public class GameResponse {
         [JsonPropertyName("event")]
-        public ServerEventType Event { get; set; }
+        public string Event { get; set; }
 
         [JsonPropertyName("isFirst")]
-        public bool IsFirst { get; set; }
-
-        [JsonPropertyName("winStatus")]
-        public string WinStatus { get; set; }
-
-        [JsonPropertyName("x")]
-        public int X { get; set; }
-
-        [JsonPropertyName("y")]
-        public int Y { get; set; }
+        public bool? IsFirst { get; set; }
 
         [JsonPropertyName("opponentId")]
-        public long OpponentId { get; set; }
+        public long? OpponentId { get; set; }
 
         [JsonPropertyName("opponentName")]
-        public string OpponentName { get; set; }
+        public string? OpponentName { get; set; }
+
+        [JsonPropertyName("winStatus")]
+        public string? WinStatus { get; set; }
+
+        [JsonPropertyName("x")]
+        public int? X { get; set; }
+
+        [JsonPropertyName("y")]
+        public int? Y { get; set; }
 
         [JsonPropertyName("gameStatus")]
-        public string GameStatus { get; set; }
+        public string? GameStatus { get; set; }
 
         //用于JSON序列化
         [JsonIgnore]
         public string EventString {
-            get => Event.GetTypeString();
-            set => Event = ServerEventTypeExtensions.FromType(value);
+            get => Event;
+            set => Event = value;
         }
     }
 }
