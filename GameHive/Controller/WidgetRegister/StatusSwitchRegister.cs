@@ -8,12 +8,23 @@
 using GameHive.Constants.GameModeEnum;
 using GameHive.Constants.GameStatusEnum;
 using GameHive.Constants.RoleTypeEnum;
+using System.Drawing;
 
 namespace GameHive.Controller {
     //用于注册游戏状态切换
     internal partial class Controller {
         private void RegisterStatusSwitch() {
             statusSwitchRegister += StatusSwitchClick;
+            UpdateStatusSwitchText();
+        }
+
+        private void UpdateStatusSwitchText() {
+            if (CurrentGameMode == GameMode.OnlineGame) {
+                mainForm.statusSwitch.Text = "开始匹配";
+            } else {
+                mainForm.statusSwitch.Text = "开始游戏";
+            }
+            mainForm.statusSwitch.BackColor = Color.Green;
         }
 
         private void StatusSwitchClick(object sender, EventArgs e) {

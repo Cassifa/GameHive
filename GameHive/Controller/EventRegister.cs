@@ -247,6 +247,9 @@ namespace GameHive.Controller {
                     // 设置文字颜色
                     mainForm.AIType.ForeColor = isLocalGame ? SystemColors.WindowText : SystemColors.GrayText;
                     mainForm.DifficultySelector.ForeColor = isLocalGame ? SystemColors.WindowText : SystemColors.GrayText;
+
+                    // 更新状态切换按钮文字
+                    UpdateStatusSwitchText();
                 }
                 // 让下拉框失去焦点
                 mainForm.GameModeSelector.Parent.Focus();
