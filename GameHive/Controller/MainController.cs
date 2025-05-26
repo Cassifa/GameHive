@@ -22,7 +22,9 @@ namespace GameHive.Controller {
         private DoubleBufferedForm mainForm;
         private BoardManager boardManager;
         private View.View view;
+        //当前游戏模式 本地、联机、LMM
         public GameMode CurrentGameMode { get; private set; } = GameMode.LocalGame;
+        //当前游戏状态 游戏中 未开始 匹配中
         public GameStatus CurrentGameStatus { get; private set; } = GameStatus.NotStarted;
 
         //联机游戏相关字段

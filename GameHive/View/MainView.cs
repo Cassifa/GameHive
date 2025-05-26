@@ -68,7 +68,8 @@ namespace GameHive.View {
             }));
             LogWin(role);
             // 上传对局结果
-            UploadGameResult(role, first, controller.GetCurrentAIType(), controller.GetCurrentGameType());
+            if (controller.CurrentGameMode != Constants.GameModeEnum.GameMode.LocalGame)
+                UploadGameResult(role, first, controller.GetCurrentAIType(), controller.GetCurrentGameType());
         }
 
         //游戏结束

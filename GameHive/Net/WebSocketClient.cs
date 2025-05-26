@@ -1,17 +1,15 @@
 /*************************************************************************************
  * 文 件 名:   WebSocketClient.cs
- * 描    述: 
+ * 描    述: WebSocket客户端，负责与服务器的WebSocket通信
  * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
  * 创 建 者：  Cassifa
  * 创建时间：  2025/5/25 23:31
 *************************************************************************************/
-using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 
 namespace GameHive.Net {
-    //WebSocket客户端，负责与服务器的WebSocket通信
     public class WebSocketClient {
         private ClientWebSocket webSocket;
         private bool isConnected = false;

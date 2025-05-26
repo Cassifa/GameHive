@@ -1,16 +1,14 @@
 /*************************************************************************************
  * 文 件 名:   GameSession.cs
- * 描    述: 
+ * 描    述: 游戏会话管理类，负责处理在线游戏的所有网络相关操作
  * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
  * 创 建 者：  Cassifa
  * 创建时间：  2025/5/25 23:39
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Net.Constants;
-using System.Diagnostics;
 
 namespace GameHive.Net {
-    //游戏会话管理类，负责处理在线游戏的所有网络相关操作
     public class GameSession {
         private readonly WebSocketClient webSocketClient;
         private bool isMyTurn;
@@ -81,7 +79,7 @@ namespace GameHive.Net {
         private void HandleWebSocketMessage(object sender, GameResponse response) {
             // 将字符串类型的事件转换为枚举
             ServerEventType eventType = ServerEventTypeExtensions.FromType(response.Event);
-            
+
             switch (eventType) {
                 case ServerEventType.Start:
                     HandleGameStart(response);

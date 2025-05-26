@@ -1,6 +1,6 @@
 /*************************************************************************************
  * 文 件 名:   WebSocketMessages.cs
- * 描    述: 
+ * 描    述: 客户端发、服务器通信对象
  * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
  * 创 建 者：  Cassifa
  * 创建时间：  2025/5/26 2:32
@@ -9,7 +9,6 @@ using GameHive.Net.Constants;
 using System.Text.Json.Serialization;
 
 namespace GameHive.Net {
-    //客户端发送给服务器的消息对象
     public class GameMessage {
         [JsonPropertyName("event")]
         public ClientEventType Event { get; set; }
@@ -39,8 +38,6 @@ namespace GameHive.Net {
             set => Event = ClientEventTypeExtensions.FromType(value);
         }
     }
-
-    //服务器返回给客户端的消息对象
     public class GameResponse {
         [JsonPropertyName("event")]
         public string Event { get; set; }
@@ -66,7 +63,6 @@ namespace GameHive.Net {
         [JsonPropertyName("gameStatus")]
         public string? GameStatus { get; set; }
 
-        //用于JSON序列化
         [JsonIgnore]
         public string EventString {
             get => Event;
