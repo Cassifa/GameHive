@@ -120,7 +120,9 @@ namespace GameHive.Controller {
                     gameSession = new GameSession(wsUrl, UserInfo.Instance.UserId.ToString());
                     gameSession.OnGameStart += (s, e) => {
                         CurrentGameStatus = GameStatus.Playing;
-                        isMyTurn = e.IsFirst;
+                        isMyTurn = e.IsFirst;  // 如果玩家先手，则轮到玩家下棋
+                        // 初始化棋盘
+                        ModelMessageStartGame(false);
                         ViewMessageStartGame();
                     };
                     gameSession.OnOpponentMove += (s, e) => {
@@ -134,7 +136,7 @@ namespace GameHive.Controller {
                     };
 
                     ViewMessageStartMatching();
-                    await gameSession.StartSessionAsync(GetCurrentGameType().GetChineseName(), CurrentGameMode ==GameMode.LMMGame);
+                    await gameSession.StartSessionAsync(GetCurrentGameType().GetChineseName(), CurrentGameMode == GameMode.LMMGame);
                 } catch (Exception ex) {
                     CurrentGameStatus = GameStatus.NotStarted;
                 }
@@ -153,11 +155,13 @@ namespace GameHive.Controller {
                         gameSession = null;
                     }
                     CurrentGameStatus = GameStatus.NotStarted;
+                    ModelMessageEndGame();  // 确保清理棋盘状态
                     ViewMessageEndGame(role);
                 } catch (Exception) {
                     // 如果发生错误，强制清理
                     gameSession = null;
                     CurrentGameStatus = GameStatus.NotStarted;
+                    ModelMessageEndGame();  // 确保清理棋盘状态
                     ViewMessageEndGame(role);
                 }
             }

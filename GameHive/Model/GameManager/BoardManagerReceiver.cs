@@ -7,6 +7,7 @@
 *************************************************************************************/
 using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.DifficultyLevelEnum;
+using GameHive.Constants.GameModeEnum;
 using GameHive.Constants.GameTypeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory;
@@ -42,7 +43,10 @@ namespace GameHive.Model.GameManager {
             }
             gameRunning = true;
             AIMoving = false;
-            runningAI.GameStart(IsAIFirst);
+            // 只在本地对战模式下启动AI
+            if (controller.CurrentGameMode == GameMode.LocalGame) {
+                runningAI.GameStart(IsAIFirst);
+            }
         }
 
         //检查此处落子是否有效

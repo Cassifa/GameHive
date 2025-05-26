@@ -42,7 +42,7 @@ namespace GameHive.Net {
         [JsonPropertyName("event")]
         public string Event { get; set; }
 
-        [JsonPropertyName("isFirst")]
+        [JsonPropertyName("first")]
         public bool? IsFirst { get; set; }
 
         [JsonPropertyName("opponentId")]

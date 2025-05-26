@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 1:30
 *************************************************************************************/
+using GameHive.Constants.GameModeEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIUtils;
 namespace GameHive.Controller {
@@ -14,8 +15,20 @@ namespace GameHive.Controller {
             BoardPanelRegister += BoardPanelClick;
         }
         private void BoardPanelClick(object sender, EventArgs e) {
-            // 游戏未开始，直接返回
-            if (!boardManager.gameRunning || boardManager.AIMoving) return;
+            // 根据游戏模式检查状态
+            if (CurrentGameMode == GameMode.LocalGame) {
+                // 本地对战模式检查
+                if (!boardManager.gameRunning || boardManager.AIMoving)
+                    return;
+            } else {
+                // 联机或大模型对战模式检查
+                if (gameSession == null || !gameSession.IsMyTurn)
+                    return;
+                // 确保棋盘已初始化
+                if (!boardManager.gameRunning) {
+                    boardManager.StartGame(false);  // 传入false表示不启动AI
+                }
+            }
 
             // 从事件参数中获取点击的鼠标位置
             var mouseEvent = (MouseEventArgs)e;
@@ -41,16 +54,28 @@ namespace GameHive.Controller {
                             centerY = chessCenters[x][y].Item2;
                         }
                         //已经被下过棋则忽略
-                        if (!ModelMessageCheckValid(x, y)) return;
-                        //给显示层发消息
-                        ViewMessagePlayChess(centerX, centerY, Role.Player);
-                        ViewMessageLogMove(Role.Player, y, x);
-                        //给模型层发消息,并获取是否结束
-                        bool isEnd = ModelMessageUserPlayChess(x, y);
-                        if (!isEnd) {
-                            //没有结束，令AI计算下一步,异步计算
-                            Thread aiThread = new Thread(() => ModelMessageAskAIMove(x, y));
-                            aiThread.Start();
+                        if (!ModelMessageCheckValid(x, y))
+                            return;
+
+                        if (CurrentGameMode == GameMode.LocalGame) {
+                            //本地对战模式
+                            //给显示层发消息
+                            ViewMessagePlayChess(centerX, centerY, Role.Player);
+                            ViewMessageLogMove(Role.Player, y, x);
+                            //给模型层发消息,并获取是否结束
+                            bool isEnd = ModelMessageUserPlayChess(x, y);
+                            if (!isEnd) {
+                                //没有结束，令AI计算下一步,异步计算
+                                Thread aiThread = new Thread(() => ModelMessageAskAIMove(x, y));
+                                aiThread.Start();
+                            }
+                        } else {
+                            //联机或大模型对战模式
+                            //给显示层发消息
+                            ViewMessagePlayChess(x, y, Role.Player);
+                            ViewMessageLogMove(Role.Player, y, x);
+                            //发送落子消息到服务器
+                            gameSession.SendMoveAsync(x, y).Wait();
                         }
                         return;
                     }
