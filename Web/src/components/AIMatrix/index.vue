@@ -1,7 +1,7 @@
 <template>
   <div class="matrix-container">
     <!-- 标题 -->
-    <h2 class="matrix-title">AI游戏产品矩阵</h2>
+    <h2 class="matrix-title">算法游戏产品矩阵</h2>
     
     <!-- 矩阵图表 -->
     <canvas ref="matrixCanvas" class="matrix-canvas"></canvas>
@@ -9,9 +9,9 @@
 </template>
 
 <script>
-import { listAiType } from "@/api/aiSys/aiType";
-import { listGameType } from "@/api/aiSys/gameType";
-import { listAiProduct } from "@/api/aiSys/aiProduct";
+import { listAlgorithmOptions } from "@/api/Algorithm/Algorithm";
+import { listGameTypeOptions } from "@/api/GameType/GameType";
+import { listProduct } from "@/api/Product/Product";
 
 export default {
   name: "AIMatrix",
@@ -70,13 +70,13 @@ export default {
     async getList() {
       try {
         const [aiResponse, gameResponse, productResponse] = await Promise.all([
-          listAiType(),
-          listGameType(),
-          listAiProduct()
+          listAlgorithmOptions(),
+          listGameTypeOptions(),
+          listProduct({ pageSize: null }) // 获取所有产品数据
         ]);
         
-        this.aiTypes = aiResponse.rows || [];
-        this.gameTypes = gameResponse.rows || [];
+        this.aiTypes = aiResponse.data || [];
+        this.gameTypes = gameResponse.data || [];
         this.products = productResponse.rows || [];
         
         if (this.aiTypes.length && this.gameTypes.length) {
@@ -85,7 +85,7 @@ export default {
             this.drawMatrix();
           });
         } else {
-          console.warn('AI类型或游戏类型数据为空');
+          console.warn('算法类型或游戏类型数据为空');
         }
       } catch (error) {
         console.error('获取数据失败:', error);
@@ -169,7 +169,7 @@ export default {
       ctx.save();
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText('AI等级结构', xAxisEnd + titleOffset, height - padding);
+      ctx.fillText('算法等级结构', xAxisEnd + titleOffset, height - padding);
       ctx.restore();
       
       // Y轴标题 (放在箭头上方)
@@ -216,15 +216,17 @@ export default {
       // Y轴标签
       this.gameTypes.forEach((game, index) => {
         const y = this.canvasSize.height - padding - cellSize.y * (index + 1);
+        const labelText = game.label || '';
         ctx.textAlign = 'right';
-        ctx.fillText(game.gameName || game.name, padding - labelPadding, y);
+        ctx.fillText(labelText, padding - labelPadding, y);
       });
       
       // X轴标签
       this.aiTypes.forEach((ai, index) => {
         const x = padding + cellSize.x * (index + 1);
+        const labelText = ai.label || '';
         ctx.textAlign = 'center';
-        ctx.fillText(ai.aiName || ai.name, x, this.canvasSize.height - padding + labelPadding);
+        ctx.fillText(labelText, x, this.canvasSize.height - padding + labelPadding);
       });
     },
     drawProducts() {
@@ -235,7 +237,7 @@ export default {
       
       this.gameTypes.forEach((game, i) => {
         this.aiTypes.forEach((ai, j) => {
-          if (this.checkProduct(game.gameTypeId || game.gameId, ai.aiTypeId || ai.aiId)) {
+          if (this.checkProduct(game.value, ai.value)) {
             const x = padding + cellSize.x * (j + 1);
             const y = this.canvasSize.height - padding - cellSize.y * (i + 1);
             
@@ -251,10 +253,17 @@ export default {
     },
     /** 判断是否存在对应产品 */
     checkProduct(gameId, aiId) {
-      return this.products.some(product => 
-        Number(product.gameTypeId) === Number(gameId) && 
-        Number(product.aiTypeId) === Number(aiId)
-      );
+      if (!gameId || !aiId) return false;
+      
+      return this.products.some(product => {
+        // 转换为字符串进行比较，避免类型问题
+        const productGameId = String(product.gameTypeId);
+        const productAiId = String(product.algorithmTypeId);
+        const targetGameId = String(gameId);
+        const targetAiId = String(aiId);
+        
+        return productGameId === targetGameId && productAiId === targetAiId;
+      });
     },
     handleResize() {
       this.$nextTick(() => {

@@ -1,5 +1,8 @@
 <template>
   <div class="app-container">
+    <!-- 游戏矩阵组件 -->
+    <AIMatrix />
+
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px">
       <el-form-item label="算法名称" prop="algorithmTypeId">
         <el-select v-model="queryParams.algorithmTypeId" placeholder="请选择算法名称" clearable>
@@ -146,10 +149,14 @@
 
 <script>
 import { listProduct, getProduct, delProduct, addProduct, updateProduct } from "@/api/Product/Product";
+import AIMatrix from "@/components/AIMatrix/index.vue";
 import request from "@/utils/request";
 
 export default {
   name: "Product",
+  components: {
+    AIMatrix
+  },
   data() {
     return {
       // 遮罩层
@@ -339,3 +346,26 @@ export default {
   }
 };
 </script>
+
+<style scoped lang="scss">
+.matrix-container {
+  padding: 40px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.matrix-title {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #303133;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.matrix-canvas {
+  display: block;
+  margin: 0 auto;
+}
+</style>
