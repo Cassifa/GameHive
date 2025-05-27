@@ -1,14 +1,16 @@
 /*************************************************************************************
  * 文 件 名:   GameSession.cs
- * 描    述: 游戏会话管理类，负责处理在线游戏的所有网络相关操作
+ * 描    述: 
  * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
  * 创 建 者：  Cassifa
  * 创建时间：  2025/5/25 23:39
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Net.Constants;
+using System.Diagnostics;
 
 namespace GameHive.Net {
+    //游戏会话管理类，负责处理在线游戏的所有网络相关操作
     public class GameSession {
         private readonly WebSocketClient webSocketClient;
         private bool isMyTurn;
@@ -69,7 +71,6 @@ namespace GameHive.Net {
                     Y = y
                 };
                 await webSocketClient.SendMessageAsync(moveMessage);
-                isMyTurn = false;
             } catch (Exception ex) {
                 throw;
             }
@@ -77,42 +78,40 @@ namespace GameHive.Net {
 
         //处理WebSocket消息
         private void HandleWebSocketMessage(object sender, GameResponse response) {
-            // 将字符串类型的事件转换为枚举
-            ServerEventType eventType = ServerEventTypeExtensions.FromType(response.Event);
-
-            switch (eventType) {
+            switch (response.EventType) {
                 case ServerEventType.Start:
                     HandleGameStart(response);
                     break;
                 case ServerEventType.Move:
-                    if (response.X.HasValue && response.Y.HasValue) {
-                        HandleOpponentMove(response);
-                    }
+                    HandleOpponentMove(response);
                     break;
                 case ServerEventType.Result:
-                    if (!string.IsNullOrEmpty(response.WinStatus)) {
-                        HandleGameResult(response);
-                    }
+                    HandleGameResult(response);
                     break;
             }
         }
 
         //处理游戏开始消息
         private void HandleGameStart(GameResponse response) {
-            if (response.IsFirst != null)
-                isMyTurn = (bool)response.IsFirst;
+            isMyTurn = response.IsFirst ?? false;
             OnGameStart?.Invoke(this, new GameStartEventArgs {
                 IsFirst = isMyTurn
             });
         }
 
-        //处理对手落子消息
+        //处理落子消息
         private void HandleOpponentMove(GameResponse response) {
-            OnOpponentMove?.Invoke(this, new OpponentMoveEventArgs {
-                X = response.X.Value,
-                Y = response.Y.Value
-            });
-            isMyTurn = true;
+            if (response.X.HasValue && response.Y.HasValue) {
+                // 根据落子位置判断是否是自己
+                bool isMyMove = isMyTurn;
+                OnOpponentMove?.Invoke(this, new OpponentMoveEventArgs {
+                    X = response.X.Value,
+                    Y = response.Y.Value,
+                    IsMyMove = isMyMove
+                });
+                // 切换回合
+                isMyTurn = !isMyTurn;
+            }
         }
 
         //处理游戏结束消息
@@ -143,6 +142,8 @@ namespace GameHive.Net {
         public int X { get; set; }
         //落子Y坐标
         public int Y { get; set; }
+        //是否是自己落子
+        public bool IsMyMove { get; set; }
     }
 
     //游戏结束事件参数

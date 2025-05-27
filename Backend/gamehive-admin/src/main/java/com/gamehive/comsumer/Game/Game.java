@@ -143,7 +143,7 @@ public class Game extends Thread {
                             //非法输入不记录，之间判负
                             return false;
                         }
-                        map.get(nextStepA.getY()).set(nextStepA.getY(), CellRoleEnum.PLAYER_A);
+                        map.get(nextStepA.getX()).set(nextStepA.getY(), CellRoleEnum.PLAYER_A);
                         playerA.getSteps().add(nextStepA);
                         return true;
                     }//检查B玩家是否有输入
@@ -151,7 +151,7 @@ public class Game extends Thread {
                         if (map.get(nextStepB.getX()).get(nextStepB.getY()) != CellRoleEnum.EMPTY) {
                             return false;
                         }
-                        map.get(nextStepB.getY()).set(nextStepB.getY(), CellRoleEnum.PLAYER_B);
+                        map.get(nextStepB.getX()).set(nextStepB.getY(), CellRoleEnum.PLAYER_B);
                         playerB.getSteps().add(nextStepB);
                         return true;
                     }
@@ -251,23 +251,42 @@ public class Game extends Thread {
         }
 
         //筛选出两位玩家
-        Player userA = WebSocketServer.playerMapper.selectById(playerA.getUserId());
-        Player userB = WebSocketServer.playerMapper.selectById(playerB.getUserId());
+        Player userA = WebSocketServer.playerMapper.selectPlayerByUserId(playerA.getUserId());
+        Player userB;
         Long ratingA = userA.getRaking();
-        Long ratingB = userB.getRaking();
+        Long ratingB = 0L;
+
+        if (forLMM) {
+            // 与LMM对战时，创建虚拟的LMM玩家信息
+            userB = new Player();
+            userB.setUserId((long) SpecialPlayerEnum.LMM.getCode());
+            userB.setUserName(SpecialPlayerEnum.LMM.getChineseName());
+            userB.setRaking(0L);
+            ratingB = 0L;
+        } else {
+            // 正常联机对战
+            userB = WebSocketServer.playerMapper.selectPlayerByUserId(playerB.getUserId());
+            ratingB = userB.getRaking();
+        }
 
         //更新积分
         if (status.equals(GameStatusEnum.PLAYER_B_WIN)) {
             ratingA -= 4;
-            ratingB += 5;
+            if (!forLMM) {
+                ratingB += 5;
+            }
         } else if (status.equals(GameStatusEnum.PLAYER_A_WIN)) {
-            ratingB -= 4;
+            if (!forLMM) {
+                ratingB -= 4;
+            }
             ratingA += 5;
         }
+        
         updateUserRating(playerA, ratingA);
         if (!forLMM) {
             updateUserRating(playerB, ratingB);
         }
+        
         //写入对局表
         Record record = new Record();
         record.setGameTypeId(gameType.getGameId());
@@ -278,8 +297,8 @@ public class Game extends Thread {
         //先后手
         record.setFirstPlayerId(playerA.getUserId());
         record.setFirstPlayer(playerA.getUserName());
-        record.setSecondPlayerId(playerB.getUserId());
-        record.setSecondPlayerName(playerB.getUserName());
+        record.setSecondPlayerId(userB.getUserId());
+        record.setSecondPlayerName(userB.getUserName());
         //操作序列
         record.setFirstPlayerPieces(JSONObject.toJSONString(playerA.getSteps()));
         record.setPlayerBPieces(JSONObject.toJSONString(playerB.getSteps()));
@@ -301,6 +320,7 @@ public class Game extends Thread {
 
 
     private void sendAMessage(String x) {
+        System.out.println("向A发消息："+x);
         if (WebSocketServer.users.get(playerA.getUserId()) != null) {
             WebSocketServer.users.get(playerA.getUserId()).sendMessage(x);
         }

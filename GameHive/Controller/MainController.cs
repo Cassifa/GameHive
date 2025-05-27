@@ -126,6 +126,7 @@ namespace GameHive.Controller {
                         ViewMessageStartGame();
                     };
                     gameSession.OnOpponentMove += (s, e) => {
+                        // 显示对手落子
                         ViewMessagePlayChess(e.X, e.Y, Role.AI);
                         ViewMessageLogMove(Role.AI, e.Y, e.X);
                         isMyTurn = true;

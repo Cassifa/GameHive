@@ -42,6 +42,12 @@ namespace GameHive.Net {
         [JsonPropertyName("event")]
         public string Event { get; set; }
 
+        [JsonIgnore]
+        public ServerEventType EventType {
+            get => ServerEventTypeExtensions.FromType(Event);
+            set => Event = value.GetTypeString();
+        }
+
         [JsonPropertyName("first")]
         public bool? IsFirst { get; set; }
 
