@@ -109,6 +109,8 @@ namespace GameHive.Controller {
         private async void StartGame() {
             if (CurrentGameMode == GameMode.LocalGame) {
                 CurrentGameStatus = GameStatus.Playing;
+                // 为本地对战设置AI名称
+                ViewMessageSetOpponentName(Role.AI.GetChineseName());
                 ModelMessageStartGame(boardManager.first == Role.AI);
                 ViewMessageStartGame();
                 if (boardManager.first == Role.AI)
@@ -127,15 +129,17 @@ namespace GameHive.Controller {
                     Console.WriteLine("[MainController] 创建新的游戏会话");
                     gameSession = new GameSession(wsUrl, UserInfo.Instance.UserId.ToString());
                     gameSession.OnGameStart += (s, e) => {
-                        Console.WriteLine($"[MainController] 游戏开始事件: IsFirst={e.IsFirst}");
+                        Console.WriteLine($"[MainController] 游戏开始事件: IsFirst={e.IsFirst}, OpponentName={e.OpponentName}");
                         CurrentGameStatus = GameStatus.Playing;
                         isMyTurn = e.IsFirst;  // 如果玩家先手，则轮到玩家下棋
+                        // 设置对手名称
+                        ViewMessageSetOpponentName(e.OpponentName);
                         // 初始化棋盘
                         ModelMessageStartGame(false);
                         ViewMessageStartGame();
                     };
                     gameSession.OnOpponentMove += (s, e) => {
-                        Console.WriteLine($"[MainController] 落子事件: X={e.X}, Y={e.Y}, IsMyMove={e.IsMyMove}");
+                        Console.WriteLine($"[MainController] 落子事件: X={e.X}, Y={e.Y}, IsMyMove={e.IsMyMove}, OpponentName={e.OpponentName}");
                         // 根据IsMyMove判断落子方
                         Role moveRole = e.IsMyMove ? Role.Player : Role.AI;
                         // 显示落子

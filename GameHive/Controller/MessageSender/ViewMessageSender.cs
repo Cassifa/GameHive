@@ -65,5 +65,10 @@ namespace GameHive.Controller {
         private void ViewMessageSwitchAlgorithm(AIAlgorithmType algorithmType) {
             view.LogSwitchAlgorithm(algorithmType);
         }
+
+        //设置对手名称
+        private void ViewMessageSetOpponentName(string opponentName) {
+            view.SetOpponentName(opponentName);
+        }
     }
 }

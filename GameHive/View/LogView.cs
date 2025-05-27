@@ -30,6 +30,7 @@ namespace GameHive.View {
     internal partial class View {
         private List<MoveRecord> moveRecords = new List<MoveRecord>();
         private int currentMoveId = 0;
+        private string opponentName = "AI"; // 默认对手名称
 
         public void AddLog(Color color, string logContext) {
             logContext = " " + logContext;
@@ -47,11 +48,24 @@ namespace GameHive.View {
         //下棋
         public void LogMove(Role role, int x, int y) {
             //添加记录
-            string name = role.GetChineseName();
-            char colChar = (char)('A' + x);
-            if (name == "AI")
-                name = "  AI  ";
-            string logMessage = $"{currentMoveId} {name} 在 ({colChar}, {boardInfo.Column - 1 - y}) 下棋了";
+            // 根据测试结果修正坐标映射
+            // 实际的坐标传入似乎有问题，需要重新映射
+            char colChar = (char)('A' + y); // 使用y作为列
+            int displayY = boardInfo.Column - x-1; // 使用x作为行
+
+            // 根据角色确定显示名称，并保证格式对齐
+            string name;
+            if (role == Role.Player) {
+                name = "玩家";
+            } else if (role == Role.AI) {
+                name = opponentName; // 直接使用传入的对手名称
+            } else {
+                name = role.GetChineseName();
+            }
+
+            // 格式对齐：确保"在"字的位置固定
+            string paddedName = name.PadRight(8);
+            string logMessage = $"{currentMoveId.ToString().PadLeft(2)} {paddedName} 在 ({colChar}, {displayY}) 下棋了";
             AddLog(Color.Black, logMessage);
 
             //维护操作序列
@@ -69,6 +83,11 @@ namespace GameHive.View {
         private void ClearMoveRecords() {
             moveRecords.Clear();
             currentMoveId = 0;
+        }
+
+        // 设置对手名称
+        public void SetOpponentName(string name) {
+            opponentName = name ?? "AI";
         }
 
         //游戏结束

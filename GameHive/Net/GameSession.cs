@@ -14,6 +14,7 @@ namespace GameHive.Net {
     public class GameSession {
         private readonly WebSocketClient webSocketClient;
         private bool isMyTurn;
+        private string opponentName = "";
 
         //游戏开始事件
         public event EventHandler<GameStartEventArgs> OnGameStart;
@@ -98,8 +99,10 @@ namespace GameHive.Net {
         //处理游戏开始消息
         private void HandleGameStart(GameResponse response) {
             isMyTurn = response.IsFirst ?? false;
+            opponentName = response.OpponentName ?? "未知对手";
             OnGameStart?.Invoke(this, new GameStartEventArgs {
-                IsFirst = isMyTurn
+                IsFirst = isMyTurn,
+                OpponentName = opponentName
             });
         }
 
@@ -111,7 +114,8 @@ namespace GameHive.Net {
                 OnOpponentMove?.Invoke(this, new OpponentMoveEventArgs {
                     X = response.X.Value,
                     Y = response.Y.Value,
-                    IsMyMove = isMyMove
+                    IsMyMove = isMyMove,
+                    OpponentName = opponentName
                 });
                 // 切换回合
                 isMyTurn = !isMyTurn;
@@ -124,7 +128,7 @@ namespace GameHive.Net {
             Role winner = status switch {
                 GameStatus.PlayerAWin => Role.Player,
                 GameStatus.PlayerBWin => Role.AI,
-                GameStatus.Draw => Role.Empty,
+                GameStatus.Draw => Role.Draw,  // 修复：平局应该返回Role.Draw
                 _ => Role.Empty
             };
 
@@ -138,6 +142,8 @@ namespace GameHive.Net {
     public class GameStartEventArgs : EventArgs {
         //是否先手
         public bool IsFirst { get; set; }
+        //对手名称
+        public string OpponentName { get; set; } = "";
     }
 
     //对手落子事件参数
@@ -148,6 +154,8 @@ namespace GameHive.Net {
         public int Y { get; set; }
         //是否是自己落子
         public bool IsMyMove { get; set; }
+        //对手名称
+        public string OpponentName { get; set; } = "";
     }
 
     //游戏结束事件参数
