@@ -52,3 +52,11 @@ export function exportRecord(query) {
     responseType: 'blob'
   })
 }
+
+// 获取对局详情（包含对局记录和游戏类型信息）
+export function getRecordDetail(recordId) {
+  return request({
+    url: '/Record/Record/detail/' + recordId,
+    method: 'get'
+  })
+}

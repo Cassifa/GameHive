@@ -87,6 +87,20 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/record',
+    component: Layout,
+    hidden: true,
+    redirect: 'noredirect',
+    children: [
+      {
+        path: 'detail',
+        component: () => import('@/views/record/detail'),
+        name: 'RecordDetail',
+        meta: { title: '对局详情' }
+      }
+    ]
   }
 ]
 

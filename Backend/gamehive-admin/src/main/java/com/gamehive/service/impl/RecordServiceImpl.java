@@ -218,4 +218,17 @@ public class RecordServiceImpl implements IRecordService {
 
         return recordMapper.selectRecordHeatmap(record);
     }
+
+    /**
+     * 根据对局ID获取对局详情（包含对局记录和游戏类型信息）
+     */
+    @Override
+    public Map<String, Object> selectRecordDetailByRecordId(Long recordId) {
+        if (recordId == null) {
+            return null;
+        }
+
+        // 直接获取对局详情，不进行权限验证
+        return recordMapper.selectRecordDetailByRecordId(recordId);
+    }
 }

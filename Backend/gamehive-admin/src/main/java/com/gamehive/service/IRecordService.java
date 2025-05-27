@@ -49,4 +49,12 @@ public interface IRecordService {
      */
     public List<Map<String, Object>> getHeatmapData(Long userId, Long gameTypeId, Integer gameMode, 
                                                    Long algorithmId, Long winner, String playerName);
+
+    /**
+     * 根据对局ID获取对局详情（包含对局记录和游戏类型信息）
+     *
+     * @param recordId 对局记录主键
+     * @return 对局详情（包含Record和GameType信息）
+     */
+    public Map<String, Object> selectRecordDetailByRecordId(Long recordId);
 }

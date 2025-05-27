@@ -153,4 +153,32 @@
 		GROUP BY DATE(record_time)
 		ORDER BY DATE(record_time)
 	</select>
+
+	<select id="selectRecordDetailByRecordId" parameterType="Long" resultType="java.util.Map">
+		SELECT 
+			r.record_id,
+			r.game_type_id,
+			r.game_type_name,
+			r.record_time,
+			r.game_mode,
+			r.algorithm_id,
+			r.algorithm_name,
+			r.winner,
+			r.first_player_id,
+			r.first_player_name,
+			r.second_player_id,
+			r.second_player_name,
+			r.first_player_pieces,
+			r.second_player_pieces,
+			gt.game_id,
+			gt.game_name,
+			gt.game_introduction,
+			gt.game_rule,
+			gt.board_size,
+			gt.min_valid_pieces,
+			gt.is_cell_center
+		FROM record r
+		LEFT JOIN game_type gt ON r.game_type_id = gt.game_id
+		WHERE r.record_id = #{recordId}
+	</select>
 </mapper>

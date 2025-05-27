@@ -47,4 +47,12 @@ public interface RecordMapper extends BaseMapper<Record> {
      * @return 热力图数据
      */
     public List<Map<String, Object>> selectRecordHeatmap(Record record);
+
+    /**
+     * 根据对局ID获取对局详情（包含对局记录和游戏类型信息）
+     * 
+     * @param recordId 对局记录主键
+     * @return 对局详情
+     */
+    public Map<String, Object> selectRecordDetailByRecordId(@Param("recordId") Long recordId);
 }

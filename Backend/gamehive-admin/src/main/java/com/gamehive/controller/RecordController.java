@@ -121,9 +121,23 @@ public class RecordController extends BaseController {
     public AjaxResult getInfo(@PathVariable("recordId") Long recordId) {
         Record record = recordService.selectRecordByRecordId(recordId);
         if (record == null) {
-            return error("无权限查看该记录或记录不存在");
+            return error("记录不存在");
         }
         return success(record);
+    }
+
+    /**
+     * 获取对局详情（包含对局记录和游戏类型信息）
+     */
+    @GetMapping(value = "/detail/{recordId}")
+    public AjaxResult getRecordDetail(@PathVariable("recordId") Long recordId) {
+        // 获取对局详情（包含游戏类型信息）
+        Map<String, Object> recordDetail = recordService.selectRecordDetailByRecordId(recordId);
+        if (recordDetail == null) {
+            return error("记录不存在");
+        }
+        
+        return success(recordDetail);
     }
 
     /**

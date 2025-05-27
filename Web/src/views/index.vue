@@ -18,14 +18,15 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="是否与AI对局" prop="isPkAi">
-        <el-select v-model="queryParams.isPkAi" placeholder="请选择是否与AI对局" clearable @change="handlePkAiChange" style="width: 180px">
-          <el-option label="是" value="1" />
-          <el-option label="否" value="0" />
+      <el-form-item label="对局类型" prop="gameMode">
+        <el-select v-model="queryParams.gameMode" placeholder="请选择对局类型" clearable @change="handleGameModeChange" style="width: 180px">
+          <el-option label="本地对战" :value="0" />
+          <el-option label="与大模型对战" :value="1" />
+          <el-option label="联机对战" :value="2" />
         </el-select>
       </el-form-item>
       <el-form-item label="算法类别" prop="algorithmId">
-        <el-select v-model="queryParams.algorithmId" placeholder="请选择算法类别" clearable :disabled="!isPkAiSelected">
+        <el-select v-model="queryParams.algorithmId" placeholder="请选择算法类别" clearable :disabled="!isLocalGameSelected">
           <el-option
             v-for="item in algorithmOptions"
             :key="item.value"
@@ -71,7 +72,7 @@
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="RecordList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="RecordList" @selection-change="handleSelectionChange" @row-click="handleRowClick">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="对局ID" align="center" prop="recordId" />
       <el-table-column label="游戏类别" align="center" prop="gameTypeName" />
@@ -80,9 +81,9 @@
           <span>{{ parseTime(scope.row.recordTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="是否与AI对局" align="center" prop="isPkAi">
+      <el-table-column label="对局类型" align="center" prop="gameMode">
         <template slot-scope="scope">
-          <span>{{ scope.row.isPkAi == 1 ? '是' : '否' }}</span>
+          <span>{{ getGameModeText(scope.row.gameMode) }}</span>
         </template>
       </el-table-column>
       <el-table-column label="算法名称" align="center" prop="algorithmName" />
@@ -116,7 +117,7 @@
 </template>
 
 <script>
-import { listRecord, getRecord, delRecord, addRecord, updateRecord, exportRecord } from "@/api/record/record";
+import { listRecord, getRecord, delRecord, addRecord, updateRecord, exportRecord, getRecordDetail } from "@/api/record/record";
 import { listGameTypeOptions } from "@/api/GameType/GameType";
 import { listAlgorithmOptions } from "@/api/Algorithm/Algorithm";
 import { listAlgorithmsByGameId } from "@/api/Product/Product";
@@ -152,14 +153,14 @@ export default {
       gameTypeOptions: [],
       // 算法类型选项
       algorithmOptions: [],
-      // 是否已选择与AI对局
-      isPkAiSelected: false,
+      // 是否已选择本地对战
+      isLocalGameSelected: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
         gameTypeId: null,
-        isPkAi: null,
+        gameMode: null,
         algorithmId: null,
         winner: null,
         playerName: null
@@ -172,7 +173,7 @@ export default {
       // 热力图参数
       heatmapParams: {
         gameTypeId: null,        // 游戏类型ID
-        isPkAi: null,            // 是否与AI对局
+        gameMode: null,          // 对局类型
         algorithmId: null,       // 算法ID
         winner: null,            // 赢家
         playerName: null         // 玩家名称，用于模糊匹配
@@ -182,10 +183,10 @@ export default {
   created() {
     this.getList();
     this.getGameTypeOptions();
-    // 初始化检查是否与AI对局的选择状态
-    this.isPkAiSelected = this.queryParams.isPkAi === '1' || this.queryParams.isPkAi === 1;
-    // 如果已选择游戏类型且是与AI对局，则获取算法选项
-    if (this.queryParams.gameTypeId && this.isPkAiSelected) {
+    // 初始化检查是否选择了本地对战
+    this.isLocalGameSelected = this.queryParams.gameMode === 0;
+    // 如果已选择游戏类型且是本地对战，则获取算法选项
+    if (this.queryParams.gameTypeId && this.isLocalGameSelected) {
       this.getAlgorithmOptions();
     }
   },
@@ -228,18 +229,27 @@ export default {
     /** 游戏类型变更 */
     handleGameTypeChange() {
       this.queryParams.algorithmId = null;
-      if (this.isPkAiSelected) {
+      if (this.isLocalGameSelected) {
         this.getAlgorithmOptions();
       }
     },
-    /** 是否与AI对局变更 */
-    handlePkAiChange() {
+    /** 对局类型变更 */
+    handleGameModeChange() {
       this.queryParams.algorithmId = null;
-      // 检查是否选择了"是"(1)
-      this.isPkAiSelected = this.queryParams.isPkAi === '1' || this.queryParams.isPkAi === 1;
-      if (this.isPkAiSelected) {
+      // 检查是否选择了本地对战(0)
+      this.isLocalGameSelected = this.queryParams.gameMode === 0;
+      if (this.isLocalGameSelected) {
         this.getAlgorithmOptions();
       }
+    },
+    /** 获取对局类型文本 */
+    getGameModeText(gameMode) {
+      const gameModeMap = {
+        0: '本地对战',
+        1: '与大模型对战', 
+        2: '联机对战'
+      };
+      return gameModeMap[gameMode] || '未知';
     },
     // 取消按钮
     cancel() {
@@ -253,7 +263,7 @@ export default {
         gameTypeId: null,
         gameTypeName: null,
         recordTime: null,
-        isPkAi: null,
+        gameMode: null,
         algorithmId: null,
         algorithmName: null,
         winner: null,
@@ -274,7 +284,7 @@ export default {
       // 同步查询参数到热力图
       this.heatmapParams = {
         gameTypeId: this.queryParams.gameTypeId,
-        isPkAi: this.queryParams.isPkAi,
+        gameMode: this.queryParams.gameMode,
         algorithmId: this.queryParams.algorithmId,
         winner: this.queryParams.winner,
         playerName: this.queryParams.playerName
@@ -287,13 +297,13 @@ export default {
     /** 重置按钮操作 */
     resetQuery() {
       this.resetForm("queryForm");
-      this.isPkAiSelected = false;
+      this.isLocalGameSelected = false;
       this.algorithmOptions = [];
       
       // 重置热力图参数
       this.heatmapParams = {
         gameTypeId: null,
-        isPkAi: null,
+        gameMode: null,
         algorithmId: null,
         winner: null,
         playerName: null
@@ -379,6 +389,21 @@ export default {
         this.$modal.msgSuccess("导出成功");
       }).catch(() => {
         this.$modal.closeLoading();
+      });
+    },
+    /** 行点击事件 */
+    handleRowClick(row) {
+      // 获取对局详情
+      getRecordDetail(row.recordId).then(response => {
+        console.log('对局详情数据:', response.data);
+        // 跳转到空白页面
+        this.$router.push({
+          path: '/record/detail',
+          query: { recordId: row.recordId }
+        });
+      }).catch(error => {
+        console.error('获取对局详情失败:', error);
+        this.$modal.msgError("获取对局详情失败");
       });
     }
   }
