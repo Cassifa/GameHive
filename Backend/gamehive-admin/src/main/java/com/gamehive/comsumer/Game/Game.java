@@ -9,6 +9,7 @@ import com.gamehive.comsumer.message.FeedBackObj;
 import com.gamehive.comsumer.stratey.*;
 import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.constants.SpecialPlayerEnum;
+import com.gamehive.constants.GameModeEnum;
 import com.gamehive.pojo.GameType;
 import com.gamehive.pojo.Player;
 import com.gamehive.pojo.Record;
@@ -188,13 +189,14 @@ public class Game extends Thread {
                 break;
             } else {
                 //合法输入
+                //先广播这一步操作
+                System.out.println(isNextA() ? "玩家A" : "玩家B" + "在" + (isNextA() ? nextStepA : nextStepB) + "下棋了");
+                sendMove(isNextA() ? nextStepA : nextStepB);
+                
+                //然后判断游戏是否结束
                 judge();
-                if (status.equals(GameStatusEnum.UNFINISHED)) {
-                    //游戏还在继续，广播上一步操作
-                    System.out.println(isNextA() ? "玩家A" : "玩家B" + "在" + (isNextA() ? nextStepA : nextStepB) + "下棋了");
-                    sendMove(isNextA() ? nextStepA : nextStepB);
-                } else {
-                    //广播结果-游戏正常结束
+                if (!status.equals(GameStatusEnum.UNFINISHED)) {
+                    //游戏结束，广播结果
                     sendResult();
                     break;
                 }
@@ -218,7 +220,7 @@ public class Game extends Thread {
         try {
             FeedBackObj data = new FeedBackObj();
             data.setEvent(FeedBackEventTypeEnum.MOVE.getType());
-            data.setGameStatus(GameStatusEnum.UNFINISHED.getName());
+            data.setGameStatus(status.getName()); // 使用当前游戏状态
             data.setX(move.getX());
             data.setY(move.getY());
             sendAllMessage(JSONObject.toJSONString(data));
@@ -236,6 +238,7 @@ public class Game extends Thread {
         result.setEvent(FeedBackEventTypeEnum.RESULT.getType());
         result.setWinStatus(status.getName());
         saveToDataBase();
+        sendAllMessage(JSONObject.toJSONString(result));
     }
 
     //*****工具函数*****//
@@ -281,12 +284,12 @@ public class Game extends Thread {
             }
             ratingA += 5;
         }
-        
+
         updateUserRating(playerA, ratingA);
         if (!forLMM) {
             updateUserRating(playerB, ratingB);
         }
-        
+
         //写入对局表
         Record record = new Record();
         record.setGameTypeId(gameType.getGameId());
@@ -294,15 +297,17 @@ public class Game extends Thread {
         record.setAlgorithmId(forLMM ? -2L : -1L);
         record.setAlgorithmName(forLMM ? "LMM" : "联机对战");
         record.setWinner((long) status.getCode());
+        // 设置游戏模式
+        record.setGameMode(forLMM ? GameModeEnum.LMM_GAME.getCode() : GameModeEnum.ONLINE_GAME.getCode());
         //先后手
         record.setFirstPlayerId(playerA.getUserId());
-        record.setFirstPlayer(playerA.getUserName());
+        record.setFirstPlayerName(playerA.getUserName());
         record.setSecondPlayerId(userB.getUserId());
         record.setSecondPlayerName(userB.getUserName());
         //操作序列
         record.setFirstPlayerPieces(JSONObject.toJSONString(playerA.getSteps()));
-        record.setPlayerBPieces(JSONObject.toJSONString(playerB.getSteps()));
-        WebSocketServer.recordMapper.insert(record);
+        record.setSecondPlayerPieces(JSONObject.toJSONString(playerB.getSteps()));
+        WebSocketServer.recordMapper.insertRecord(record);
     }
 
     //设置next
@@ -320,7 +325,7 @@ public class Game extends Thread {
 
 
     private void sendAMessage(String x) {
-        System.out.println("向A发消息："+x);
+        System.out.println("向A发消息：" + x);
         if (WebSocketServer.users.get(playerA.getUserId()) != null) {
             WebSocketServer.users.get(playerA.getUserId()).sendMessage(x);
         }
@@ -342,9 +347,9 @@ public class Game extends Thread {
      * 更新玩家积分
      */
     private void updateUserRating(GamePlayer player, Long rating) {
-        Player user = WebSocketServer.playerMapper.selectById(player.getUserId());
+        Player user = WebSocketServer.playerMapper.selectPlayerByUserId(player.getUserId());
         user.setRaking(rating);
-        WebSocketServer.playerMapper.updateById(user);
+        WebSocketServer.playerMapper.updatePlayer(user);
     }
 
     /**

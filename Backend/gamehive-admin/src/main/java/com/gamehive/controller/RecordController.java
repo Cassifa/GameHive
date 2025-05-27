@@ -15,6 +15,7 @@ import com.gamehive.common.annotation.Log;
 import com.gamehive.common.core.controller.BaseController;
 import com.gamehive.common.core.domain.AjaxResult;
 import com.gamehive.common.enums.BusinessType;
+import com.gamehive.constants.GameModeEnum;
 import com.gamehive.pojo.Record;
 import com.gamehive.service.IRecordService;
 import com.gamehive.common.utils.poi.ExcelUtil;
@@ -40,7 +41,7 @@ public class RecordController extends BaseController {
      * - pageNum: 当前页码
      * - pageSize: 每页记录数（如果为空则返回所有数据）
      * - gameTypeId: 游戏类型ID
-     * - isPkAi: 是否与AI对局（'1'表示是，'0'表示否）
+     * - gameMode: 游戏模式（0-本地对战，1-与大模型对战，2-联机对战）
      * - algorithmId: 算法ID
      * - winner: 赢家
      * - playerName: 玩家名称（用于模糊查询先手或后手玩家）
@@ -50,7 +51,7 @@ public class RecordController extends BaseController {
             @RequestParam(value = "pageNum", required = false) Integer pageNum,
             @RequestParam(value = "pageSize", required = false) Integer pageSize,
             @RequestParam(value = "gameTypeId", required = false) Long gameTypeId,
-            @RequestParam(value = "isPkAi", required = false) Boolean isPkAi,
+            @RequestParam(value = "gameMode", required = false) Integer gameMode,
             @RequestParam(value = "algorithmId", required = false) Long algorithmId,
             @RequestParam(value = "winner", required = false) Long winner,
             @RequestParam(value = "playerName", required = false) String playerName,
@@ -66,8 +67,8 @@ public class RecordController extends BaseController {
         if (gameTypeId != null) {
             record.setGameTypeId(gameTypeId);
         }
-        if (isPkAi != null) {
-            record.setIsPkAi(isPkAi);
+        if (gameMode != null) {
+            record.setGameMode(gameMode);
         }
         if (algorithmId != null) {
             record.setAlgorithmId(algorithmId);
@@ -129,7 +130,7 @@ public class RecordController extends BaseController {
      * 获取对局记录热力图数据
      * 需要的参数:
      * - gameTypeId: 游戏类型ID (可选)
-     * - isPkAi: 是否与AI对局 (可选)
+     * - gameMode: 游戏模式（0-本地对战，1-与大模型对战，2-联机对战） (可选)
      * - algorithmId: 算法ID (可选)
      * - winner: 赢家 (可选)
      * - playerName: 玩家名称，用于模糊匹配 (可选)
@@ -148,7 +149,7 @@ public class RecordController extends BaseController {
     @GetMapping("/heatmap")
     public AjaxResult getHeatmapData(
             @RequestParam(required = false) Long gameTypeId,
-            @RequestParam(required = false) Boolean isPkAi,
+            @RequestParam(required = false) Integer gameMode,
             @RequestParam(required = false) Long algorithmId,
             @RequestParam(required = false) Long winner,
             @RequestParam(required = false) String playerName) {
@@ -160,7 +161,7 @@ public class RecordController extends BaseController {
         }
         
         // 获取热力图数据
-        List<Map<String, Object>> heatmapData = recordService.getHeatmapData(userId, gameTypeId, isPkAi, algorithmId, winner, playerName);
+        List<Map<String, Object>> heatmapData = recordService.getHeatmapData(userId, gameTypeId, gameMode, algorithmId, winner, playerName);
         if (heatmapData == null) {
             return error("获取热力图数据失败");
         }

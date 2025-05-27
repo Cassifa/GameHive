@@ -94,16 +94,26 @@ namespace GameHive.Net {
 
         //接收WebSocket消息的循环
         private async Task ReceiveMessagesAsync() {
-            var buffer = new byte[4096];
             try {
                 while (isConnected && webSocket?.State == WebSocketState.Open) {
-                    var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), webSocketCts.Token);
-                    if (result.MessageType == WebSocketMessageType.Close) {
-                        break;
-                    }
+                    var buffer = new byte[4096];
+                    var messageBuilder = new StringBuilder();
+                    WebSocketReceiveResult result;
+                    
+                    do {
+                        result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), webSocketCts.Token);
+                        if (result.MessageType == WebSocketMessageType.Close) {
+                            return;
+                        }
+                        
+                        var chunk = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        messageBuilder.Append(chunk);
+                    } while (!result.EndOfMessage);
 
-                    var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    HandleMessage(message);
+                    var completeMessage = messageBuilder.ToString();
+                    if (!string.IsNullOrEmpty(completeMessage)) {
+                        HandleMessage(completeMessage);
+                    }
                 }
             } catch (OperationCanceledException) {
                 // 忽略取消操作
@@ -115,13 +125,19 @@ namespace GameHive.Net {
         //处理接收到的WebSocket消息
         private void HandleMessage(string message) {
             try {
+                Console.WriteLine($"[WebSocket] 收到完整消息: {message}");
                 var response = JsonSerializer.Deserialize<GameResponse>(message);
                 if (response != null) {
+                    Console.WriteLine($"[WebSocket] 解析消息类型: {response.EventType}");
                     OnMessageReceived?.Invoke(this, response);
+                } else {
+                    Console.WriteLine($"[WebSocket] 消息解析为null");
                 }
             } catch (JsonException jsonEx) {
+                Console.WriteLine($"[WebSocket] JSON解析错误: {jsonEx.Message}");
                 OnError?.Invoke(this, jsonEx);
             } catch (Exception ex) {
+                Console.WriteLine($"[WebSocket] 处理消息错误: {ex.Message}");
                 OnError?.Invoke(this, ex);
             }
         }

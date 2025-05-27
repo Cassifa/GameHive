@@ -115,10 +115,19 @@ namespace GameHive.Controller {
                     ModelMessageAskAIMove(-1, -1);
             } else {
                 try {
+                    // 如果已经有游戏会话，先清理
+                    if (gameSession != null) {
+                        Console.WriteLine("[MainController] 清理现有游戏会话");
+                        await gameSession.EndSessionAsync();
+                        gameSession = null;
+                    }
+                    
                     CurrentGameStatus = GameStatus.Matching;
                     string wsUrl = "ws://localhost:3000";
+                    Console.WriteLine("[MainController] 创建新的游戏会话");
                     gameSession = new GameSession(wsUrl, UserInfo.Instance.UserId.ToString());
                     gameSession.OnGameStart += (s, e) => {
+                        Console.WriteLine($"[MainController] 游戏开始事件: IsFirst={e.IsFirst}");
                         CurrentGameStatus = GameStatus.Playing;
                         isMyTurn = e.IsFirst;  // 如果玩家先手，则轮到玩家下棋
                         // 初始化棋盘
@@ -126,19 +135,30 @@ namespace GameHive.Controller {
                         ViewMessageStartGame();
                     };
                     gameSession.OnOpponentMove += (s, e) => {
-                        // 显示对手落子
-                        ViewMessagePlayChess(e.X, e.Y, Role.AI);
-                        ViewMessageLogMove(Role.AI, e.Y, e.X);
-                        isMyTurn = true;
+                        Console.WriteLine($"[MainController] 落子事件: X={e.X}, Y={e.Y}, IsMyMove={e.IsMyMove}");
+                        // 根据IsMyMove判断落子方
+                        Role moveRole = e.IsMyMove ? Role.Player : Role.AI;
+                        // 显示落子
+                        ViewMessagePlayChess(e.X, e.Y, moveRole);
+                        ViewMessageLogMove(moveRole, e.X, e.Y);
+                        // 如果不是自己的落子，则轮到自己
+                        if (!e.IsMyMove) {
+                            isMyTurn = true;
+                        }
                     };
-                    gameSession.OnGameResult += (s, e) => EndGame(e.Winner);
+                    gameSession.OnGameResult += (s, e) => {
+                        Console.WriteLine($"[MainController] 游戏结束事件: Winner={e.Winner}");
+                        EndGame(e.Winner);
+                    };
                     gameSession.OnError += (s, e) => {
+                        Console.WriteLine($"[MainController] 游戏错误: {e.Message}");
                         MessageBox.Show("游戏发生错误，请重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     };
 
                     ViewMessageStartMatching();
                     await gameSession.StartSessionAsync(GetCurrentGameType().GetChineseName(), CurrentGameMode == GameMode.LMMGame);
                 } catch (Exception ex) {
+                    Console.WriteLine($"[MainController] 启动游戏失败: {ex.Message}");
                     CurrentGameStatus = GameStatus.NotStarted;
                 }
             }

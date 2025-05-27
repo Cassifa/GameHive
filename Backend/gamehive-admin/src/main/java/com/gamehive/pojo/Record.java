@@ -45,10 +45,10 @@ public class Record extends BaseEntity {
     private Date recordTime;
 
     /**
-     * 是否是与ai对局
+     * 游戏模式（0-本地对战 1-与大模型对战 2-联机对战）
      */
-    @Excel(name = "是否是与ai对局", readConverterExp = "true=是,false=否")
-    private Boolean isPkAi;
+    @Excel(name = "游戏模式", readConverterExp = "0=本地对战,1=与大模型对战,2=联机对战")
+    private Integer gameMode;
 
     /**
      * 对战的算法编号,如果为匹配对战则为-1,与大模型为-2
@@ -73,18 +73,18 @@ public class Record extends BaseEntity {
     private Long firstPlayerId;
 
     /**
-     * 先手玩家
+     * 先手玩家名称
      */
     @Excel(name = "先手玩家")
-    private String firstPlayer;
+    private String firstPlayerName;
 
     /**
-     * 后手
+     * 后手id
      */
     private Long secondPlayerId;
 
     /**
-     * 后手玩家
+     * 后手玩家名称
      */
     @Excel(name = "后手玩家")
     private String secondPlayerName;
@@ -97,5 +97,5 @@ public class Record extends BaseEntity {
     /**
      * 后手玩家操作序列，json格式
      */
-    private String playerBPieces;
+    private String secondPlayerPieces;
 }

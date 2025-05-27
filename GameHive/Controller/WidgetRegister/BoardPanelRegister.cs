@@ -61,7 +61,7 @@ namespace GameHive.Controller {
                             //本地对战模式
                             //给显示层发消息
                             ViewMessagePlayChess(centerX, centerY, Role.Player);
-                            ViewMessageLogMove(Role.Player, y, x);
+                            ViewMessageLogMove(Role.Player, x, y);
                             //给模型层发消息,并获取是否结束
                             bool isEnd = ModelMessageUserPlayChess(x, y);
                             if (!isEnd) {
@@ -71,10 +71,8 @@ namespace GameHive.Controller {
                             }
                         } else {
                             //联机或大模型对战模式
-                            //给显示层发消息
-                            ViewMessagePlayChess(x, y, Role.Player);
-                            ViewMessageLogMove(Role.Player, y, x);
-                            //发送落子消息到服务器
+                            //只发送落子消息到服务器，不立即显示棋子
+                            //等待服务器通过OnOpponentMove事件确认后再显示
                             gameSession.SendMoveAsync(x, y).Wait();
                         }
                         return;

@@ -8,16 +8,16 @@
 		<result property="gameTypeId" column="game_type_id"/>
 		<result property="gameTypeName" column="game_type_name"/>
 		<result property="recordTime" column="record_time"/>
-		<result property="isPkAi" column="is_pk_ai"/>
+		<result property="gameMode" column="game_mode"/>
 		<result property="algorithmId" column="algorithm_id"/>
 		<result property="algorithmName" column="algorithm_name"/>
 		<result property="winner" column="winner"/>
 		<result property="firstPlayerId" column="first_player_id"/>
-		<result property="firstPlayer" column="first_player"/>
+		<result property="firstPlayerName" column="first_player_name"/>
 		<result property="secondPlayerId" column="second_player_id"/>
 		<result property="secondPlayerName" column="second_player_name"/>
 		<result property="firstPlayerPieces" column="first_player_pieces"/>
-		<result property="playerBPieces" column="player_b_pieces"/>
+		<result property="secondPlayerPieces" column="second_player_pieces"/>
 	</resultMap>
 
 	<sql id="selectRecordVo">
@@ -25,16 +25,16 @@
 			   game_type_id,
 			   game_type_name,
 			   record_time,
-			   is_pk_ai,
+			   game_mode,
 			   algorithm_id,
 			   algorithm_name,
 			   winner,
 			   first_player_id,
-			   first_player,
+			   first_player_name,
 			   second_player_id,
 			   second_player_name,
 			   first_player_pieces,
-			   player_b_pieces
+			   second_player_pieces
 		from record
 	</sql>
 
@@ -55,8 +55,8 @@
 			<if test="recordTime != null">
 				AND record_time = #{recordTime}
 			</if>
-			<if test="isPkAi != null">
-				AND is_pk_ai = #{isPkAi}
+			<if test="gameMode != null">
+				AND game_mode = #{gameMode}
 			</if>
 			<if test="algorithmId != null">
 				AND algorithm_id = #{algorithmId}
@@ -70,8 +70,8 @@
 			<if test="firstPlayerId != null">
 				AND first_player_id = #{firstPlayerId}
 			</if>
-			<if test="firstPlayer != null and firstPlayer != ''">
-				AND first_player like concat('%', #{firstPlayer}, '%')
+			<if test="firstPlayerName != null and firstPlayerName != ''">
+				AND first_player_name like concat('%', #{firstPlayerName}, '%')
 			</if>
 			<if test="secondPlayerId != null">
 				AND second_player_id = #{secondPlayerId}
@@ -80,7 +80,7 @@
 				AND second_player_name like concat('%', #{secondPlayerName}, '%')
 			</if>
 			<if test="params.playerName != null and params.playerName != ''">
-				AND (first_player like concat('%', #{params.playerName}, '%') OR second_player_name like concat('%', #{params.playerName}, '%'))
+				AND (first_player_name like concat('%', #{params.playerName}, '%') OR second_player_name like concat('%', #{params.playerName}, '%'))
 			</if>
 			<if test="params.currentUserId != null">
 				AND (first_player_id = #{params.currentUserId} OR second_player_id = #{params.currentUserId})
@@ -96,32 +96,32 @@
 			<if test="gameTypeId != null">game_type_id,</if>
 			<if test="gameTypeName != null">game_type_name,</if>
 			<if test="recordTime != null">record_time,</if>
-			<if test="isPkAi != null">is_pk_ai,</if>
+			<if test="gameMode != null">game_mode,</if>
 			<if test="algorithmId != null">algorithm_id,</if>
 			<if test="algorithmName != null">algorithm_name,</if>
 			<if test="winner != null">winner,</if>
 			<if test="firstPlayerId != null">first_player_id,</if>
-			<if test="firstPlayer != null">first_player,</if>
+			<if test="firstPlayerName != null">first_player_name,</if>
 			<if test="secondPlayerId != null">second_player_id,</if>
 			<if test="secondPlayerName != null">second_player_name,</if>
 			<if test="firstPlayerPieces != null">first_player_pieces,</if>
-			<if test="playerBPieces != null">player_b_pieces,</if>
+			<if test="secondPlayerPieces != null">second_player_pieces,</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
 			<if test="recordId != null">#{recordId},</if>
 			<if test="gameTypeId != null">#{gameTypeId},</if>
 			<if test="gameTypeName != null">#{gameTypeName},</if>
 			<if test="recordTime != null">#{recordTime},</if>
-			<if test="isPkAi != null">#{isPkAi},</if>
+			<if test="gameMode != null">#{gameMode},</if>
 			<if test="algorithmId != null">#{algorithmId},</if>
 			<if test="algorithmName != null">#{algorithmName},</if>
 			<if test="winner != null">#{winner},</if>
 			<if test="firstPlayerId != null">#{firstPlayerId},</if>
-			<if test="firstPlayer != null">#{firstPlayer},</if>
+			<if test="firstPlayerName != null">#{firstPlayerName},</if>
 			<if test="secondPlayerId != null">#{secondPlayerId},</if>
 			<if test="secondPlayerName != null">#{secondPlayerName},</if>
 			<if test="firstPlayerPieces != null">#{firstPlayerPieces},</if>
-			<if test="playerBPieces != null">#{playerBPieces},</if>
+			<if test="secondPlayerPieces != null">#{secondPlayerPieces},</if>
 		</trim>
 	</insert>
 
@@ -134,8 +134,8 @@
 			<if test="gameTypeId != null">
 				AND game_type_id = #{gameTypeId}
 			</if>
-			<if test="isPkAi != null">
-				AND is_pk_ai = #{isPkAi}
+			<if test="gameMode != null">
+				AND game_mode = #{gameMode}
 			</if>
 			<if test="algorithmId != null">
 				AND algorithm_id = #{algorithmId}
@@ -144,7 +144,7 @@
 				AND winner = #{winner}
 			</if>
 			<if test="params.playerName != null and params.playerName != ''">
-				AND (first_player like concat('%', #{params.playerName}, '%') OR second_player_name like concat('%', #{params.playerName}, '%'))
+				AND (first_player_name like concat('%', #{params.playerName}, '%') OR second_player_name like concat('%', #{params.playerName}, '%'))
 			</if>
 			<if test="params.currentUserId != null">
 				AND (first_player_id = #{params.currentUserId} OR second_player_id = #{params.currentUserId})

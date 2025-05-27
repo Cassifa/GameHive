@@ -78,6 +78,7 @@ namespace GameHive.Net {
 
         //处理WebSocket消息
         private void HandleWebSocketMessage(object sender, GameResponse response) {
+            Console.WriteLine($"[GameSession] 处理消息: {response.EventType}");
             switch (response.EventType) {
                 case ServerEventType.Start:
                     HandleGameStart(response);
@@ -87,6 +88,9 @@ namespace GameHive.Net {
                     break;
                 case ServerEventType.Result:
                     HandleGameResult(response);
+                    break;
+                default:
+                    Console.WriteLine($"[GameSession] 未知消息类型: {response.EventType}");
                     break;
             }
         }

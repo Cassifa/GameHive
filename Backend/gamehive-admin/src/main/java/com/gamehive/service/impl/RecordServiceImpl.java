@@ -16,6 +16,7 @@ import com.gamehive.mapper.RecordMapper;
 import com.gamehive.mapper.PlayerMapper;
 import com.gamehive.pojo.Record;
 import com.gamehive.pojo.Player;
+import com.gamehive.constants.GameModeEnum;
 import com.gamehive.service.IRecordService;
 
 /**
@@ -121,7 +122,7 @@ public class RecordServiceImpl implements IRecordService {
         int result = recordMapper.insertRecord(record);
         
         // 如果是与AI对局，更新玩家积分
-        if (record.getIsPkAi() && result > 0) {
+        if (record.getGameMode() != null && record.getGameMode() == GameModeEnum.LMM_GAME.getCode() && result > 0) {
             updatePlayerRaking(record);
         }
         
@@ -175,7 +176,7 @@ public class RecordServiceImpl implements IRecordService {
      * 获取对局记录热力图数据
      */
     @Override
-    public List<Map<String, Object>> getHeatmapData(Long userId, Long gameTypeId, Boolean isPkAi,
+    public List<Map<String, Object>> getHeatmapData(Long userId, Long gameTypeId, Integer gameMode,
                                                     Long algorithmId, Long winner, String playerName) {
 
         if (userId == null) {
@@ -194,7 +195,10 @@ public class RecordServiceImpl implements IRecordService {
 
         Record record = new Record();
         record.setGameTypeId(gameTypeId);
-        record.setIsPkAi(isPkAi);
+        // 直接设置gameMode
+        if (gameMode != null) {
+            record.setGameMode(gameMode);
+        }
         record.setAlgorithmId(algorithmId);
         record.setWinner(winner);
 

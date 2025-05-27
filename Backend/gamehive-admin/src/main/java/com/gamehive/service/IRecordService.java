@@ -41,12 +41,12 @@ public interface IRecordService {
      *
      * @param userId 用户ID
      * @param gameTypeId 游戏类型ID
-     * @param isPkAi 是否与AI对局
+     * @param gameMode 游戏模式（0-本地对战，1-与大模型对战，2-联机对战）
      * @param algorithmId 算法ID
      * @param winner 赢家
      * @param playerName 玩家名称
      * @return 热力图数据
      */
-    public List<Map<String, Object>> getHeatmapData(Long userId, Long gameTypeId, Boolean isPkAi, 
+    public List<Map<String, Object>> getHeatmapData(Long userId, Long gameTypeId, Integer gameMode, 
                                                    Long algorithmId, Long winner, String playerName);
 }

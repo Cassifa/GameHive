@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamehive.common.core.domain.AjaxResult;
 import com.gamehive.common.core.domain.entity.SysUser;
 import com.gamehive.constants.SpecialPlayerEnum;
+import com.gamehive.constants.GameModeEnum;
 import com.gamehive.framework.web.service.SysLoginService;
 import com.gamehive.pojo.AlgorithmType;
 import com.gamehive.pojo.GameType;
@@ -93,7 +94,7 @@ public class ClientServiceImpl implements IClientService {
             Record record = new Record();
 
             // 1. 设置基本信息
-            record.setIsPkAi(true); // 必须是与AI对局
+            record.setGameMode(GameModeEnum.LOCAL_GAME.getCode()); // 0-本地对战
             String gameTypeName = (String) gameData.get("gameTypeName");
             String algorithmName = (String) gameData.get("algorithmName");
             record.setGameTypeName(gameTypeName);
@@ -138,12 +139,12 @@ public class ClientServiceImpl implements IClientService {
             boolean playerFirst = (Boolean) gameData.get("playerFirst");
             if (playerFirst) {
                 record.setFirstPlayerId(playerId);
-                record.setFirstPlayer(playerName);
+                record.setFirstPlayerName(playerName);
                 record.setSecondPlayerId((long) SpecialPlayerEnum.AI.getCode());
                 record.setSecondPlayerName(SpecialPlayerEnum.AI.getChineseName());
             } else {
                 record.setFirstPlayerId((long) SpecialPlayerEnum.AI.getCode());
-                record.setFirstPlayer(SpecialPlayerEnum.AI.getChineseName());
+                record.setFirstPlayerName(SpecialPlayerEnum.AI.getChineseName());
                 record.setSecondPlayerId(playerId);
                 record.setSecondPlayerName(playerName);
             }
@@ -181,7 +182,7 @@ public class ClientServiceImpl implements IClientService {
 
             // 将两个列表分别序列化
             record.setFirstPlayerPieces(objectMapper.writeValueAsString(firstPlayerMoves));
-            record.setPlayerBPieces(objectMapper.writeValueAsString(secondPlayerMoves));
+            record.setSecondPlayerPieces(objectMapper.writeValueAsString(secondPlayerMoves));
 
             // 5. 保存记录
             int result = recordService.insertRecord(record);
