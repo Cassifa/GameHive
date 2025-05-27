@@ -5,6 +5,7 @@ import com.gamehive.comsumer.Game.Cell;
 import com.gamehive.comsumer.Game.Game;
 import com.gamehive.comsumer.constants.FeedBackEventTypeEnum;
 import com.gamehive.comsumer.constants.ReceiveEventTypeEnum;
+import com.gamehive.comsumer.constants.GameStatusEnum;
 import com.gamehive.comsumer.message.FeedBackObj;
 import com.gamehive.comsumer.message.ReceiveObj;
 import com.gamehive.constants.GameTypeEnum;
@@ -44,6 +45,7 @@ public class WebSocketServer {
     private final static String removePlayerUrl = "http://127.0.0.1:3001/player/remove/";
 
     public Game game = null;
+    private boolean isMatching = false; // 标记用户是否正在匹配
 
     @Autowired
     public void setUserMapper(PlayerMapper playerMapper) {
@@ -111,9 +113,11 @@ public class WebSocketServer {
         //一方断开链接则无视其操作
         if (users.get(a.getUserId()) != null) {
             users.get(a.getUserId()).game = game;
+            users.get(a.getUserId()).isMatching = false; // 游戏开始，不再是匹配状态
         }
         if (!forLMM && users.get(b.getUserId()) != null) {
             users.get(b.getUserId()).game = game;
+            users.get(b.getUserId()).isMatching = false; // 游戏开始，不再是匹配状态
         }
         game.start();
 
@@ -141,8 +145,35 @@ public class WebSocketServer {
     @OnClose
     public void onClose() {
         // 关闭链接
-        System.out.println("closed");
+        System.out.println("WebSocket连接关闭，用户ID: " + (this.user != null ? this.user.getUserId() : "未知"));
         if (this.user != null) {
+            // 如果用户正在游戏中，需要结束游戏
+            if (this.game != null) {
+                System.out.println("用户断开连接，结束游戏");
+
+                // 如果是联机对战（非LMM对战），判对手胜利
+                if (!this.game.getForLMM()) {
+                    System.out.println("联机对战中玩家断开连接，判对手胜利");
+                    handlePlayerQuit();
+                }
+
+                this.game = null;
+            }
+
+            // 如果在匹配状态，从匹配池移除
+            if (this.isMatching) {
+                System.out.println("用户断开连接时正在匹配，从匹配池移除");
+                this.isMatching = false;
+                try {
+                    MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
+                    data.add("user_id", this.user.getUserId().toString());
+                    data.add("rating", this.user.getRaking().toString());
+                    restTemplate.postForObject(removePlayerUrl, data, String.class);
+                } catch (Exception e) {
+                    System.out.println("从匹配池移除用户时发生错误: " + e.getMessage());
+                }
+            }
+
             users.remove(this.user.getUserId());
         }
     }
@@ -154,11 +185,13 @@ public class WebSocketServer {
     private void startMatching(ReceiveObj matchData) {
         System.out.println("startMatching");
         if (matchData.getPlayWithLMM()) {
+            // 与大模型对战，直接开始游戏
             startGame(this.user.getUserId(), SpecialPlayerEnum.PLAYER, (long) SpecialPlayerEnum.LMM.getCode(),
                     SpecialPlayerEnum.LMM, GameTypeEnum.fromChineseName(matchData.getGameType()), true);
             return;
         }
         //玩家选择了与其他玩家匹配
+        this.isMatching = true; // 标记为匹配状态
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user_id", this.user.getUserId().toString());
         data.add("rating", this.user.getRaking().toString());
@@ -168,15 +201,83 @@ public class WebSocketServer {
     }
 
     /**
-     * 玩家停止匹配
+     * 玩家停止匹配或终止游戏
      */
     private void stopMatching() {
-//        System.out.println("stopMatching");
-        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
-        data.add("user_id", this.user.getUserId().toString());
-        data.add("rating", this.user.getRaking().toString());
-        restTemplate.postForObject(removePlayerUrl, data, String.class);
+        System.out.println("收到停止请求，用户ID: " + this.user.getUserId());
 
+        // 如果用户正在游戏中，结束游戏
+        if (this.game != null) {
+            System.out.println("用户主动终止游戏");
+
+            // 如果是联机对战（非LMM对战），判对手胜利
+            if (!this.game.getForLMM()) {
+                System.out.println("联机对战中玩家主动退出，判对手胜利");
+                handlePlayerQuit();
+            }
+
+            this.game = null; // 清理游戏状态
+            return; // 不需要从匹配池移除，因为用户不在匹配池中
+        }
+
+        // 如果在匹配状态，从匹配池移除
+        if (this.isMatching) {
+            System.out.println("用户停止匹配，从匹配池移除");
+            this.isMatching = false;
+            MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
+            data.add("user_id", this.user.getUserId().toString());
+            data.add("rating", this.user.getRaking().toString());
+            restTemplate.postForObject(removePlayerUrl, data, String.class);
+        } else {
+            System.out.println("用户不在匹配状态，无需操作");
+        }
+    }
+
+    /**
+     * 处理玩家退出游戏，判对手胜利
+     */
+    private void handlePlayerQuit() {
+        if (this.game == null || this.game.getForLMM()) {
+            return;
+        }
+
+        try {
+            // 确定退出的玩家和对手
+            Long quittingPlayerId = this.user.getUserId();
+            Long opponentId;
+            String winnerStatus;
+
+            if (Objects.equals(this.game.getPlayerA().getUserId(), quittingPlayerId)) {
+                // 玩家A退出，玩家B获胜
+                opponentId = this.game.getPlayerB().getUserId();
+                winnerStatus = GameStatusEnum.PLAYER_B_WIN.getName();
+                System.out.println("玩家A " + this.user.getUserName() + " 退出，玩家B " + this.game.getPlayerB().getUserName() + " 获胜");
+            } else {
+                // 玩家B退出，玩家A获胜
+                opponentId = this.game.getPlayerA().getUserId();
+                winnerStatus = GameStatusEnum.PLAYER_A_WIN.getName();
+                System.out.println("玩家B " + this.user.getUserName() + " 退出，玩家A " + this.game.getPlayerA().getUserName() + " 获胜");
+            }
+
+            // 发送游戏结果给对手
+            WebSocketServer opponentConnection = users.get(opponentId);
+            if (opponentConnection != null) {
+                FeedBackObj resultMessage = new FeedBackObj();
+                resultMessage.setEvent(FeedBackEventTypeEnum.RESULT.getType());
+                resultMessage.setWinStatus(winnerStatus);
+                opponentConnection.sendMessage(JSONObject.toJSONString(resultMessage));
+
+                // 清理对手的游戏状态
+                opponentConnection.game = null;
+            }
+
+            // 注意：这里不调用saveToDataBase，因为游戏是被强制结束的
+            // 如果需要记录，可以考虑在Game类中添加public方法来处理强制结束的情况
+
+        } catch (Exception e) {
+            System.out.println("处理玩家退出时发生错误: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -217,20 +318,63 @@ public class WebSocketServer {
 
     @OnError
     public void onError(Session session, Throwable error) {
-        System.out.println("错误");
-        error.printStackTrace();
+        System.out.println("WebSocket发生错误，用户ID: " + (this.user != null ? this.user.getUserId() : "未知"));
+        System.out.println("错误类型: " + error.getClass().getSimpleName() + ", 消息: " + error.getMessage());
+
+        //对于EOFException是客户端正常断开连接
+        if (!(error instanceof java.io.EOFException)) {
+            error.printStackTrace();
+        }
+
+        // 清理连接
+        if (this.user != null) {
+            if (this.game != null) {
+                System.out.println("因错误清理游戏状态");
+
+                // 如果是联机对战（非LMM对战），判对手胜利
+                if (!this.game.getForLMM()) {
+                    System.out.println("联机对战中玩家因错误断开连接，判对手胜利");
+                    handlePlayerQuit();
+                }
+
+                this.game = null;
+            }
+
+            // 如果在匹配状态，从匹配池移除
+            if (this.isMatching) {
+                System.out.println("用户因错误断开连接时正在匹配，从匹配池移除");
+                this.isMatching = false;
+                try {
+                    MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
+                    data.add("user_id", this.user.getUserId().toString());
+                    data.add("rating", this.user.getRaking().toString());
+                    restTemplate.postForObject(removePlayerUrl, data, String.class);
+                } catch (Exception e) {
+                    System.out.println("从匹配池移除用户时发生错误: " + e.getMessage());
+                }
+            }
+
+            users.remove(this.user.getUserId());
+        }
     }
 
 
     public void sendMessage(String message) {//发送信息
         synchronized (this.session) {
             try {
-                this.session.getBasicRemote().sendText(message);
+                if (this.session != null && this.session.isOpen()) {
+                    this.session.getBasicRemote().sendText(message);
+                } else {
+                    System.out.println("WebSocket会话已关闭，无法发送消息: " + message);
+                }
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("发送WebSocket消息失败: " + e.getMessage());
+                // 清理已断开的连接
+                if (this.user != null) {
+                    users.remove(this.user.getUserId());
+                }
             }
         }
-
     }
 
     public void setSession(String message) {
