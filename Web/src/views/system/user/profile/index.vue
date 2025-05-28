@@ -35,7 +35,7 @@
       </el-col>
       <el-col :span="18" :xs="24">
         <el-card>
-          <div class="statistics-container">
+          <div class="statistics-container" v-if="!isAdmin">
             <!-- 总体统计概览 -->
             <div class="overview-section">
               <el-row :gutter="20">
@@ -125,6 +125,13 @@
               </el-row>
             </div>
           </div>
+          
+          <!-- 管理员提示信息 -->
+          <div v-if="isAdmin" class="admin-notice">
+            <el-empty description="管理员账户无游戏统计信息">
+              <el-button type="primary" @click="$router.push('/system/user')">管理用户</el-button>
+            </el-empty>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -161,12 +168,25 @@ export default {
       }
     };
   },
+  computed: {
+    isAdmin() {
+      // 判断用户角色是否包含管理员
+      return this.roleGroup && (
+        this.roleGroup.includes('管理员') || 
+        this.roleGroup.includes('admin') || 
+        this.roleGroup.includes('超级管理员')
+      );
+    }
+  },
   created() {
     this.getUser();
   },
   mounted() {
     this.$nextTick(() => {
-      this.initCharts();
+      // 只有非管理员才初始化图表
+      if (!this.isAdmin) {
+        this.initCharts();
+      }
     });
   },
   beforeDestroy() {
@@ -184,8 +204,10 @@ export default {
         this.roleGroup = response.roleGroup;
         this.postGroup = response.postGroup;
         
-        // 获取统计信息
-        this.getStatistics();
+        // 只有非管理员才获取统计信息
+        if (!this.isAdmin) {
+          this.getStatistics();
+        }
       });
     },
     
@@ -1066,5 +1088,38 @@ export default {
 .app-container {
   position: relative;
   z-index: 1;
+}
+
+/* 管理员提示区域样式 */
+.admin-notice {
+  padding: 60px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 15px;
+  margin: 20px 0;
+}
+
+.admin-notice .el-empty {
+  padding: 40px 0;
+}
+
+.admin-notice .el-empty__description {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.admin-notice .el-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+}
+
+.admin-notice .el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 </style>
