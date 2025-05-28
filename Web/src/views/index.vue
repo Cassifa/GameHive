@@ -92,7 +92,7 @@
           <dict-tag :options="dict.type.win_status" :value="scope.row.winner"/>
         </template>
       </el-table-column>
-      <el-table-column label="先手玩家" align="center" prop="firstPlayer" />
+      <el-table-column label="先手玩家" align="center" prop="firstPlayerName" />
       <el-table-column label="后手玩家" align="center" prop="secondPlayerName" />
     </el-table>
     
