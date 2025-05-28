@@ -30,7 +30,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     break;
                 case DifficultyLevel.LEVEL_2://启用MCTS
                     useMonteCarlo = true;
-                    MCTSimulations = 1500;
+                    MCTSimulations = 4000;
                     modelBytes = Properties.Resources.model_4000;
                     break;
                 default:
@@ -47,8 +47,13 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
 
         //判断游戏是否结束
         public override Role CheckGameOverByPiece(List<List<Role>> currentBoard, int x, int y) {
-            if (x == -1)
+            if (x == -1) {
+                if (PlayedPiecesCnt >= boardSize * boardSize) {
+                    return Role.Draw;
+                }
                 return Role.Empty;
+            }
+            
             Role currentPlayer = currentBoard[x][y];
             //水平、垂直、主对角线、副对角线
             int[] dx = { 1, 0, 1, 1 };
@@ -73,7 +78,8 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 if (count >= 5)
                     return currentPlayer;
             }
-            if (boardSize * boardSize == PlayedPiecesCnt)
+            //检查是否平局
+            if (PlayedPiecesCnt >= boardSize * boardSize)
                 return Role.Draw;
             return Role.Empty;
         }
@@ -84,7 +90,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             for (int i = 0; i < boardSize; i++) {
                 for (int j = 0; j < boardSize; j++) {
                     if (currentBoard[i][j] == Role.Empty) {
-                        availablePositions.Add(Tuple.Create(i, j));
+                        availablePositions.Add(new Tuple<int, int>(i, j));
                     }
                 }
             }
@@ -92,3 +98,4 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         }
     }
 }
+

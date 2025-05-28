@@ -17,8 +17,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected int PlayedPiecesCnt = 0;
         protected bool isModelLoaded = false;
         protected bool useMonteCarlo = false; //是否使用蒙特卡洛搜索
-        protected bool isModelWarmedUp = false; //模型是否已预热
-        protected byte[]? modelBytes; //模型字节数组
+        protected bool isModelWarmedUp = false; //模型是否已 warm-up
+        protected byte[]? modelBytes; //模型
 
         //MCTS相关参数
         protected int MCTSimulations = 400; //MCTS模拟次数
@@ -27,19 +27,21 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //获取可行落子点
         protected abstract List<Tuple<int, int>> GetAvailablePositions(List<List<Role>> currentBoard);
 
-
         /**********算法输入获取方法**********/
         //获取AI的下一步移动
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //根据是否使用蒙特卡洛搜索决定策略
+            Tuple<int, int> move;
             if (useMonteCarlo) {
-                return GetMCTSMoveWithNN(currentBoard, lastX, lastY);
+                move = GetMCTSMoveWithNN(currentBoard, lastX, lastY);
             } else {
-                return GetDirectModelMove(currentBoard, lastX, lastY);
+                move = GetDirectModelMove(currentBoard, lastX, lastY);
             }
+            PlayedPiecesCnt++; 
+            return move;
         }
 
-        //直接使用模型获取移动
+        //直接使用DRL模型获取
         protected virtual Tuple<int, int> GetDirectModelMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             var input = ConvertBoardToInput(currentBoard, lastX, lastY);
             var (policy, value) = RunInference(input);
@@ -47,11 +49,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         }
 
 
-        //使用蒙特卡洛搜索获取最佳移动(基于深度学习模型优化的MCTS)
+        //使用DRL-MCTS获取
         protected virtual Tuple<int, int> GetMCTSMoveWithNN(List<List<Role>> currentBoard, int lastX, int lastY) {
             Console.WriteLine($"开始MCTS搜索，模拟次数: {MCTSimulations}");
 
-            //创建MCTS根节点 - 当前轮到AI下棋
+            //创建MCTS根 - 当前轮到AI下棋
             var rootNode = new MCTSNode(currentBoard, null, -1, -1, Role.AI, Role.Empty, GetAvailablePositions(currentBoard));
 
             //执行MCTS模拟
@@ -67,29 +69,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
 
         /**********嵌入DRL的MCTS方法**********/
-        //AlphaGo-Zero风格MCTS的核心改进：
+        //DRL-MCTS改进：
         //1.用神经网络价值评估替代随机 rollout - 提供更准确的叶子节点估值
         //2.用神经网络策略概率作为UCB公式的先验概率 - 指导更智能的探索
         //3.大幅减少模拟次数的同时获得更好效果
 
         //从MCTS结果中选择移动
         private Tuple<int, int> SelectMoveFromMCTSWithNN(MCTSNode rootNode) {
-            if (rootNode.ChildrenMap.Count == 0) {
-                //如果没有子节点，随机选择一个可行位置
-                var availableMoves = GetAvailablePositions(rootNode.NodeBoard);
-                Console.WriteLine("警告：根节点没有子节点，随机选择移动");
-                return availableMoves[new Random().Next(availableMoves.Count)];
-            }
-
-            //打印所有子节点的统计信息
-            Console.WriteLine("MCTS子节点统计:");
-            var sortedChildren = rootNode.ChildrenMap.Values.OrderByDescending(child => child.VisitedTimes);
-            foreach (var child in sortedChildren.Take(5)) { //只显示前5个
-                var move = child.PieceSelectedCompareToFather;
-                Console.WriteLine($"  位置({move.Item1},{move.Item2}): 访问{child.VisitedTimes}次, UCB{child.GetUCB():F3}");
-            }
-
-            //选择访问次数最多的移动 - 这体现了MCTS的核心思想：更多访问=更有价值
+            //选择访问次数最多的移动
             var bestChild = rootNode.ChildrenMap.Values.OrderByDescending(child => child.VisitedTimes).First();
             return bestChild.PieceSelectedCompareToFather;
         }
@@ -100,22 +87,40 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             var path = new List<MCTSNode>();
             var currentNode = node;
             var currentBoard = board;
+            //维护当前模拟中的棋子数量
+            var currentPieceCount = PlayedPiecesCnt;
 
-            //选择阶段：从根节点向下选择到叶子节点 (Selection)
-            //使用AlphaGo-Zero风格的UCB选择，其中先验概率来自神经网络
+            //Selection-选择阶段：从根节点向下选择到叶子节点
+            //使用ADRL-先验概率UCB选择
             while (!currentNode.IsLeaf) {
                 path.Add(currentNode);
                 var selectedChild = currentNode.GetGreatestUCB(exploreFactor);
+                
+                //确保 selectedChild 不为 null - 理论上不会发生，因为已经确保根节点被扩展
+                if (selectedChild == null) {
+                    Console.WriteLine("错误：GetGreatestUCB返回 null，这不应该发生！");
+                    break;
+                }
+                
                 var move = selectedChild.PieceSelectedCompareToFather;
                 currentNode = selectedChild;
                 //在棋盘上执行动作
                 currentBoard[move.Item1][move.Item2] = currentNode.LeadToThisStatus;
+                currentPieceCount++;
             }
 
             path.Add(currentNode);
 
             //评估阶段：检查游戏是否结束
-            var gameResult = CheckGameOverByPiece(currentBoard, currentNode.PieceSelectedCompareToFather.Item1, currentNode.PieceSelectedCompareToFather.Item2);
+            //获取当前节点的移动位置，如果是根节点则使用(-1, -1)
+            var currentMove = currentNode.PieceSelectedCompareToFather ?? new Tuple<int, int>(-1, -1);
+            
+            //临时保存全局计数，使用模拟中的计数进行游戏结束判断
+            var originalPieceCount = PlayedPiecesCnt;
+            PlayedPiecesCnt = currentPieceCount;
+            var gameResult = CheckGameOverByPiece(currentBoard, currentMove.Item1, currentMove.Item2);
+            PlayedPiecesCnt = originalPieceCount; //恢复全局计数
+            
             Role winner;
 
             if (gameResult != Role.Empty) {
@@ -123,14 +128,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 winner = gameResult;
             } else {
                 //游戏未结束，使用神经网络评估
-                //代替传统MCTS中"随机模拟到游戏结束"的做法
-                var input = ConvertBoardToInput(currentBoard, currentNode.PieceSelectedCompareToFather.Item1, currentNode.PieceSelectedCompareToFather.Item2);
+                var input = ConvertBoardToInput(currentBoard, currentMove.Item1, currentMove.Item2);
                 var (policy, networkValue) = RunInference(input);
 
-                //如果是新叶子节点，进行扩展 (Expansion)
+                //新叶子节点-扩展
                 if (currentNode.IsNewLeaf()) {
                     //使用神经网络的策略概率指导扩展 - 这为UCB提供了智能的先验概率
-                    NodeExpansionWithNN(currentNode, currentBoard, policy);
+                    NodeExpansionWithNN(currentNode, currentBoard, policy, currentPieceCount);
                 }
 
                 //使用神经网络的价值评估作为 leaf_value (Evaluation)
@@ -142,8 +146,21 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         }
 
         //DRL拓展 - 传入策略概率避免重复推理
-        private void NodeExpansionWithNN(MCTSNode node, List<List<Role>> board, float[] policy) {
+        private void NodeExpansionWithNN(MCTSNode node, List<List<Role>> board, float[] policy, int currentPieceCount) {
+            //如果棋盘已满，保持为叶子节点
+            if (currentPieceCount >= boardSize * boardSize) {
+                Console.WriteLine("警告：棋盘已满，节点保持为叶子节点");
+                return;
+            }
+            
             var availableMoves = GetAvailablePositions(board);
+            
+            //如果没有可行移动，保持为叶子节点
+            if (availableMoves.Count == 0) {
+                Console.WriteLine("警告：没有可行移动，节点保持为叶子节点");
+                return;
+            }
+            
             var nextPlayer = (node.LeadToThisStatus == Role.AI) ? Role.Player : Role.AI;
 
             foreach (var move in availableMoves) {
@@ -270,7 +287,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //游戏开始时的初始化
         public override void GameStart(bool IsAIFirst) {
             Console.WriteLine($"GameStart: session={session != null}, isModelLoaded={isModelLoaded}, isModelWarmedUp={isModelWarmedUp}");
-            //如果 session 已被释放或模型未加载，重新加载模型
+            
+            //重置棋子计数
+            PlayedPiecesCnt = 0;
+            
+            //如果session已被释放或模型未加载，重新加载模型
             if (session == null || !isModelLoaded) {
                 Console.WriteLine("重新加载模型...");
                 if (modelBytes == null) {
@@ -322,6 +343,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         }
 
         public override void UserPlayPiece(int lastX, int lastY) {
+            PlayedPiecesCnt++; //用户下棋后增加计数
         }
     }
 }
