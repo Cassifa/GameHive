@@ -36,6 +36,16 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             ChildrenMap = new Dictionary<int, MCTSNode>();
             AvailablePiece = availablePiece;
 
+            //默认先验概率为0（传统MCTS不使用先验概率）
+            PriorProbability = 0.0;
+        }
+
+        //重载构造函数：支持AlphaGo-Zero风格的先验概率
+        public MCTSNode(List<List<Role>> board, MCTSNode father, int x, int y,
+                    Role view, Role winner, List<Tuple<int, int>> availablePiece, double priorProbability)
+            : this(board, father, x, y, view, winner, availablePiece) {
+            //设置神经网络提供的先验概率
+            PriorProbability = priorProbability;
         }
 
         //当前视角下当前节点价值，胜利＋1，失败-1 平局0
@@ -58,6 +68,8 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         public Dictionary<int, MCTSNode> ChildrenMap { get; set; }
         //可落子地方
         public List<Tuple<int, int>> AvailablePiece { get; set; }
+        //先验概率 P - 用于AlphaGo-Zero风格的UCB公式
+        public double PriorProbability { get; set; }
         public Role getWinner() {
             return Winner;
         }
@@ -121,6 +133,8 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
         }
 
         //获取UCB,被父节点调用，父子节点视角不同
+        //UCB公式: Q + 1.414 * sqrt(ln(N_parent) / N_child)
+        //Q = 平均收益, 1.414 ≈ sqrt(2), N_parent = 父节点访问次数, N_child = 子节点访问次数
         public double GetUCB() {
             //如果已经是终局节点则价值直接最大或最小
             if (Winner != Role.Empty)
@@ -133,6 +147,20 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             return ans;
         }
 
+        //DRL-UCB公式: Q + factor * P * sqrt(N_parent) / (1 + N_child)
+        //其中: Q = 平均收益, factor = 探索常数, P = 先验概率, N_parent = 父节点访问次数, N_child = 子节点访问次数
+        public double GetUCB(double factor) {
+            //如果已经是终局节点则价值直接最大或最小
+            if (Winner != Role.Empty)
+                return Winner == LeadToThisStatus ? double.PositiveInfinity : double.NegativeInfinity;
+            int N = Father.VisitedTimes;
+            if (VisitedTimes == 0)
+                return double.PositiveInfinity;
+            double Q = 1.0 * TotalValue / (double)VisitedTimes;
+            double U = factor * PriorProbability * Math.Sqrt(N) / (1 + VisitedTimes);
+            return Q + U;
+        }
+
         //获取UCB最大的节点
         public MCTSNode GetGreatestUCB() {
             MCTSNode chosenSon = null;
@@ -140,6 +168,24 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             foreach (var entry in ChildrenMap) {
                 MCTSNode node = entry.Value;
                 double t = node.GetUCB();
+                //>=涵盖了maxValue==double.NegativeInfinity情况，使得搜到无解局面时得以反向传播
+                if (t >= maxValue) {
+                    if (t == double.PositiveInfinity)
+                        return node;
+                    maxValue = t;
+                    chosenSon = node;
+                }
+            }
+            return chosenSon;
+        }
+
+        //重载GetGreatestUCB：支持AlphaGo-Zero风格的UCB选择
+        public MCTSNode GetGreatestUCB(double factor) {
+            MCTSNode chosenSon = null;
+            double maxValue = double.NegativeInfinity;
+            foreach (var entry in ChildrenMap) {
+                MCTSNode node = entry.Value;
+                double t = node.GetUCB(factor);
                 //>=涵盖了maxValue==double.NegativeInfinity情况，使得搜到无解局面时得以反向传播
                 if (t >= maxValue) {
                     if (t == double.PositiveInfinity)

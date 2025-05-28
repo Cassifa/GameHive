@@ -15,12 +15,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
         //具体产品信息 包含难度
         public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(3);
 
-        private DifficultyLevel currentLevel;
-
         public GoBang88DRL(int boardSize, DifficultyLevel level) {
             this.boardSize = boardSize;
-            currentLevel = level;
             concreteProductInfo.TotalPiecesCnt = boardSize;
+            //探索常数
+            exploreFactor = 5.0;
 
             byte[] modelBytes;
 
@@ -31,8 +30,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     break;
                 case DifficultyLevel.LEVEL_2://启用MCTS
                     useMonteCarlo = true;
-                    mctsSimulations = 800;
-                    cPuct = 5.0;
+                    MCTSimulations = 1500;
                     modelBytes = Properties.Resources.model_4000;
                     break;
                 default:

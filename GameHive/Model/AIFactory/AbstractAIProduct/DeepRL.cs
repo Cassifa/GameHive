@@ -21,12 +21,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected byte[]? modelBytes; //模型字节数组
 
         //MCTS相关参数
-        protected int mctsSimulations = 400; //MCTS模拟次数
-        protected double cPuct = 5.0; //UCB公式中的探索常数
-        protected double temperature = 1e-3; //温度参数，控制探索程度
-        protected bool isTraining = false; //是否为训练模式
+        protected int MCTSimulations = 400; //MCTS模拟次数
+        protected double exploreFactor = 5.0; //DRL-UCB探索常数
 
-        //获取可行落子点(纯虚函数，由子类实现)
+        //获取可行落子点
         protected abstract List<Tuple<int, int>> GetAvailablePositions(List<List<Role>> currentBoard);
 
 
@@ -35,7 +33,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //根据是否使用蒙特卡洛搜索决定策略
             if (useMonteCarlo) {
-                return GetMCTSMove(currentBoard, lastX, lastY);
+                return GetMCTSMoveWithNN(currentBoard, lastX, lastY);
             } else {
                 return GetDirectModelMove(currentBoard, lastX, lastY);
             }
@@ -50,125 +48,32 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
 
         //使用蒙特卡洛搜索获取最佳移动(基于深度学习模型优化的MCTS)
-        protected virtual Tuple<int, int> GetMCTSMove(List<List<Role>> currentBoard, int lastX, int lastY) {
-            Console.WriteLine($"开始MCTS搜索，模拟次数: {mctsSimulations}");
+        protected virtual Tuple<int, int> GetMCTSMoveWithNN(List<List<Role>> currentBoard, int lastX, int lastY) {
+            Console.WriteLine($"开始MCTS搜索，模拟次数: {MCTSimulations}");
 
             //创建MCTS根节点 - 当前轮到AI下棋
             var rootNode = new MCTSNode(currentBoard, null, -1, -1, Role.AI, Role.Empty, GetAvailablePositions(currentBoard));
 
             //执行MCTS模拟
-            for (int i = 0; i < mctsSimulations; i++) {
-                MCTSPlayoutWithNN(rootNode, CopyBoard(currentBoard));
+            for (int i = 0; i < MCTSimulations; i++) {
+                SimulationOnceWithNN(rootNode, CopyBoard(currentBoard));
             }
 
             //根据访问次数选择最佳移动
-            var bestMove = SelectMoveFromMCTS(rootNode);
+            var bestMove = SelectMoveFromMCTSWithNN(rootNode);
             Console.WriteLine($"MCTS搜索完成，选择移动: ({bestMove.Item1}, {bestMove.Item2})");
             return bestMove;
         }
 
 
         /**********嵌入DRL的MCTS方法**********/
-
-        //基于神经网络的MCTS推演过程
-        private void MCTSPlayoutWithNN(MCTSNode node, List<List<Role>> board) {
-            var path = new List<MCTSNode>();
-            var currentNode = node;
-            var currentBoard = board;
-
-            //选择阶段：从根节点向下选择到叶子节点
-            while (!currentNode.IsLeaf) {
-                path.Add(currentNode);
-                var selectedChild = currentNode.GetGreatestUCB();
-                var move = selectedChild.PieceSelectedCompareToFather;
-                currentNode = selectedChild;
-                //在棋盘上执行动作
-                currentBoard[move.Item1][move.Item2] = currentNode.LeadToThisStatus;
-            }
-
-            path.Add(currentNode);
-
-            //评估阶段：使用神经网络评估叶子节点
-            var gameResult = CheckGameOverByPiece(currentBoard, currentNode.PieceSelectedCompareToFather.Item1, currentNode.PieceSelectedCompareToFather.Item2);
-            Role winner;
-
-            if (gameResult != Role.Empty) {
-                //游戏已结束，使用真实结果
-                winner = gameResult;
-            } else {
-                //游戏未结束，使用神经网络评估并扩展节点
-                if (currentNode.IsNewLeaf()) {
-                    //扩展节点时使用神经网络指导
-                    ExpandNodeWithNN(currentNode, currentBoard);
-                    //使用神经网络评估当前局面
-                    var input = ConvertBoardToInput(currentBoard, currentNode.PieceSelectedCompareToFather.Item1, currentNode.PieceSelectedCompareToFather.Item2);
-                    var (policy, networkValue) = RunInference(input);
-                    //根据网络评估决定模拟胜者
-                    winner = (networkValue > 0) ? Role.AI : Role.Player;
-                } else {
-                    //已经扩展过的节点，继续使用传统MCTS
-                    winner = SimulateRandomPlayout(currentBoard, currentNode.LeadToThisStatus);
-                }
-            }
-
-            //反向传播阶段
-            currentNode.BackPropagation(winner);
-        }
-
-        //使用神经网络指导扩展节点
-        private void ExpandNodeWithNN(MCTSNode node, List<List<Role>> board) {
-            var availableMoves = GetAvailablePositions(board);
-            var nextPlayer = (node.LeadToThisStatus == Role.AI) ? Role.Player : Role.AI;
-
-            //获取神经网络的策略输出
-            var input = ConvertBoardToInput(board, node.PieceSelectedCompareToFather.Item1, node.PieceSelectedCompareToFather.Item2);
-            var (policy, value) = RunInference(input);
-
-            foreach (var move in availableMoves) {
-                var newBoard = CopyBoard(board);
-                newBoard[move.Item1][move.Item2] = nextPlayer;
-
-                var childNode = new MCTSNode(newBoard, node, move.Item1, move.Item2, nextPlayer, Role.Empty, GetAvailablePositions(newBoard));
-
-                //使用神经网络的策略概率来影响初始访问
-                int policyIndex = move.Item1 * boardSize + move.Item2;
-                if (policyIndex < policy.Length && policy[policyIndex] > 0.1) {
-                    //对于高概率的移动，给予额外的初始访问次数
-                    childNode.BackPropagation(nextPlayer); //模拟一次有利结果
-                }
-
-                node.AddSon(childNode, move.Item1, move.Item2);
-            }
-
-            node.IsLeaf = false;
-        }
-
-        //传统随机模拟
-        private Role SimulateRandomPlayout(List<List<Role>> board, Role currentPlayer) {
-            var simulationBoard = CopyBoard(board);
-            var player = (currentPlayer == Role.AI) ? Role.Player : Role.AI;
-            var random = new Random();
-
-            while (true) {
-                var availableMoves = GetAvailablePositions(simulationBoard);
-                if (availableMoves.Count == 0) {
-                    return Role.Draw;
-                }
-
-                var move = availableMoves[random.Next(availableMoves.Count)];
-                simulationBoard[move.Item1][move.Item2] = player;
-
-                var result = CheckGameOverByPiece(simulationBoard, move.Item1, move.Item2);
-                if (result != Role.Empty) {
-                    return result;
-                }
-
-                player = (player == Role.AI) ? Role.Player : Role.AI;
-            }
-        }
+        //AlphaGo-Zero风格MCTS的核心改进：
+        //1.用神经网络价值评估替代随机 rollout - 提供更准确的叶子节点估值
+        //2.用神经网络策略概率作为UCB公式的先验概率 - 指导更智能的探索
+        //3.大幅减少模拟次数的同时获得更好效果
 
         //从MCTS结果中选择移动
-        private Tuple<int, int> SelectMoveFromMCTS(MCTSNode rootNode) {
+        private Tuple<int, int> SelectMoveFromMCTSWithNN(MCTSNode rootNode) {
             if (rootNode.ChildrenMap.Count == 0) {
                 //如果没有子节点，随机选择一个可行位置
                 var availableMoves = GetAvailablePositions(rootNode.NodeBoard);
@@ -178,20 +83,85 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
             //打印所有子节点的统计信息
             Console.WriteLine("MCTS子节点统计:");
-            var sortedChildren = rootNode.ChildrenMap.Values.OrderByDescending(child => GetNodeVisitCount(child));
+            var sortedChildren = rootNode.ChildrenMap.Values.OrderByDescending(child => child.VisitedTimes);
             foreach (var child in sortedChildren.Take(5)) { //只显示前5个
                 var move = child.PieceSelectedCompareToFather;
-                Console.WriteLine($"  位置({move.Item1},{move.Item2}): 访问{GetNodeVisitCount(child)}次, UCB{child.GetUCB():F3}");
+                Console.WriteLine($"  位置({move.Item1},{move.Item2}): 访问{child.VisitedTimes}次, UCB{child.GetUCB():F3}");
             }
 
-            //选择访问次数最多的移动
-            var bestChild = rootNode.ChildrenMap.Values.OrderByDescending(child => GetNodeVisitCount(child)).First();
+            //选择访问次数最多的移动 - 这体现了MCTS的核心思想：更多访问=更有价值
+            var bestChild = rootNode.ChildrenMap.Values.OrderByDescending(child => child.VisitedTimes).First();
             return bestChild.PieceSelectedCompareToFather;
         }
 
-        //获取节点访问次数
-        private int GetNodeVisitCount(MCTSNode node) {
-            return node.VisitedTimes;
+        //基于DRL的MCTS过程
+        //关键创新：用神经网络估值替代传统的随机模拟到底
+        private void SimulationOnceWithNN(MCTSNode node, List<List<Role>> board) {
+            var path = new List<MCTSNode>();
+            var currentNode = node;
+            var currentBoard = board;
+
+            //选择阶段：从根节点向下选择到叶子节点 (Selection)
+            //使用AlphaGo-Zero风格的UCB选择，其中先验概率来自神经网络
+            while (!currentNode.IsLeaf) {
+                path.Add(currentNode);
+                var selectedChild = currentNode.GetGreatestUCB(exploreFactor);
+                var move = selectedChild.PieceSelectedCompareToFather;
+                currentNode = selectedChild;
+                //在棋盘上执行动作
+                currentBoard[move.Item1][move.Item2] = currentNode.LeadToThisStatus;
+            }
+
+            path.Add(currentNode);
+
+            //评估阶段：检查游戏是否结束
+            var gameResult = CheckGameOverByPiece(currentBoard, currentNode.PieceSelectedCompareToFather.Item1, currentNode.PieceSelectedCompareToFather.Item2);
+            Role winner;
+
+            if (gameResult != Role.Empty) {
+                //游戏已结束-使用真实结果
+                winner = gameResult;
+            } else {
+                //游戏未结束，使用神经网络评估
+                //代替传统MCTS中"随机模拟到游戏结束"的做法
+                var input = ConvertBoardToInput(currentBoard, currentNode.PieceSelectedCompareToFather.Item1, currentNode.PieceSelectedCompareToFather.Item2);
+                var (policy, networkValue) = RunInference(input);
+
+                //如果是新叶子节点，进行扩展 (Expansion)
+                if (currentNode.IsNewLeaf()) {
+                    //使用神经网络的策略概率指导扩展 - 这为UCB提供了智能的先验概率
+                    NodeExpansionWithNN(currentNode, currentBoard, policy);
+                }
+
+                //使用神经网络的价值评估作为 leaf_value (Evaluation)
+                //networkValue > 0 表示对AI有利，< 0 表示对Player有利
+                winner = (networkValue > 0) ? Role.AI : Role.Player;
+            }
+            //反向传播-真实游戏结果还是神经网络估值，都通过相同的方式传播
+            currentNode.BackPropagation(winner);
+        }
+
+        //DRL拓展 - 传入策略概率避免重复推理
+        private void NodeExpansionWithNN(MCTSNode node, List<List<Role>> board, float[] policy) {
+            var availableMoves = GetAvailablePositions(board);
+            var nextPlayer = (node.LeadToThisStatus == Role.AI) ? Role.Player : Role.AI;
+
+            foreach (var move in availableMoves) {
+                var newBoard = CopyBoard(board);
+                newBoard[move.Item1][move.Item2] = nextPlayer;
+
+                //获取该位置的先验概率 - 这是AlphaGo-Zero的核心创新
+                int policyIndex = move.Item1 * boardSize + move.Item2;
+                double priorProbability = (policyIndex < policy.Length) ? policy[policyIndex] : 0.0;
+
+                //使用带先验概率的构造函数创建子节点 - 完全模仿AlphaGo-Zero
+                var childNode = new MCTSNode(newBoard, node, move.Item1, move.Item2, nextPlayer, Role.Empty,
+                    GetAvailablePositions(newBoard), priorProbability);
+
+                node.AddSon(childNode, move.Item1, move.Item2);
+            }
+
+            node.IsLeaf = false;
         }
 
         //复制棋盘
