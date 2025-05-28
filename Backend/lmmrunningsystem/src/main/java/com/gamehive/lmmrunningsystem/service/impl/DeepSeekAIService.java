@@ -1,7 +1,5 @@
 package com.gamehive.lmmrunningsystem.service.impl;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.gamehive.lmmrunningsystem.constants.ValidationResultEnum;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequest;
@@ -56,14 +54,13 @@ public class DeepSeekAIService {
 
         while (retryCount < maxRetryCount) {
             try {
-                String response = chatClient.prompt()
+                // 使用Spring AI的entity()方法直接解析为实体类
+                result = chatClient.prompt()
                         .user(prompt)
                         .call()
-                        .content();
+                        .entity(LMMDecisionResult.class);
 
-                System.out.println("大模型响应 (第" + (retryCount + 1) + "次): " + response);
-
-                result = parseDecisionResult(response);
+                System.out.println("大模型响应 (第" + (retryCount + 1) + "次): " + result);
 
                 if (result != null && result.isValid(lmmRequest)) {
                     System.out.println("大模型决策成功: x=" + result.getX() + ", y=" + result.getY());
@@ -78,6 +75,9 @@ public class DeepSeekAIService {
             } catch (Exception e) {
                 retryCount++;
                 System.out.println("大模型调用失败 (第" + retryCount + "次): " + e.getMessage());
+                if (retryCount < maxRetryCount) {
+                    prompt = buildRetryPrompt(lmmRequest, null);
+                }
             }
         }
 
@@ -97,23 +97,21 @@ public class DeepSeekAIService {
      * @return String 格式化的提示词字符串
      */
     private String buildPrompt(LMMRequest lmmRequest) {
-        return "你是一个专业的" + lmmRequest.getGameType() + "游戏AI。请分析当前棋盘状态并给出最佳决策。\n\n" +
+        return "你是一个专业的" + lmmRequest.getGameType() + "游戏专家级AI。请分析当前棋盘状态并给出最佳决策。\n\n" +
                 "游戏规则：\n" +
                 "- 棋盘大小：" + lmmRequest.getGridSize() + " x " + lmmRequest.getGridSize() + "\n" +
-                "- 0表示空位，1表示玩家1，2表示玩家2\n" +
+                "- 0表示空位，1表示玩家已落子位置，"+lmmRequest.getLLMFlag()+"表示你的棋子\n" +
                 "- 你需要选择一个空位放置棋子\n\n" +
                 "当前棋盘状态：\n" +
                 lmmRequest.getCurrentMap() + "\n\n" +
-                "请严格按照以下JSON格式返回决策：\n" +
-                "{\n" +
-                "  \"x\": 行坐标(从0开始),\n" +
-                "  \"y\": 列坐标(从0开始),\n" +
-                "  \"reason\": \"详细的决策理由\"\n" +
-                "}\n\n" +
+                "请返回你的决策，包含以下字段：\n" +
+                "- x: 行坐标(从0开始的整数)\n" +
+                "- y: 列坐标(从0开始的整数)\n" +
+                "- reason: 详细的决策理由（中文形式）\n\n" +
                 "注意：\n" +
-                "1. 必须返回有效的JSON格式\n" +
-                "2. x和y必须是数字，且在棋盘范围内且没有落子过\n" +
-                "3. 选择的位置必须是空位（值为0）";
+                "1. x和y必须是数字，且在棋盘范围内且没有落子过\n" +
+                "2. 选择的位置必须是空位（值为0）\n" +
+                "3. 请给出清晰的决策理由";
     }
 
     /**
@@ -141,57 +139,14 @@ public class DeepSeekAIService {
                     feedback.append("返回格式不正确，缺少x或y坐标。");
                     break;
             }
+        } else {
+            feedback.append("解析失败，请确保返回正确的格式。");
         }
 
         feedback.append("请重新分析棋盘并给出正确的决策！\n\n");
         feedback.append(buildPrompt(lmmRequest));
 
         return feedback.toString();
-    }
-
-    /**
-     * 解析大模型返回结果
-     *
-     * @param content 大模型返回的原始文本内容
-     * @return LMMDecisionResult 解析后的决策结果，解析失败时返回null
-     */
-    private LMMDecisionResult parseDecisionResult(String content) {
-        try {
-            // 提取JSON部分
-            String jsonStr = extractJson(content);
-            if (jsonStr == null) {
-                return null;
-            }
-
-            // 使用FastJSON解析
-            JSONObject jsonObject = JSON.parseObject(jsonStr);
-            Integer x = jsonObject.getInteger("x");
-            Integer y = jsonObject.getInteger("y");
-            String reason = jsonObject.getString("reason");
-
-            if (x != null && y != null) {
-                return new LMMDecisionResult(x, y, reason != null ? reason : "AI决策");
-            }
-        } catch (Exception e) {
-            System.out.println("JSON解析失败: " + e.getMessage());
-        }
-        return null;
-    }
-
-    /**
-     * 从文本中提取JSON字符串
-     * 查找第一个'{'和最后一个'}'之间的内容
-     *
-     * @param content 包含JSON的文本内容
-     * @return String 提取的JSON字符串，未找到时返回null
-     */
-    private String extractJson(String content) {
-        int start = content.indexOf('{');
-        int end = content.lastIndexOf('}');
-        if (start >= 0 && end > start) {
-            return content.substring(start, end + 1);
-        }
-        return null;
     }
 
     /**

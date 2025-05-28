@@ -1,0 +1,2 @@
+# 忽略敏感信息配置文件
+application-secrets.yml 

@@ -27,30 +27,17 @@ public class Consumer extends Thread {
     private final static String receiveBotMoveUrl =
             "http://127.0.0.1:3000/api/pk/receive/LMM/move/";
 
-    /**
-     * 设置RestTemplate实例
-     * 使用静态方法注入，确保所有Consumer实例共享同一个RestTemplate
-     * 
-     * @param restTemplate Spring管理的RestTemplate Bean
-     */
     @Autowired
     public void setRestTemplate(RestTemplate restTemplate) {
         Consumer.restTemplate = restTemplate;
     }
 
-    /**
-     * 设置DeepSeek AI服务实例
-     * 使用静态方法注入，确保所有Consumer实例共享同一个AI服务
-     * 
-     * @param deepSeekAIService DeepSeek AI服务Bean
-     */
     @Autowired
     public void setDeepSeekAIService(DeepSeekAIService deepSeekAIService) {
         Consumer.deepSeekAIService = deepSeekAIService;
     }
 
     /**
-     * 启动带超时控制的大模型决策处理
      * 创建新线程处理决策请求，并在指定时间后强制中断
      * 
      * @param timeout 超时时间（毫秒），超过此时间将中断线程
@@ -67,27 +54,6 @@ public class Consumer extends Thread {
         this.interrupt();//终端当前线程
     }
 
-    /**
-     * 为代码添加唯一标识符
-     * 在指定位置插入UUID，用于代码的唯一性标识
-     * 
-     * @param code 原始代码字符串
-     * @param uuid 要插入的唯一标识符
-     * @return String 添加了UUID的代码字符串
-     */
-    private String addUid(String code, String uuid) {
-        int k = code.indexOf(" implements java.util.function.Supplier<Integer>");
-        return code.substring(0, k) + uuid + code.substring(k);
-    }
-
-    /**
-     * 线程执行的主要方法
-     * 处理大模型决策请求的完整流程：
-     * 1. 调用DeepSeek AI服务获取决策
-     * 2. 构建HTTP请求参数
-     * 3. 发送决策结果到游戏服务器
-     * 4. 处理异常情况并记录日志
-     */
     @Override
     public void run() {
         try {
@@ -104,7 +70,7 @@ public class Consumer extends Thread {
             data.add("model_name", "deepseek");
             data.add("reason", decision.getReason());
 
-            System.out.println("准备发送LMM移动请求到: " + receiveBotMoveUrl);
+            System.out.println("准备发送LMM移动结果到: " + receiveBotMoveUrl);
             System.out.println("请求参数: " + data);
 
             try {

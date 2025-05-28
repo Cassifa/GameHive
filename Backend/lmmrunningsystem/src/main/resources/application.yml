@@ -4,10 +4,11 @@ server:
 spring:
   ai:
     dashscope:
-      api-key: ${DASHSCOPE_API_KEY:sk-4e208c79817945e9b2f62217a82a17ff}
       chat:
         options:
           model: deepseek-r1
+  profiles:
+    include: secrets
 
 # 大模型配置
 lmm:

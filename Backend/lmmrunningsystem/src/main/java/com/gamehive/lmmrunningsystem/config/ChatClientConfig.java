@@ -27,7 +27,7 @@ public class ChatClientConfig {
     @Qualifier("gameDecisionChatClient")
     public ChatClient gameDecisionChatClient(ChatClient.Builder chatClientBuilder) {
         return chatClientBuilder
-                .defaultSystem("你是一个专业的游戏AI助手。请严格按照JSON格式返回决策结果。")
+                .defaultSystem("你是一个棋类游戏专家。请严格按照JSON格式返回决策结果。")
                 .build();
     }
 } 
