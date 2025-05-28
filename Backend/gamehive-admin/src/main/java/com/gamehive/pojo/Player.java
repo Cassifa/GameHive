@@ -40,6 +40,5 @@ public class Player extends BaseEntity {
     /**
      * 对局统计信息
      */
-    @Excel(name = "对局统计")
     private String gameStatistics;
 }

@@ -31,8 +31,13 @@ public class PlayerController extends BaseController {
      * 查询玩家列表
      */
     @GetMapping("/list")
-    public TableDataInfo list(Player player) {
-        startPage();
+    public TableDataInfo list(Player player,
+                             @RequestParam(value = "pageNum", required = false) Integer pageNum,
+                             @RequestParam(value = "pageSize", required = false) Integer pageSize) {
+        // 如果传递了分页参数，则进行分页查询
+        if (pageNum != null && pageSize != null && pageSize > 0) {
+            startPage();
+        }
         List<Player> list = playerService.selectPlayerList(player);
         return getDataTable(list);
     }
