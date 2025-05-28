@@ -7,10 +7,10 @@
 *************************************************************************************/
 namespace GameHive.Constants.GameTypeEnum {
     public enum GameType {
+        Gobang88,
         TicTacToe,
         AntiGo,
         Gobang,
-        Gobang88,
         MisereTicTacToe,
     }
     public static class BoardGameExtensions {

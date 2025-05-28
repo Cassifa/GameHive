@@ -19,9 +19,10 @@ namespace GameHive.Model.AIFactory {
             SetConcreteProductInfo(GoBang88MinMax.concreteProductInfo);
             return new GoBang88MinMax(boardInfo.Column, level, RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
         }
+        
         public override DeepRL GetDeepRLProduct(DifficultyLevel level) {
-            SetConcreteProductInfo(AntiGoMCTS.concreteProductInfo);//TODO修改此处
-            throw new NotImplementedException();
+            SetConcreteProductInfo(GoBang88DRL.concreteProductInfo);
+            return new GoBang88DRL(boardInfo.Column, level);
         }
 
         /*——————————不可用———————————*/
@@ -39,8 +40,8 @@ namespace GameHive.Model.AIFactory {
         private static Gobang88Factory _instance;
         private Gobang88Factory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
-                AIAlgorithmType.Minimax,
                 AIAlgorithmType.DeepRL,
+                AIAlgorithmType.Minimax,
             };
             boardInfo = new GameBoardInfo(8, false, aiTypes);
         }

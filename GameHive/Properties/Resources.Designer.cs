@@ -99,5 +99,15 @@ namespace GameHive.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   查找 System.Byte[] 类型的本地化资源。
+        /// </summary>
+        internal static byte[] model_3000 {
+            get {
+                object obj = ResourceManager.GetObject("model_3000", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
