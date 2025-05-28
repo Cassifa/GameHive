@@ -3,6 +3,7 @@ package com.gamehive.service.impl.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamehive.constants.GameModeEnum;
+import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.dto.PlayerGameStatisticsDTO;
 import com.gamehive.mapper.AlgorithmTypeMapper;
 import com.gamehive.pojo.AlgorithmType;
@@ -16,6 +17,7 @@ import java.util.List;
 /**
  * 玩家统计数据处理工具类
  * 用于处理玩家对局统计数据的序列化、反序列化和计算
+ * 结构：游戏模式 -> 游戏类型 -> 算法类型（仅本地对战）
  *
  * @author Cassifa
  */
@@ -79,79 +81,50 @@ public class PlayerStatisticsUtils {
         statistics.setUserName(userName);
         statistics.initializeStats();
         
-        // 初始化所有算法的统计对象
-        initializeAllAlgorithmStats(statistics);
+        // 初始化所有游戏类型和算法的统计对象
+        initializeAllGameTypeAndAlgorithmStats(statistics);
 
         // 遍历所有对局记录
         for (Record record : records) {
             processRecord(statistics, record, userId);
         }
 
-        // 更新总体统计
-        statistics.updateOverallStats();
+        // 更新各层级的总体统计
+        updateAllLevelStats(statistics);
 
         return statistics;
     }
 
     /**
-     * 处理单条对局记录
-     *
-     * @param statistics 统计对象
-     * @param record 对局记录
-     * @param userId 用户ID
+     * 初始化所有游戏类型和算法的统计对象
      */
-    private static void processRecord(PlayerGameStatisticsDTO statistics, Record record, Long userId) {
-        // 判断玩家是先手还是后手
-        boolean isFirstPlayer = userId.equals(record.getFirstPlayerId());
-        
-        // 根据游戏模式分类处理
-        GameModeEnum gameMode = GameModeEnum.fromCode(record.getGameMode());
-        
-        switch (gameMode) {
-            case LOCAL_GAME:
-                processLocalGameRecord(statistics, record, isFirstPlayer);
-                break;
-            case LMM_GAME:
-                processLmmGameRecord(statistics, record, isFirstPlayer);
-                break;
-            case ONLINE_GAME:
-                processOnlineGameRecord(statistics, record, isFirstPlayer);
-                break;
-            default:
-                log.warn("未知游戏模式: {}", record.getGameMode());
-                break;
-        }
-    }
-
-    /**
-     * 处理本地对战记录
-     */
-    private static void processLocalGameRecord(PlayerGameStatisticsDTO statistics, Record record, boolean isFirstPlayer) {
-        PlayerGameStatisticsDTO.LocalGameStatistics localStats = statistics.getLocalGameStats();
-        
-        // 更新总统计
-        localStats.getTotalStats().addGameResult(record.getWinner(), isFirstPlayer);
-        
-        // 更新算法统计
-        String algorithmName = record.getAlgorithmName();
-        if (algorithmName != null && !algorithmName.trim().isEmpty()) {
-            PlayerGameStatisticsDTO.AlgorithmStatistics algorithmStats = 
-                localStats.getAlgorithmStats().computeIfAbsent(algorithmName, 
-                    k -> {
-                        PlayerGameStatisticsDTO.AlgorithmStatistics stats = new PlayerGameStatisticsDTO.AlgorithmStatistics();
-                        stats.setAlgorithmId(record.getAlgorithmId());
-                        stats.setAlgorithmName(algorithmName);
-                        return stats;
-                    });
+    public static void initializeAllGameTypeAndAlgorithmStats(PlayerGameStatisticsDTO statistics) {
+        // 初始化所有游戏类型的统计
+        for (GameTypeEnum gameType : GameTypeEnum.values()) {
+            String gameTypeName = gameType.getChineseName();
             
-            algorithmStats.getStats().addGameResult(record.getWinner(), isFirstPlayer);
+            // 本地对战：初始化游戏类型和算法统计
+            PlayerGameStatisticsDTO.GameTypeStatistics localGameTypeStats = 
+                statistics.getLocalGameStats().getGameTypeStats().computeIfAbsent(gameTypeName, 
+                    k -> new PlayerGameStatisticsDTO.GameTypeStatistics());
+            
+            // 为本地对战的每个游戏类型初始化所有算法统计
+            initializeAlgorithmStatsForGameType(localGameTypeStats);
+            
+            // 大模型对战：初始化游戏类型统计
+            statistics.getLmmGameStats().getGameTypeStats().computeIfAbsent(gameTypeName, 
+                k -> new PlayerGameStatisticsDTO.BasicStatistics());
+            
+            // 联机对战：初始化游戏类型统计
+            statistics.getOnlineGameStats().getGameTypeStats().computeIfAbsent(gameTypeName, 
+                k -> new PlayerGameStatisticsDTO.BasicStatistics());
         }
     }
 
     /**
-     * 初始化所有算法的统计对象
+     * 为指定游戏类型初始化所有算法统计
      */
-    public static void initializeAllAlgorithmStats(PlayerGameStatisticsDTO statistics) {
+    private static void initializeAlgorithmStatsForGameType(PlayerGameStatisticsDTO.GameTypeStatistics gameTypeStats) {
         if (algorithmTypeMapper == null) {
             log.warn("AlgorithmTypeMapper未注入，跳过算法统计初始化");
             return;
@@ -165,7 +138,7 @@ public class PlayerStatisticsUtils {
             for (AlgorithmType algorithm : allAlgorithms) {
                 String algorithmName = algorithm.getAlgorithmName();
                 if (algorithmName != null && !algorithmName.trim().isEmpty()) {
-                    statistics.getLocalGameStats().getAlgorithmStats().computeIfAbsent(algorithmName, 
+                    gameTypeStats.getAlgorithmStats().computeIfAbsent(algorithmName, 
                         k -> {
                             PlayerGameStatisticsDTO.AlgorithmStatistics stats = new PlayerGameStatisticsDTO.AlgorithmStatistics();
                             stats.setAlgorithmId(algorithm.getAlgorithmId());
@@ -180,19 +153,178 @@ public class PlayerStatisticsUtils {
     }
 
     /**
+     * 处理单条对局记录
+     *
+     * @param statistics 统计对象
+     * @param record 对局记录
+     * @param userId 用户ID
+     */
+    private static void processRecord(PlayerGameStatisticsDTO statistics, Record record, Long userId) {
+        // 判断玩家是先手还是后手
+        boolean isFirstPlayer = userId.equals(record.getFirstPlayerId());
+        
+        // 获取游戏类型名称
+        String gameTypeName = record.getGameTypeName();
+        if (gameTypeName == null || gameTypeName.trim().isEmpty()) {
+            log.warn("对局记录缺少游戏类型名称: {}", record.getRecordId());
+            return;
+        }
+        
+        // 根据游戏模式分类处理
+        GameModeEnum gameMode = GameModeEnum.fromCode(record.getGameMode());
+        
+        switch (gameMode) {
+            case LOCAL_GAME:
+                processLocalGameRecord(statistics, record, gameTypeName, isFirstPlayer);
+                break;
+            case LMM_GAME:
+                processLmmGameRecord(statistics, record, gameTypeName, isFirstPlayer);
+                break;
+            case ONLINE_GAME:
+                processOnlineGameRecord(statistics, record, gameTypeName, isFirstPlayer);
+                break;
+            default:
+                log.warn("未知游戏模式: {}", record.getGameMode());
+                break;
+        }
+    }
+
+    /**
+     * 处理本地对战记录
+     */
+    private static void processLocalGameRecord(PlayerGameStatisticsDTO statistics, Record record, 
+                                             String gameTypeName, boolean isFirstPlayer) {
+        PlayerGameStatisticsDTO.LocalGameStatistics localStats = statistics.getLocalGameStats();
+        
+        // 获取或创建游戏类型统计
+        PlayerGameStatisticsDTO.GameTypeStatistics gameTypeStats = 
+            localStats.getGameTypeStats().computeIfAbsent(gameTypeName, 
+                k -> new PlayerGameStatisticsDTO.GameTypeStatistics());
+        
+        // 更新游戏类型总统计
+        gameTypeStats.getTotalStats().addGameResult(record.getWinner(), isFirstPlayer);
+        
+        // 更新算法统计
+        String algorithmName = record.getAlgorithmName();
+        if (algorithmName != null && !algorithmName.trim().isEmpty()) {
+            PlayerGameStatisticsDTO.AlgorithmStatistics algorithmStats = 
+                gameTypeStats.getAlgorithmStats().computeIfAbsent(algorithmName, 
+                    k -> {
+                        PlayerGameStatisticsDTO.AlgorithmStatistics stats = new PlayerGameStatisticsDTO.AlgorithmStatistics();
+                        stats.setAlgorithmId(record.getAlgorithmId());
+                        stats.setAlgorithmName(algorithmName);
+                        return stats;
+                    });
+            
+            algorithmStats.getStats().addGameResult(record.getWinner(), isFirstPlayer);
+        }
+    }
+
+    /**
      * 处理大模型对战记录
      */
-    private static void processLmmGameRecord(PlayerGameStatisticsDTO statistics, Record record, boolean isFirstPlayer) {
+    private static void processLmmGameRecord(PlayerGameStatisticsDTO statistics, Record record, 
+                                           String gameTypeName, boolean isFirstPlayer) {
         PlayerGameStatisticsDTO.LmmGameStatistics lmmStats = statistics.getLmmGameStats();
-        lmmStats.getStats().addGameResult(record.getWinner(), isFirstPlayer);
+        
+        // 获取或创建游戏类型统计
+        PlayerGameStatisticsDTO.BasicStatistics gameTypeStats = 
+            lmmStats.getGameTypeStats().computeIfAbsent(gameTypeName, 
+                k -> new PlayerGameStatisticsDTO.BasicStatistics());
+        
+        // 更新游戏类型统计
+        gameTypeStats.addGameResult(record.getWinner(), isFirstPlayer);
     }
 
     /**
      * 处理联机对战记录
      */
-    private static void processOnlineGameRecord(PlayerGameStatisticsDTO statistics, Record record, boolean isFirstPlayer) {
+    private static void processOnlineGameRecord(PlayerGameStatisticsDTO statistics, Record record, 
+                                              String gameTypeName, boolean isFirstPlayer) {
         PlayerGameStatisticsDTO.OnlineGameStatistics onlineStats = statistics.getOnlineGameStats();
-        onlineStats.getStats().addGameResult(record.getWinner(), isFirstPlayer);
+        
+        // 获取或创建游戏类型统计
+        PlayerGameStatisticsDTO.BasicStatistics gameTypeStats = 
+            onlineStats.getGameTypeStats().computeIfAbsent(gameTypeName, 
+                k -> new PlayerGameStatisticsDTO.BasicStatistics());
+        
+        // 更新游戏类型统计
+        gameTypeStats.addGameResult(record.getWinner(), isFirstPlayer);
+    }
+
+    /**
+     * 更新所有层级的统计数据
+     */
+    private static void updateAllLevelStats(PlayerGameStatisticsDTO statistics) {
+        // 更新本地对战总统计
+        updateLocalGameTotalStats(statistics.getLocalGameStats());
+        
+        // 更新大模型对战总统计
+        updateLmmGameTotalStats(statistics.getLmmGameStats());
+        
+        // 更新联机对战总统计
+        updateOnlineGameTotalStats(statistics.getOnlineGameStats());
+        
+        // 更新总体统计
+        statistics.updateOverallStats();
+    }
+
+    /**
+     * 更新本地对战总统计
+     */
+    private static void updateLocalGameTotalStats(PlayerGameStatisticsDTO.LocalGameStatistics localStats) {
+        PlayerGameStatisticsDTO.BasicStatistics totalStats = localStats.getTotalStats();
+        totalStats.setWins(0);
+        totalStats.setLosses(0);
+        totalStats.setDraws(0);
+        totalStats.setAborts(0);
+        
+        // 累加所有游戏类型的统计
+        for (PlayerGameStatisticsDTO.GameTypeStatistics gameTypeStats : localStats.getGameTypeStats().values()) {
+            PlayerGameStatisticsDTO.BasicStatistics gameTypeTotal = gameTypeStats.getTotalStats();
+            totalStats.setWins(totalStats.getWins() + gameTypeTotal.getWins());
+            totalStats.setLosses(totalStats.getLosses() + gameTypeTotal.getLosses());
+            totalStats.setDraws(totalStats.getDraws() + gameTypeTotal.getDraws());
+            totalStats.setAborts(totalStats.getAborts() + gameTypeTotal.getAborts());
+        }
+    }
+
+    /**
+     * 更新大模型对战总统计
+     */
+    private static void updateLmmGameTotalStats(PlayerGameStatisticsDTO.LmmGameStatistics lmmStats) {
+        PlayerGameStatisticsDTO.BasicStatistics totalStats = lmmStats.getTotalStats();
+        totalStats.setWins(0);
+        totalStats.setLosses(0);
+        totalStats.setDraws(0);
+        totalStats.setAborts(0);
+        
+        // 累加所有游戏类型的统计
+        for (PlayerGameStatisticsDTO.BasicStatistics gameTypeStats : lmmStats.getGameTypeStats().values()) {
+            totalStats.setWins(totalStats.getWins() + gameTypeStats.getWins());
+            totalStats.setLosses(totalStats.getLosses() + gameTypeStats.getLosses());
+            totalStats.setDraws(totalStats.getDraws() + gameTypeStats.getDraws());
+            totalStats.setAborts(totalStats.getAborts() + gameTypeStats.getAborts());
+        }
+    }
+
+    /**
+     * 更新联机对战总统计
+     */
+    private static void updateOnlineGameTotalStats(PlayerGameStatisticsDTO.OnlineGameStatistics onlineStats) {
+        PlayerGameStatisticsDTO.BasicStatistics totalStats = onlineStats.getTotalStats();
+        totalStats.setWins(0);
+        totalStats.setLosses(0);
+        totalStats.setDraws(0);
+        totalStats.setAborts(0);
+        
+        // 累加所有游戏类型的统计
+        for (PlayerGameStatisticsDTO.BasicStatistics gameTypeStats : onlineStats.getGameTypeStats().values()) {
+            totalStats.setWins(totalStats.getWins() + gameTypeStats.getWins());
+            totalStats.setLosses(totalStats.getLosses() + gameTypeStats.getLosses());
+            totalStats.setDraws(totalStats.getDraws() + gameTypeStats.getDraws());
+            totalStats.setAborts(totalStats.getAborts() + gameTypeStats.getAborts());
+        }
     }
 
     /**
@@ -209,15 +341,15 @@ public class PlayerStatisticsUtils {
             existingStats.setUserId(userId);
             existingStats.initializeStats();
             
-            // 初始化所有算法的统计对象
-            initializeAllAlgorithmStats(existingStats);
+            // 初始化所有游戏类型和算法的统计对象
+            initializeAllGameTypeAndAlgorithmStats(existingStats);
         }
 
         // 处理新记录
         processRecord(existingStats, newRecord, userId);
         
-        // 更新总体统计
-        existingStats.updateOverallStats();
+        // 更新所有层级的统计
+        updateAllLevelStats(existingStats);
 
         return existingStats;
     }
@@ -235,8 +367,8 @@ public class PlayerStatisticsUtils {
         statistics.setUserName(userName);
         statistics.initializeStats();
         
-        // 初始化所有算法的统计对象
-        initializeAllAlgorithmStats(statistics);
+        // 初始化所有游戏类型和算法的统计对象
+        initializeAllGameTypeAndAlgorithmStats(statistics);
         
         return statistics;
     }

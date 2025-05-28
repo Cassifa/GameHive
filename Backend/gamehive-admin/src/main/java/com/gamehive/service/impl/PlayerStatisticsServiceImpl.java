@@ -42,7 +42,7 @@ public class PlayerStatisticsServiceImpl implements IPlayerStatisticsService {
 
         String statisticsJson = player.getGameStatistics();
         PlayerGameStatisticsDTO statistics;
-        
+
         // 如果统计信息为null或空，重新计算统计数据
         if (statisticsJson == null || statisticsJson.trim().isEmpty()) {
             log.info("玩家统计信息为空，重新计算统计数据: userId={}", userId);
@@ -53,9 +53,9 @@ public class PlayerStatisticsServiceImpl implements IPlayerStatisticsService {
             statistics.setUserId(userId);
             statistics.setUserName(player.getUserName());
             statistics.initializeStats();
-            
+
             // 确保所有算法都有统计对象（处理新增算法的情况）
-            PlayerStatisticsUtils.initializeAllAlgorithmStats(statistics);
+            PlayerStatisticsUtils.initializeAllGameTypeAndAlgorithmStats(statistics);
         }
 
         return statistics;
@@ -89,7 +89,7 @@ public class PlayerStatisticsServiceImpl implements IPlayerStatisticsService {
             // 获取现有统计数据，如果为null则重新计算
             PlayerGameStatisticsDTO existingStats;
             String statisticsJson = player.getGameStatistics();
-            
+
             if (statisticsJson == null || statisticsJson.trim().isEmpty()) {
                 log.info("玩家统计信息为空，重新计算后更新: userId={}", userId);
                 // 先重新计算现有的所有对局记录
@@ -127,14 +127,14 @@ public class PlayerStatisticsServiceImpl implements IPlayerStatisticsService {
 
         // 重新计算统计数据
         PlayerGameStatisticsDTO statistics = PlayerStatisticsUtils.calculateStatistics(
-            userId, player.getUserName(), records);
+                userId, player.getUserName(), records);
 
         // 保存计算结果
         player.setGameStatistics(PlayerStatisticsUtils.toJsonString(statistics));
         playerMapper.updatePlayer(player);
 
-        log.info("玩家统计数据重新计算完成: userId={}, totalGames={}", 
-            userId, statistics.getOverallStats().getTotalGames());
+        log.info("玩家统计数据重新计算完成: userId={}, totalGames={}",
+                userId, statistics.getOverallStats().getTotalGames());
 
         return statistics;
     }
