@@ -2,12 +2,17 @@
   <div class="app-container">
     <!-- 游戏记录热力图 -->
     <el-card class="box-card">
-      <div slot="header" class="clearfix">
-        <game-record-heatmap ref="heatmap" :query-params="heatmapParams"></game-record-heatmap>
-      </div>
+      <game-record-heatmap ref="heatmap" :query-params="heatmapParams"></game-record-heatmap>
     </el-card>
     
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="100px">
+      <el-form-item label="对局类型" prop="gameMode">
+        <el-select v-model="queryParams.gameMode" placeholder="请选择对局类型" clearable @change="handleGameModeChange" style="width: 180px">
+          <el-option label="本地对战" :value="0" />
+          <el-option label="与大模型对战" :value="1" />
+          <el-option label="联机对战" :value="2" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="游戏类别" prop="gameTypeId">
         <el-select v-model="queryParams.gameTypeId" placeholder="请选择游戏类别" clearable @change="handleGameTypeChange">
           <el-option
@@ -16,13 +21,6 @@
             :label="item.label"
             :value="item.value"
           />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="对局类型" prop="gameMode">
-        <el-select v-model="queryParams.gameMode" placeholder="请选择对局类型" clearable @change="handleGameModeChange" style="width: 180px">
-          <el-option label="本地对战" :value="0" />
-          <el-option label="与大模型对战" :value="1" />
-          <el-option label="联机对战" :value="2" />
         </el-select>
       </el-form-item>
       <el-form-item label="算法类别" prop="algorithmId">
@@ -56,11 +54,6 @@
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
-
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
         <el-button
           type="warning"
           plain
@@ -68,9 +61,8 @@
           size="mini"
           @click="handleExport"
         >导出</el-button>
-      </el-col>
-      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
+      </el-form-item>
+    </el-form>
 
     <el-table v-loading="loading" :data="RecordList" @selection-change="handleSelectionChange" @row-click="handleRowClick">
       <el-table-column type="selection" width="55" align="center" />
@@ -434,11 +426,11 @@ export default {
 
 <style scoped>
 .box-card {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .el-card__body {
   overflow-x: auto; /* 添加横向滚动 */
-  padding: 20px;
+  padding: 10px;
 }
 </style>

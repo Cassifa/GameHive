@@ -1,6 +1,5 @@
 <template>
   <div class="record-heatmap-container">
-    <div class="heatmap-title">对局记录热力图</div>
     <div v-if="loading" class="loading-container">
       <i class="el-icon-loading"></i>
       <span>加载中...</span>
@@ -548,10 +547,10 @@ export default {
 
 <style scoped>
 .record-heatmap-container {
-  margin: 20px 0;
+  margin: 0;
   position: relative;
-  padding: 20px 20px 30px;
-  min-height: 200px;
+  padding: 5px 15px 15px;
+  min-height: 150px;
 }
 
 .heatmap-title {
@@ -616,16 +615,16 @@ export default {
   flex-direction: column;
   justify-content: space-between;
   padding: 0 10px 0 0;
-  height: 120px;
+  height: 90px;
 }
 
 .weekday {
-  font-size: 14px; /* 增大字号 */
+  font-size: 12px; /* 减小字号 */
   transform: translateX(-8px); /* 向左微调位置 */
   color: #606266;
-  height: calc(18px + 3px); /* 与单元格高度+间距匹配 */
-  line-height: 18px;
-  margin: 1.5px 0;
+  height: calc(14px + 2px); /* 减小单元格高度+间距 */
+  line-height: 14px;
+  margin: 1px 0;
   text-align: right; /* 右对齐 */
   padding-right: 5px; /* 右边距 */
 }
@@ -720,7 +719,7 @@ export default {
   margin: 0 auto;
   max-width: 1200px; /* 增大最大宽度 */
   padding-left: 50px; /* 为周标签留出空间 */
-  padding-top: 30px; /* 为月份标签留出空间 */
+  padding-top: 5px; /* 减小顶部间距 */
 }
 
 .month-labels {
