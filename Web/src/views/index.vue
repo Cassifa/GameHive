@@ -61,6 +61,13 @@
           size="mini"
           @click="handleExport"
         >导出</el-button>
+        <el-switch
+          v-model="useRealData"
+          active-text="真实数据"
+          inactive-text="模拟数据"
+          style="margin-left: 10px;"
+          @change="handleDataSourceChange"
+        ></el-switch>
       </el-form-item>
     </el-form>
 
@@ -169,8 +176,11 @@ export default {
         gameMode: null,          // 对局类型
         algorithmId: null,       // 算法ID
         winner: null,            // 赢家
-        playerName: null         // 玩家名称，用于模糊匹配
-      }
+        playerName: null,        // 玩家名称，用于模糊匹配
+        useRealData: false       // 默认使用模拟数据
+      },
+      // 数据源开关
+      useRealData: false
     };
   },
   created() {
@@ -285,7 +295,8 @@ export default {
         gameMode: this.queryParams.gameMode,
         algorithmId: this.queryParams.algorithmId,
         winner: this.queryParams.winner,
-        playerName: this.queryParams.playerName
+        playerName: this.queryParams.playerName,
+        useRealData: this.useRealData  // 保持当前数据源设置
       };
       // 刷新热力图
       if (this.$refs.heatmap) {
@@ -304,8 +315,12 @@ export default {
         gameMode: null,
         algorithmId: null,
         winner: null,
-        playerName: null
+        playerName: null,
+        useRealData: false
       };
+      
+      // 重置数据源开关
+      this.useRealData = false;
       
       // 刷新热力图
       if (this.$refs.heatmap) {
@@ -419,6 +434,17 @@ export default {
         console.error('获取玩家统计信息失败:', error);
         this.$modal.msgError("获取玩家统计信息失败");
       });
+    },
+    // 数据源开关变更
+    handleDataSourceChange() {
+      console.log('数据源开关变更:', this.useRealData);
+      // 直接更新热力图参数中的useRealData
+      this.heatmapParams.useRealData = this.useRealData;
+      
+      // 刷新热力图
+      if (this.$refs.heatmap) {
+        this.$refs.heatmap.refresh();
+      }
     }
   }
 };

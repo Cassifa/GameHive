@@ -14,8 +14,7 @@
             class="month-label"
             :style="{
               left: month.position + 'px',
-              fontSize: month.fontSize + 'px',
-              transform: 'translateX(-50%)'
+              fontSize: month.fontSize + 'px'
             }"
           >
             {{ month.name }}
@@ -203,6 +202,8 @@ export default {
       loading: false,
       // 模拟数据服务
       mockService: new MockHeatmapService(),
+      // 防抖定时器
+      debounceTimer: null,
       // Canvas 相关
       cellSize: 15,
       cellGap: 3,
@@ -228,18 +229,27 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize);
+    // 清理定时器
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
   },
   methods: {
     // 获取对局记录数据
     fetchRecordsData() {
       this.loading = true;
       
-      // 如果指定使用模拟数据或者是开发环境
-      if (this.useMockData || process.env.NODE_ENV === 'development') {
+      // 检查是否使用真实数据
+      const useRealData = this.queryParams.useRealData;
+      console.log('热力图数据源切换:', useRealData ? '真实数据' : '模拟数据');
+      console.log('useRealData值:', useRealData);
+      
+      // 如果明确指定使用模拟数据或者未定义（默认使用模拟数据）
+      if (useRealData !== true) {
+        console.log('使用模拟数据');
         setTimeout(() => {
           this.recordsData = this.mockService.generateMockData();
           this.processHeatmapData();
-          this.calculateMonthPositions();
           this.loading = false;
           this.$nextTick(() => {
             this.drawHeatmap();
@@ -248,34 +258,47 @@ export default {
         return;
       }
       
-      // 从本地缓存获取用户ID (必传参数)
-      const userId = localStorage.getItem('userId') || this.$store.getters.userId;
-      if (!userId) {
-        console.error('用户ID不能为空');
-        this.loading = false;
-        return;
+      // 使用真实数据
+      console.log('调用后端API获取真实数据');
+      // 构建请求参数，移除不需要的参数
+      const params = {};
+      
+      // 只传递有效的查询参数
+      if (this.queryParams.gameTypeId) {
+        params.gameTypeId = this.queryParams.gameTypeId;
+      }
+      if (this.queryParams.gameMode !== null && this.queryParams.gameMode !== undefined) {
+        params.gameMode = this.queryParams.gameMode;
+      }
+      if (this.queryParams.algorithmId) {
+        params.algorithmId = this.queryParams.algorithmId;
+      }
+      if (this.queryParams.winner) {
+        params.winner = this.queryParams.winner;
+      }
+      if (this.queryParams.playerName) {
+        params.playerName = this.queryParams.playerName;
       }
       
-      // 构建请求参数
-      const params = {
-        ...this.queryParams,  // 包含游戏类型ID、是否AI对局、算法ID等
-        id: userId  // 用户ID(必传)
-      };
+      console.log('API请求参数:', params);
       
       // 调用实际API接口
       getRecordHeatmapData(params).then(response => {
+        console.log('API响应:', response);
         if (response.code === 200 && response.data) {
           this.recordsData = response.data;
+          console.log('使用真实数据，数据条数:', response.data.length);
         } else {
           // 接口返回异常时使用模拟数据
+          console.log('API返回异常，回退到模拟数据');
           this.recordsData = this.mockService.generateMockData();
         }
-      }).catch(() => {
+      }).catch(error => {
         // 发生错误时使用模拟数据
+        console.log('API调用失败，回退到模拟数据:', error);
         this.recordsData = this.mockService.generateMockData();
       }).finally(() => {
         this.processHeatmapData();
-        this.calculateMonthPositions();
         this.loading = false;
         this.$nextTick(() => {
           this.drawHeatmap();
@@ -383,17 +406,17 @@ export default {
         });
       }
 
-      // 最终位置计算
+      // 最终位置计算 - 精确对齐到像素
       this.calendarData.monthLabels = months.map(m => {
         const startPixel = m.startCol * (this.cellSize + this.cellGap);
-        const endPixel = (m.endCol + 1) * (this.cellSize + this.cellGap);
-        // 修正单列位置计算
+        const endPixel = m.endCol * (this.cellSize + this.cellGap) + this.cellSize;
         const centerPosition = startPixel + ((endPixel - startPixel) / 2);
+        
         return {
           name: m.name,
-          position: centerPosition,
+          position: Math.round(centerPosition), // 四舍五入到整数像素
           width: endPixel - startPixel,
-          fontSize: this.cellSize * 1.5
+          fontSize: Math.max(12, Math.min(14, this.cellSize + 1)) // 动态字体大小
         };
       });
     },
@@ -415,19 +438,43 @@ export default {
       const ctx = canvas.getContext('2d');
       
       // 计算网格尺寸
-      const containerWidth = canvas.parentElement.clientWidth - 50; // 减去星期标签宽度
+      const containerWidth = canvas.parentElement.clientWidth - 100; // 减去周标签和边距
       const weeks = Math.ceil(this.heatmapData.length / 7);
       
       // 增大基础单元格尺寸
-      const baseCellSize = 18; // 从15调整为18
-      this.cellSize = Math.min(baseCellSize, Math.floor((containerWidth - (weeks - 1) * this.cellGap) / weeks));
+      const baseCellSize = 15; // 恢复到合适的大小
+      this.cellSize = Math.max(12, Math.min(baseCellSize, Math.floor((containerWidth - (weeks - 1) * this.cellGap) / weeks)));
       
-      // 设置canvas尺寸时增加10%的边距
-      this.canvasWidth = Math.floor(weeks * (this.cellSize + this.cellGap) * 1.1);
-      this.canvasHeight = 7 * (this.cellSize + this.cellGap) + 10; // 增加底部间距
+      // 设置canvas尺寸
+      this.canvasWidth = weeks * (this.cellSize + this.cellGap) - this.cellGap;
+      this.canvasHeight = 7 * (this.cellSize + this.cellGap) - this.cellGap;
       
       canvas.width = this.canvasWidth;
       canvas.height = this.canvasHeight;
+      
+      // 设置canvas的CSS样式
+      canvas.style.width = this.canvasWidth + 'px';
+      canvas.style.height = this.canvasHeight + 'px';
+      
+      // 重新计算月份位置（使用更新后的cellSize）
+      this.calculateMonthPositions();
+      
+      // 更新月份标签容器的宽度
+      this.$nextTick(() => {
+        const monthLabelsEl = this.$el.querySelector('.month-labels');
+        if (monthLabelsEl) {
+          monthLabelsEl.style.width = this.canvasWidth + 'px';
+        }
+        
+        // 更新周标签的字体大小，与月份标签保持一致
+        const weekdayEls = this.$el.querySelectorAll('.weekday');
+        const fontSize = Math.max(12, Math.min(14, this.cellSize + 1));
+        weekdayEls.forEach(el => {
+          el.style.fontSize = fontSize + 'px';
+          el.style.height = `calc(${this.cellSize}px + ${this.cellGap}px)`;
+          el.style.lineHeight = this.cellSize + 'px';
+        });
+      });
       
       // 清空画布
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -534,11 +581,18 @@ export default {
     
     // 提供给父组件的刷新方法
     refresh() {
-      this.fetchRecordsData();
+      console.log('热力图刷新被调用');
+      // 清除之前的定时器
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer);
+      }
+      // 设置新的定时器，防抖100ms
+      this.debounceTimer = setTimeout(() => {
+        this.fetchRecordsData();
+      }, 100);
     },
 
     handleResize() {
-      this.calculateMonthPositions();
       this.drawHeatmap();
     }
   }
@@ -575,118 +629,64 @@ export default {
   margin-bottom: 10px;
 }
 
-.record-heatmap-header {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
-  padding-left: 40px; /* 为左侧星期标签留出空间 */
+.heatmap-wrapper {
   position: relative;
-  height: 20px;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 20px 50px 15px 30px;
+  background: #fafbfc;
+  border-radius: 8px;
+  border: 1px solid #e1e8ed;
 }
 
-.record-heatmap-header .months {
+.month-labels {
   position: relative;
-  width: 100%;
-  height: 20px;
+  margin: 0 auto 15px auto;
+  height: 25px;
+  overflow: visible;
 }
 
 .month-label {
   position: absolute;
-  font-size: 13px;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
   font-weight: 600;
   color: #666;
-  text-align: center;
-  top: 0;
-  padding-left: 3px; /* 左对齐调整 */
-  transform: translate(-50%, -50%) !important;
-  left: 0; /* 重置left属性 */
+  pointer-events: none;
 }
 
-.record-heatmap-body {
+.heatmap-body {
+  position: relative;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
-  margin: 0 auto;
-  max-width: 90%;
+  align-items: flex-start;
 }
 
 .weekdays {
+  position: absolute;
+  left: -25px;
+  top: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 0 10px 0 0;
-  height: 90px;
+  height: 100%;
+  width: 20px;
 }
 
 .weekday {
-  font-size: 12px; /* 减小字号 */
-  transform: translateX(-8px); /* 向左微调位置 */
   color: #606266;
-  height: calc(14px + 2px); /* 减小单元格高度+间距 */
-  line-height: 14px;
-  margin: 1px 0;
-  text-align: right; /* 右对齐 */
-  padding-right: 5px; /* 右边距 */
+  text-align: right;
+  padding-right: 2px;
+  font-weight: 600;
 }
 
 .heatmap-canvas {
   display: block;
-  margin: 0 auto;
   cursor: pointer;
-  width: 100% !important;
-  height: auto !important;
-}
-
-.record-heatmap-footer {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-}
-
-.legend {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: #303133;
-}
-
-.legend-cells {
-  display: flex;
-  margin: 0 8px;
-}
-
-.legend .heatmap-cell {
-  width: 15px;
-  height: 15px;
-  margin: 0 2px;
-  border-radius: 2px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.legend .level-0 {
-  background-color: #f0f0f0;
-  border-color: #e0e0e0;
-}
-
-.legend .level-1 {
-  background-color: #a6d0fa;
-  border-color: #8ab0d5;
-}
-
-.legend .level-2 {
-  background-color: #65a2e6;
-  border-color: #5589c5;
-}
-
-.legend .level-3 {
-  background-color: #3674d9;
-  border-color: #2961b7;
-}
-
-.legend .level-4 {
-  background-color: #194bab;
-  border-color: #123c8a;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #fff;
 }
 
 .tooltip {
@@ -708,62 +708,17 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
-  .weekdays {
-    height: 105px;
+  .heatmap-wrapper {
+    padding: 15px 30px 10px 20px;
   }
-}
-
-/* 新增容器样式 */
-.heatmap-wrapper {
-  position: relative;
-  margin: 0 auto;
-  max-width: 1200px; /* 增大最大宽度 */
-  padding-left: 50px; /* 为周标签留出空间 */
-  padding-top: 5px; /* 减小顶部间距 */
-}
-
-.month-labels {
-  position: absolute;
-  top: 0;
-  left: 50px; /* 与周标签对齐 */
-  right: 0;
-  height: 20px;
-}
-
-.heatmap-body {
-  position: relative;
-  display: flex;
-}
-
-.weekdays {
-  position: absolute;
-  left: -50px; /* 向左偏移 */
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  width: 40px;
-}
-
-.heatmap-canvas {
-  flex: 1;
-  min-width: 800px; /* 最小宽度保证热力图大小 */
-  margin-top: 10px; /* 与月份标签间距 */
-}
-
-.month-labels {
-  position: relative;
-  margin-bottom: 10px;
-}
-
-.month-label {
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  white-space: nowrap;
-  font-weight: bold;
-  color: #333;
-  pointer-events: none;
+  
+  .weekdays {
+    left: -20px;
+    width: 15px;
+  }
+  
+  .weekday {
+    padding-right: 1px;
+  }
 }
 </style> 

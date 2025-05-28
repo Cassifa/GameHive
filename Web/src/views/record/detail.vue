@@ -510,7 +510,6 @@ export default {
   margin-bottom: 12px;
   padding: 8px 12px;
   border-bottom: 1px solid #f0f0f0;
-  text-align: center;
 }
 
 .info-item:last-child {
@@ -523,12 +522,15 @@ export default {
   color: #606266;
   min-width: 80px;
   text-align: left;
+  flex-shrink: 0;
 }
 
 .value {
   color: #303133;
-  text-align: right;
   font-weight: 500;
+  flex: 1;
+  text-align: center;
+  margin-left: 20px;
 }
 
 .board-container {
@@ -805,5 +807,7 @@ export default {
   .board-header .step-info {
     font-size: 12px;
   }
+}
+</style> 
 }
 </style> 
