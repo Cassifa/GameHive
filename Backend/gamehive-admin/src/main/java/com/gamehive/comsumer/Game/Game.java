@@ -116,7 +116,7 @@ public class Game extends Thread {
         data.add("LLMFlag", player == playerA ? CellRoleEnum.PLAYER_A.getCode() : CellRoleEnum.PLAYER_B.getCode());
         data.add("gameType", gameType.getGameName());
         data.add("gameRole", gameType.getGameRule());
-        data.add("historySteps", "稍后实现，测试数据");
+        data.add("historySteps", buildHistorySteps());
         data.add("gridSize", gameType.getBoardSize().toString());
         System.out.println("尝试像LMM运行服务发送信息" + data);
         WebSocketServer.restTemplate.postForObject(addBotUrl, data, String.class);
@@ -127,13 +127,15 @@ public class Game extends Thread {
      */
     private boolean nextStep() {
         boolean askA = isNextA();
+        //最大等待时间60秒
+        int waitTime = 600;
         //如果LMM输入则则发送信息
         if (!askA && forLMM) {
             sendLMMCode(playerB);
+            //对于大模型放宽时间限制到600秒
+            waitTime = 6000;
         }
-
-        //最大等待时间60秒
-        for (int i = 0; i < 600; i++) {
+        for (int i = 0; i < waitTime; i++) {
             try {
                 Thread.sleep(100);
                 lock.lock();
@@ -141,7 +143,7 @@ public class Game extends Thread {
                     //检查A玩家是否有输入
                     if (askA && nextStepA != null) {
                         if (map.get(nextStepA.getX()).get(nextStepA.getY()) != CellRoleEnum.EMPTY) {
-                            //非法输入不记录，之间判负
+                            //非法输入不记录，直接判负
                             return false;
                         }
                         map.get(nextStepA.getX()).set(nextStepA.getY(), CellRoleEnum.PLAYER_A);
@@ -192,7 +194,7 @@ public class Game extends Thread {
                 //先广播这一步操作
                 System.out.println(isNextA() ? "玩家A" : "玩家B" + "在" + (isNextA() ? nextStepA : nextStepB) + "下棋了");
                 sendMove(isNextA() ? nextStepA : nextStepB);
-                
+
                 //然后判断游戏是否结束
                 judge();
                 if (!status.equals(GameStatusEnum.UNFINISHED)) {
@@ -370,5 +372,68 @@ public class Game extends Thread {
 
     private boolean isNextA() {
         return ((round + (first == playerA ? 0 : 1)) % 2) == 0;
+    }
+
+    /**
+     * 构造玩家历史操作信息
+     * 按照时间顺序生成格式化的历史步骤字符串
+     *
+     * @return 格式化的历史步骤字符串，如："step1:玩家在(1,1)下棋\n step2:AI在(2,2)下棋"
+     */
+    private String buildHistorySteps() {
+        if (round == 0) {
+            return "游戏刚开始，暂无历史步骤";
+        }
+
+        StringBuilder history = new StringBuilder();
+        List<Cell> stepsA = playerA.getSteps();
+        List<Cell> stepsB = playerB.getSteps();
+
+        // 确定先手玩家
+        boolean isAFirst = (first == playerA);
+
+        // 按照实际下棋顺序重建历史
+        int stepCountA = 0; // 玩家A已下的步数
+        int stepCountB = 0; // 玩家B已下的步数
+
+        // 遍历所有已完成的回合
+        for (int stepNumber = 1; stepNumber <= round; stepNumber++) {
+            // 判断当前步骤是哪个玩家下的
+            boolean isAStep;
+            if (isAFirst) {
+                // A先手：奇数步是A，偶数步是B
+                isAStep = (stepNumber % 2 == 1);
+            } else {
+                // B先手：奇数步是B，偶数步是A
+                isAStep = (stepNumber % 2 == 0);
+            }
+
+            if (isAStep && stepCountA < stepsA.size()) {
+                // 玩家A的步骤
+                Cell step = stepsA.get(stepCountA);
+                String playerName = forLMM ? "玩家" : "玩家A";
+                history.append("step").append(stepNumber).append(":")
+                        .append(playerName).append("在(")
+                        .append(step.getX()).append(",").append(step.getY())
+                        .append(")下棋");
+                stepCountA++;
+            } else if (!isAStep && stepCountB < stepsB.size()) {
+                // 玩家B的步骤
+                Cell step = stepsB.get(stepCountB);
+                String playerName = forLMM ? "AI" : "玩家B";
+                history.append("step").append(stepNumber).append(":")
+                        .append(playerName).append("在(")
+                        .append(step.getX()).append(",").append(step.getY())
+                        .append(")下棋");
+                stepCountB++;
+            }
+
+            // 如果不是最后一步，添加换行符
+            if (stepNumber < round) {
+                history.append("\n");
+            }
+        }
+
+        return history.toString();
     }
 }

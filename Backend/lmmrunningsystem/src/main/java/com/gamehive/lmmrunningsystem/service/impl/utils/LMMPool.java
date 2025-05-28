@@ -1,6 +1,8 @@
 package com.gamehive.lmmrunningsystem.service.impl.utils;
 
 import com.gamehive.lmmrunningsystem.dto.LMMRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -11,15 +13,23 @@ import java.util.concurrent.locks.ReentrantLock;
  * 大模型线程池类
  * 实现生产者-消费者模式的线程池，用于管理大模型决策任务
  * 继承Thread类，作为消费者线程持续处理队列中的决策请求
- * 
+ *
  * @author Cassifa
- * @since
+ * @since 1.0.0
  */
+@Component
 public class LMMPool extends Thread {
 
     private final ReentrantLock lock = new ReentrantLock();
 
     private final Condition condition = lock.newCondition();
+
+
+    @Value("${lmm.timeout}")
+    private Long timeout;
+
+    @Value("${lmm.max-retry-count}")
+    private Long tryTime;
 
     /**
      * 大模型请求队列
@@ -31,17 +41,17 @@ public class LMMPool extends Thread {
      * 消息队列生产者方法
      * 接收游戏参数，创建LMMRequest对象并添加到处理队列中
      * 使用锁机制确保线程安全，并通过条件变量唤醒消费者线程
-     * 
-     * @param userId 玩家用户ID，用于标识请求来源
-     * @param currentMap 当前棋盘状态字符串，格式为每行用换行符分隔的数字矩阵
-     * @param LLMFlag 大模型落子标志，标识大模型代表哪一方（如"1"或"2"）
-     * @param gameType 游戏类型名称，如"井字棋"、"五子棋"等
-     * @param gameRule 游戏规则描述，详细说明游戏规则和获胜条件
+     *
+     * @param userId       玩家用户ID，用于标识请求来源
+     * @param currentMap   当前棋盘状态字符串，格式为每行用换行符分隔的数字矩阵
+     * @param LLMFlag      大模型落子标志，标识大模型代表哪一方（如"1"或"2"）
+     * @param gameType     游戏类型名称，如"井字棋"、"五子棋"等
+     * @param gameRule     游戏规则描述，详细说明游戏规则和获胜条件
      * @param historySteps 历史步骤记录，包含之前所有落子的历史信息
-     * @param gridSize 棋盘网格大小，表示棋盘的边长（如"3"表示3x3棋盘）
+     * @param gridSize     棋盘网格大小，表示棋盘的边长（如"3"表示3x3棋盘）
      */
     public void addLMMRequest(Long userId, String currentMap, String LLMFlag,
-                       String gameType, String gameRule, String historySteps, String gridSize) {
+                              String gameType, String gameRule, String historySteps, String gridSize) {
         lock.lock();
         try {
             lmmRequests.add(new LMMRequest(userId, currentMap, LLMFlag, gameType, gameRule, historySteps, gridSize));
@@ -54,14 +64,14 @@ public class LMMPool extends Thread {
     /**
      * 消费者处理方法
      * 为每个大模型请求创建独立的Consumer线程进行处理
-     * 设置超时时间为4秒，防止单个请求阻塞整个系统
-     * 
+     * 使用配置文件中的超时时间，防止单个请求阻塞整个系统
+     *
      * @param lmmRequest 待处理的大模型请求对象
      */
     private void consume(LMMRequest lmmRequest) {
         //仅支持java
         Consumer consumer = new Consumer();
-        consumer.startTimeout(4000L, lmmRequest);//LMMRequest最多等四秒
+        consumer.startTimeout(timeout * tryTime, lmmRequest);
     }
 
     /**

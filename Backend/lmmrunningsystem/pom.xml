@@ -86,7 +86,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.gamehive.lmmrunningsystem.LmmServiceApplication</mainClass>
+                    <mainClass>com.gamehive.lmmrunningsystem.LMMServiceApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

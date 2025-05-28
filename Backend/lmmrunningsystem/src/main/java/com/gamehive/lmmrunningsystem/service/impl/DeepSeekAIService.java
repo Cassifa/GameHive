@@ -98,10 +98,10 @@ public class DeepSeekAIService {
      */
     private String buildPrompt(LMMRequest lmmRequest) {
         return "你是一个专业的" + lmmRequest.getGameType() + "游戏专家级AI。请分析当前棋盘状态并给出最佳决策。\n\n" +
-                "游戏规则：\n" +
-                "- 棋盘大小：" + lmmRequest.getGridSize() + " x " + lmmRequest.getGridSize() + "\n" +
-                "- 0表示空位，1表示玩家已落子位置，"+lmmRequest.getLLMFlag()+"表示你的棋子\n" +
+                "游戏规则：\n" + lmmRequest.getGameRule() + "\n" +
+                "- 0表示空位，1表示玩家已落子位置，" + lmmRequest.getLLMFlag() + "表示你的棋子\n" +
                 "- 你需要选择一个空位放置棋子\n\n" +
+                "历史下棋记录，可以作为参考：" + lmmRequest.getHistorySteps() +
                 "当前棋盘状态：\n" +
                 lmmRequest.getCurrentMap() + "\n\n" +
                 "请返回你的决策，包含以下字段：\n" +
@@ -111,7 +111,8 @@ public class DeepSeekAIService {
                 "注意：\n" +
                 "1. x和y必须是数字，且在棋盘范围内且没有落子过\n" +
                 "2. 选择的位置必须是空位（值为0）\n" +
-                "3. 请给出清晰的决策理由";
+                "3. 请给出清晰的决策理由" + '\n' +
+                "4. 你需要特别注意‘游戏规则’因为它很可能和你熟知的其它游戏规则看起来类似但实际完全相反";
     }
 
     /**
