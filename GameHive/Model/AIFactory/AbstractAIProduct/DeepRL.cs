@@ -37,7 +37,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             } else {
                 move = GetDirectModelMove(currentBoard, lastX, lastY);
             }
-            PlayedPiecesCnt++; 
+            PlayedPiecesCnt++;
             return move;
         }
 
@@ -51,19 +51,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //使用DRL-MCTS获取
         protected virtual Tuple<int, int> GetMCTSMoveWithNN(List<List<Role>> currentBoard, int lastX, int lastY) {
-            Console.WriteLine($"开始MCTS搜索，模拟次数: {MCTSimulations}");
-
             //创建MCTS根 - 当前轮到AI下棋
             var rootNode = new MCTSNode(currentBoard, null, -1, -1, Role.AI, Role.Empty, GetAvailablePositions(currentBoard));
-
             //执行MCTS模拟
             for (int i = 0; i < MCTSimulations; i++) {
                 SimulationOnceWithNN(rootNode, CopyBoard(currentBoard));
             }
-
             //根据访问次数选择最佳移动
             var bestMove = SelectMoveFromMCTSWithNN(rootNode);
-            Console.WriteLine($"MCTS搜索完成，选择移动: ({bestMove.Item1}, {bestMove.Item2})");
             return bestMove;
         }
 
@@ -95,13 +90,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             while (!currentNode.IsLeaf) {
                 path.Add(currentNode);
                 var selectedChild = currentNode.GetGreatestUCB(exploreFactor);
-                
+
                 //确保 selectedChild 不为 null - 理论上不会发生，因为已经确保根节点被扩展
                 if (selectedChild == null) {
-                    Console.WriteLine("错误：GetGreatestUCB返回 null，这不应该发生！");
+                    Console.WriteLine("错误：GetGreatestUCB返回 null！");
                     break;
                 }
-                
+
                 var move = selectedChild.PieceSelectedCompareToFather;
                 currentNode = selectedChild;
                 //在棋盘上执行动作
@@ -114,13 +109,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             //评估阶段：检查游戏是否结束
             //获取当前节点的移动位置，如果是根节点则使用(-1, -1)
             var currentMove = currentNode.PieceSelectedCompareToFather ?? new Tuple<int, int>(-1, -1);
-            
+
             //临时保存全局计数，使用模拟中的计数进行游戏结束判断
             var originalPieceCount = PlayedPiecesCnt;
             PlayedPiecesCnt = currentPieceCount;
             var gameResult = CheckGameOverByPiece(currentBoard, currentMove.Item1, currentMove.Item2);
             PlayedPiecesCnt = originalPieceCount; //恢复全局计数
-            
+
             Role winner;
 
             if (gameResult != Role.Empty) {
@@ -147,20 +142,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
         //DRL拓展 - 传入策略概率避免重复推理
         private void NodeExpansionWithNN(MCTSNode node, List<List<Role>> board, float[] policy, int currentPieceCount) {
-            //如果棋盘已满，保持为叶子节点
-            if (currentPieceCount >= boardSize * boardSize) {
-                Console.WriteLine("警告：棋盘已满，节点保持为叶子节点");
-                return;
-            }
-            
             var availableMoves = GetAvailablePositions(board);
-            
-            //如果没有可行移动，保持为叶子节点
-            if (availableMoves.Count == 0) {
-                Console.WriteLine("警告：没有可行移动，节点保持为叶子节点");
-                return;
-            }
-            
             var nextPlayer = (node.LeadToThisStatus == Role.AI) ? Role.Player : Role.AI;
 
             foreach (var move in availableMoves) {
@@ -287,11 +269,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //游戏开始时的初始化
         public override void GameStart(bool IsAIFirst) {
             Console.WriteLine($"GameStart: session={session != null}, isModelLoaded={isModelLoaded}, isModelWarmedUp={isModelWarmedUp}");
-            
+
             //重置棋子计数
             PlayedPiecesCnt = 0;
-            
-            //如果session已被释放或模型未加载，重新加载模型
+
+            //如果 session 已被释放或模型未加载，重新加载模型
             if (session == null || !isModelLoaded) {
                 Console.WriteLine("重新加载模型...");
                 if (modelBytes == null) {
