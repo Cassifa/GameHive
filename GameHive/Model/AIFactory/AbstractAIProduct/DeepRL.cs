@@ -6,23 +6,31 @@
  * 创建时间：  2025/4/27 19:58
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
+using GameHive.Model.AIUtils.MonteCarloTreeSearch;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class DeepRL : AbstractAIStrategy {
         protected InferenceSession? session;
-        protected string modelResourceName;
         protected int boardSize;
         protected int PlayedPiecesCnt = 0;
         protected bool isModelLoaded = false;
         protected bool useMonteCarlo = false; //是否使用蒙特卡洛搜索
         protected bool isModelWarmedUp = false; //模型是否已预热
+        protected byte[]? modelBytes; //模型字节数组
+
+        //MCTS相关参数
+        protected int mctsSimulations = 400; //MCTS模拟次数
+        protected double cPuct = 5.0; //UCB公式中的探索常数
+        protected double temperature = 1e-3; //温度参数，控制探索程度
+        protected bool isTraining = false; //是否为训练模式
 
         //获取可行落子点(纯虚函数，由子类实现)
         protected abstract List<Tuple<int, int>> GetAvailablePositions(List<List<Role>> currentBoard);
 
 
+        /**********算法输入获取方法**********/
         //获取AI的下一步移动
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //根据是否使用蒙特卡洛搜索决定策略
@@ -33,20 +41,162 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             }
         }
 
-
-        //使用蒙特卡洛搜索获取最佳移动(子类可重写实现具体的MCTS逻辑)
-        protected virtual Tuple<int, int> GetMCTSMove(List<List<Role>> currentBoard, int lastX, int lastY) {
-            //默认实现：直接使用模型推理
-            var input = ConvertBoardToInput(currentBoard, lastX, lastY);
-            var (policy, value) = RunInference(input);
-            return SelectBestMove(policy, currentBoard);
-        }
-
         //直接使用模型获取移动
         protected virtual Tuple<int, int> GetDirectModelMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             var input = ConvertBoardToInput(currentBoard, lastX, lastY);
             var (policy, value) = RunInference(input);
             return SelectBestMove(policy, currentBoard);
+        }
+
+
+        //使用蒙特卡洛搜索获取最佳移动(基于深度学习模型优化的MCTS)
+        protected virtual Tuple<int, int> GetMCTSMove(List<List<Role>> currentBoard, int lastX, int lastY) {
+            Console.WriteLine($"开始MCTS搜索，模拟次数: {mctsSimulations}");
+
+            //创建MCTS根节点 - 当前轮到AI下棋
+            var rootNode = new MCTSNode(currentBoard, null, -1, -1, Role.AI, Role.Empty, GetAvailablePositions(currentBoard));
+
+            //执行MCTS模拟
+            for (int i = 0; i < mctsSimulations; i++) {
+                MCTSPlayoutWithNN(rootNode, CopyBoard(currentBoard));
+            }
+
+            //根据访问次数选择最佳移动
+            var bestMove = SelectMoveFromMCTS(rootNode);
+            Console.WriteLine($"MCTS搜索完成，选择移动: ({bestMove.Item1}, {bestMove.Item2})");
+            return bestMove;
+        }
+
+
+        /**********嵌入DRL的MCTS方法**********/
+
+        //基于神经网络的MCTS推演过程
+        private void MCTSPlayoutWithNN(MCTSNode node, List<List<Role>> board) {
+            var path = new List<MCTSNode>();
+            var currentNode = node;
+            var currentBoard = board;
+
+            //选择阶段：从根节点向下选择到叶子节点
+            while (!currentNode.IsLeaf) {
+                path.Add(currentNode);
+                var selectedChild = currentNode.GetGreatestUCB();
+                var move = selectedChild.PieceSelectedCompareToFather;
+                currentNode = selectedChild;
+                //在棋盘上执行动作
+                currentBoard[move.Item1][move.Item2] = currentNode.LeadToThisStatus;
+            }
+
+            path.Add(currentNode);
+
+            //评估阶段：使用神经网络评估叶子节点
+            var gameResult = CheckGameOverByPiece(currentBoard, currentNode.PieceSelectedCompareToFather.Item1, currentNode.PieceSelectedCompareToFather.Item2);
+            Role winner;
+
+            if (gameResult != Role.Empty) {
+                //游戏已结束，使用真实结果
+                winner = gameResult;
+            } else {
+                //游戏未结束，使用神经网络评估并扩展节点
+                if (currentNode.IsNewLeaf()) {
+                    //扩展节点时使用神经网络指导
+                    ExpandNodeWithNN(currentNode, currentBoard);
+                    //使用神经网络评估当前局面
+                    var input = ConvertBoardToInput(currentBoard, currentNode.PieceSelectedCompareToFather.Item1, currentNode.PieceSelectedCompareToFather.Item2);
+                    var (policy, networkValue) = RunInference(input);
+                    //根据网络评估决定模拟胜者
+                    winner = (networkValue > 0) ? Role.AI : Role.Player;
+                } else {
+                    //已经扩展过的节点，继续使用传统MCTS
+                    winner = SimulateRandomPlayout(currentBoard, currentNode.LeadToThisStatus);
+                }
+            }
+
+            //反向传播阶段
+            currentNode.BackPropagation(winner);
+        }
+
+        //使用神经网络指导扩展节点
+        private void ExpandNodeWithNN(MCTSNode node, List<List<Role>> board) {
+            var availableMoves = GetAvailablePositions(board);
+            var nextPlayer = (node.LeadToThisStatus == Role.AI) ? Role.Player : Role.AI;
+
+            //获取神经网络的策略输出
+            var input = ConvertBoardToInput(board, node.PieceSelectedCompareToFather.Item1, node.PieceSelectedCompareToFather.Item2);
+            var (policy, value) = RunInference(input);
+
+            foreach (var move in availableMoves) {
+                var newBoard = CopyBoard(board);
+                newBoard[move.Item1][move.Item2] = nextPlayer;
+
+                var childNode = new MCTSNode(newBoard, node, move.Item1, move.Item2, nextPlayer, Role.Empty, GetAvailablePositions(newBoard));
+
+                //使用神经网络的策略概率来影响初始访问
+                int policyIndex = move.Item1 * boardSize + move.Item2;
+                if (policyIndex < policy.Length && policy[policyIndex] > 0.1) {
+                    //对于高概率的移动，给予额外的初始访问次数
+                    childNode.BackPropagation(nextPlayer); //模拟一次有利结果
+                }
+
+                node.AddSon(childNode, move.Item1, move.Item2);
+            }
+
+            node.IsLeaf = false;
+        }
+
+        //传统随机模拟
+        private Role SimulateRandomPlayout(List<List<Role>> board, Role currentPlayer) {
+            var simulationBoard = CopyBoard(board);
+            var player = (currentPlayer == Role.AI) ? Role.Player : Role.AI;
+            var random = new Random();
+
+            while (true) {
+                var availableMoves = GetAvailablePositions(simulationBoard);
+                if (availableMoves.Count == 0) {
+                    return Role.Draw;
+                }
+
+                var move = availableMoves[random.Next(availableMoves.Count)];
+                simulationBoard[move.Item1][move.Item2] = player;
+
+                var result = CheckGameOverByPiece(simulationBoard, move.Item1, move.Item2);
+                if (result != Role.Empty) {
+                    return result;
+                }
+
+                player = (player == Role.AI) ? Role.Player : Role.AI;
+            }
+        }
+
+        //从MCTS结果中选择移动
+        private Tuple<int, int> SelectMoveFromMCTS(MCTSNode rootNode) {
+            if (rootNode.ChildrenMap.Count == 0) {
+                //如果没有子节点，随机选择一个可行位置
+                var availableMoves = GetAvailablePositions(rootNode.NodeBoard);
+                Console.WriteLine("警告：根节点没有子节点，随机选择移动");
+                return availableMoves[new Random().Next(availableMoves.Count)];
+            }
+
+            //打印所有子节点的统计信息
+            Console.WriteLine("MCTS子节点统计:");
+            var sortedChildren = rootNode.ChildrenMap.Values.OrderByDescending(child => GetNodeVisitCount(child));
+            foreach (var child in sortedChildren.Take(5)) { //只显示前5个
+                var move = child.PieceSelectedCompareToFather;
+                Console.WriteLine($"  位置({move.Item1},{move.Item2}): 访问{GetNodeVisitCount(child)}次, UCB{child.GetUCB():F3}");
+            }
+
+            //选择访问次数最多的移动
+            var bestChild = rootNode.ChildrenMap.Values.OrderByDescending(child => GetNodeVisitCount(child)).First();
+            return bestChild.PieceSelectedCompareToFather;
+        }
+
+        //获取节点访问次数
+        private int GetNodeVisitCount(MCTSNode node) {
+            return node.VisitedTimes;
+        }
+
+        //复制棋盘
+        private List<List<Role>> CopyBoard(List<List<Role>> board) {
+            return board.Select(row => new List<Role>(row)).ToList();
         }
 
 
@@ -153,44 +303,23 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             //如果 session 已被释放或模型未加载，重新加载模型
             if (session == null || !isModelLoaded) {
                 Console.WriteLine("重新加载模型...");
-                LoadModel();
+                if (modelBytes == null) {
+                    throw new InvalidOperationException("模型字节数组为空，无法重新加载模型");
+                }
+                LoadModel(modelBytes);
             }
             //在游戏开始时预热模型
             WarmUpModel();
         }
 
         //加载ONNX模型
-        protected void LoadModel() {
-            //通过资源管理器加载模型
-            var modelBytes = GetModelBytesFromResource(modelResourceName);
+        protected void LoadModel(byte[] modelBytes) {
             if (modelBytes == null || modelBytes.Length == 0) {
-                throw new InvalidOperationException($"模型资源不存在: {modelResourceName}");
+                throw new InvalidOperationException("模型资源不存在");
             }
             session = new InferenceSession(modelBytes);
             isModelLoaded = true;
-            Console.WriteLine($"成功加载模型: {modelResourceName}");
-        }
-
-        //从资源中获取模型字节数组
-        private byte[]? GetModelBytesFromResource(string resourceName) {
-            var modelBytes = Properties.Resources.model_3000;//默认值
-            switch (resourceName) {
-                case "model_3000.onnx":
-                    modelBytes = Properties.Resources.model_3000;
-                    break;
-                default:
-                    modelBytes = Properties.Resources.model_3000;
-                    break;
-            }
-            if (resourceName == "model_3000.onnx") {
-                if (modelBytes == null || modelBytes.Length == 0) {
-                    throw new InvalidOperationException($"模型资源 {resourceName} 为空或未正确嵌入");
-                }
-                Console.WriteLine($"成功读取模型资源，大小: {modelBytes.Length} 字节");
-                return modelBytes;
-            }
-
-            throw new InvalidOperationException($"不支持的模型资源: {resourceName}");
+            this.modelBytes = modelBytes;
         }
 
         //预热模型

@@ -13,7 +13,6 @@
  * 创建时间：  2024/12/8 20:11
 *************************************************************************************/
 using GameHive.Constants.RoleTypeEnum;
-using System.Reflection;
 
 namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
     internal class MCTSNode {
@@ -41,12 +40,12 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
 
         //当前视角下当前节点价值，胜利＋1，失败-1 平局0
         double TotalValue;
-        //访问次数 N
-        int VisitedTimes;
         //是否为叶子节点
         public bool IsLeaf { get; set; }
         //游戏是否终止 若不是Role.Empty表示赢家
         private Role Winner;
+        //访问次数 N
+        public int VisitedTimes;
         //当前视角
         public Role LeadToThisStatus { get; set; }
         //节点拥有的棋盘

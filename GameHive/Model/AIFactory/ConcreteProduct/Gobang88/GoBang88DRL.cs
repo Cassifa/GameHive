@@ -21,18 +21,30 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             this.boardSize = boardSize;
             currentLevel = level;
             concreteProductInfo.TotalPiecesCnt = boardSize;
+
+            byte[] modelBytes;
+
             switch (level) {
-                case DifficultyLevel.LEVEL_1:
+                case DifficultyLevel.LEVEL_1://直接使用网络评估值
                     useMonteCarlo = false;
-                    modelResourceName = "model_3000.onnx";
+                    modelBytes = Properties.Resources.model_4000;
                     break;
-                case DifficultyLevel.LEVEL_2:
+                case DifficultyLevel.LEVEL_2://启用MCTS
                     useMonteCarlo = true;
-                    modelResourceName = "model_3000.onnx";
+                    mctsSimulations = 800;
+                    cPuct = 5.0;
+                    modelBytes = Properties.Resources.model_4000;
+                    break;
+                default:
+                    useMonteCarlo = false;
+                    modelBytes = Properties.Resources.model_4000;
                     break;
             }
+            if (modelBytes == null || modelBytes.Length == 0) {
+                throw new InvalidOperationException($"难度级别 {level} 对应的模型加载失败");
+            }
             //加载模型
-            LoadModel();
+            LoadModel(modelBytes);
         }
 
         //判断游戏是否结束
