@@ -38,12 +38,8 @@ public class Player extends BaseEntity {
     private Long raking;
 
     /**
-     * 玩家与AI对战统计信息
+     * 对局统计信息
      */
-    private String recordWithAi;
-
-    /**
-     * 玩家与其它玩家对局记录
-     */
-    private String recordWithPlayer;
+    @Excel(name = "对局统计")
+    private String gameStatistics;
 }

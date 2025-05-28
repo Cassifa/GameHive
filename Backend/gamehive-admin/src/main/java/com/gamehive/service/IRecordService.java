@@ -29,6 +29,14 @@ public interface IRecordService {
     public List<Record> selectRecordList(Record record);
 
     /**
+     * 查询对局记录总数
+     *
+     * @param record 对局记录
+     * @return 总数
+     */
+    public long selectRecordCount(Record record);
+
+    /**
      * 新增对局记录
      *
      * @param record 对局记录

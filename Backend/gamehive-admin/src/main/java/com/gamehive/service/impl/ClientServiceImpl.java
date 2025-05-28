@@ -3,16 +3,15 @@ package com.gamehive.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gamehive.common.core.domain.AjaxResult;
 import com.gamehive.common.core.domain.entity.SysUser;
-import com.gamehive.constants.SpecialPlayerEnum;
 import com.gamehive.constants.GameModeEnum;
+import com.gamehive.constants.SpecialPlayerEnum;
 import com.gamehive.framework.web.service.SysLoginService;
+import com.gamehive.mapper.ProductMapper;
 import com.gamehive.pojo.AlgorithmType;
 import com.gamehive.pojo.GameType;
+import com.gamehive.pojo.Product;
 import com.gamehive.pojo.Record;
-import com.gamehive.service.IAlgorithmTypeService;
-import com.gamehive.service.IClientService;
-import com.gamehive.service.IGameTypeService;
-import com.gamehive.service.IRecordService;
+import com.gamehive.service.*;
 import com.gamehive.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -46,6 +45,12 @@ public class ClientServiceImpl implements IClientService {
 
     @Autowired
     private SysLoginService sysLoginService;
+
+    @Autowired
+    private ProductMapper productMapper;
+
+    @Autowired
+    private IPlayerStatisticsService playerStatisticsService;
 
     /**
      * 客户端登录
@@ -186,7 +191,20 @@ public class ClientServiceImpl implements IClientService {
 
             // 5. 保存记录
             int result = recordService.insertRecord(record);
-            return result > 0;
+
+            if (result > 0) {
+                // 6. 更新玩家统计信息（只有非游客玩家才更新）
+                if (playerId != 0) {
+                    updatePlayerStatistics(record);
+                }
+
+                // 7. 更新Product统计信息
+                updateProductStatistics(record);
+
+                return true;
+            }
+
+            return false;
         } catch (Exception e) {
             // 记录日志
             e.printStackTrace();
@@ -211,5 +229,73 @@ public class ClientServiceImpl implements IClientService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * 更新玩家统计信息
+     *
+     * @param record 对局记录
+     */
+    private void updatePlayerStatistics(Record record) {
+        try {
+            if (playerStatisticsService != null) {
+                playerStatisticsService.updatePlayerStatistics(record);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 统计更新失败不影响主流程
+        }
+    }
+
+    /**
+     * 更新Product统计信息
+     *
+     * @param record 对局记录
+     */
+    private void updateProductStatistics(Record record) {
+        try {
+            if (productMapper != null && record.getAlgorithmId() != null && record.getGameTypeId() != null) {
+                // 使用LambdaQuery查找对应的Product记录
+                Product product = productMapper.selectOne(
+                        new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Product>()
+                                .eq(Product::getAlgorithmTypeId, record.getAlgorithmId())
+                                .eq(Product::getGameTypeId, record.getGameTypeId())
+                );
+
+                if (product != null) {
+                    // 更新挑战次数
+                    product.setChallengedCount(product.getChallengedCount() + 1);
+
+                    // 更新胜利次数（AI胜利的情况）
+                    Long winner = record.getWinner();
+                    boolean aiWin = false;
+
+                    // 判断AI是否胜利
+                    if (winner != null && winner != 2 && winner != 3) { // 不是平局或无效
+                        // 在客户端上传的本地对战中，需要根据playerFirst判断AI的位置
+                        // 如果玩家先手，AI是后手，winner==1表示AI胜利
+                        // 如果玩家后手，AI是先手，winner==0表示AI胜利
+                        boolean playerFirst = record.getFirstPlayerId() != null &&
+                                !record.getFirstPlayerId().equals((long) SpecialPlayerEnum.AI.getCode());
+
+                        if (playerFirst) {
+                            aiWin = (winner == 1); // AI是后手
+                        } else {
+                            aiWin = (winner == 0); // AI是先手
+                        }
+                    }
+
+                    if (aiWin) {
+                        product.setWinCount(product.getWinCount() + 1);
+                    }
+
+                    // 更新Product记录
+                    productMapper.updateById(product);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Product统计更新失败不影响主流程
+        }
     }
 } 

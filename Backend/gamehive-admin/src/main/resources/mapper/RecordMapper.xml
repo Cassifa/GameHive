@@ -87,6 +87,9 @@
 			</if>
 		</where>
 		ORDER BY record_time DESC
+		<if test="params.pageSize != null and params.pageSize > 0">
+			LIMIT #{params.offset}, #{params.pageSize}
+		</if>
 	</select>
 
 	<insert id="insertRecord" parameterType="Record">
@@ -180,5 +183,56 @@
 		FROM record r
 		LEFT JOIN game_type gt ON r.game_type_id = gt.game_id
 		WHERE r.record_id = #{recordId}
+	</select>
+
+	<select id="selectRecordsByPlayerId" parameterType="Long" resultMap="RecordResult">
+		<include refid="selectRecordVo"/>
+		WHERE first_player_id = #{userId} OR second_player_id = #{userId}
+		ORDER BY record_time DESC
+	</select>
+
+	<select id="selectRecordCount" parameterType="Record" resultType="long">
+		select count(1) from record
+		<where>
+			<if test="gameTypeId != null">
+				AND game_type_id = #{gameTypeId}
+			</if>
+			<if test="gameTypeName != null and gameTypeName != ''">
+				AND game_type_name like concat('%', #{gameTypeName}, '%')
+			</if>
+			<if test="recordTime != null">
+				AND record_time = #{recordTime}
+			</if>
+			<if test="gameMode != null">
+				AND game_mode = #{gameMode}
+			</if>
+			<if test="algorithmId != null">
+				AND algorithm_id = #{algorithmId}
+			</if>
+			<if test="algorithmName != null and algorithmName != ''">
+				AND algorithm_name like concat('%', #{algorithmName}, '%')
+			</if>
+			<if test="winner != null">
+				AND winner = #{winner}
+			</if>
+			<if test="firstPlayerId != null">
+				AND first_player_id = #{firstPlayerId}
+			</if>
+			<if test="firstPlayerName != null and firstPlayerName != ''">
+				AND first_player_name like concat('%', #{firstPlayerName}, '%')
+			</if>
+			<if test="secondPlayerId != null">
+				AND second_player_id = #{secondPlayerId}
+			</if>
+			<if test="secondPlayerName != null and secondPlayerName != ''">
+				AND second_player_name like concat('%', #{secondPlayerName}, '%')
+			</if>
+			<if test="params.playerName != null and params.playerName != ''">
+				AND (first_player_name like concat('%', #{params.playerName}, '%') OR second_player_name like concat('%', #{params.playerName}, '%'))
+			</if>
+			<if test="params.currentUserId != null">
+				AND (first_player_id = #{params.currentUserId} OR second_player_id = #{params.currentUserId})
+			</if>
+		</where>
 	</select>
 </mapper>

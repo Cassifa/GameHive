@@ -8,12 +8,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="userId"    column="user_id"    />
         <result property="userName"    column="user_name"    />
         <result property="raking"    column="raking"    />
-        <result property="recordWithAi"    column="record_with_ai"    />
-        <result property="recordWithPlayer"    column="record_with_player"    />
+        <result property="gameStatistics"    column="game_statistics"    />
     </resultMap>
 
     <sql id="selectPlayerVo">
-        select user_id, user_name, raking, record_with_ai, record_with_player from player
+        select user_id, user_name, raking, game_statistics from player
     </sql>
 
     <select id="selectPlayerList" parameterType="Player" resultMap="PlayerResult">
@@ -34,15 +33,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="userId != null">user_id,</if>
             <if test="userName != null">user_name,</if>
             <if test="raking != null">raking,</if>
-            <if test="recordWithAi != null">record_with_ai,</if>
-            <if test="recordWithPlayer != null">record_with_player,</if>
+            <if test="gameStatistics != null">game_statistics,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
             <if test="userName != null">#{userName},</if>
             <if test="raking != null">#{raking},</if>
-            <if test="recordWithAi != null">#{recordWithAi},</if>
-            <if test="recordWithPlayer != null">#{recordWithPlayer},</if>
+            <if test="gameStatistics != null">#{gameStatistics},</if>
          </trim>
     </insert>
 
@@ -51,8 +48,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="userName != null">user_name = #{userName},</if>
             <if test="raking != null">raking = #{raking},</if>
-            <if test="recordWithAi != null">record_with_ai = #{recordWithAi},</if>
-            <if test="recordWithPlayer != null">record_with_player = #{recordWithPlayer},</if>
+            <if test="gameStatistics != null">game_statistics = #{gameStatistics},</if>
         </trim>
         where user_id = #{userId}
     </update>

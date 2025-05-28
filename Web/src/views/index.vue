@@ -121,6 +121,7 @@ import { listRecord, getRecord, delRecord, addRecord, updateRecord, exportRecord
 import { listGameTypeOptions } from "@/api/GameType/GameType";
 import { listAlgorithmOptions } from "@/api/Algorithm/Algorithm";
 import { listAlgorithmsByGameId } from "@/api/Product/Product";
+import { getPlayerStatistics } from "@/api/PlayerStatistics/PlayerStatistics";
 import GameRecordHeatmap from "@/components/GameRecordHeatmap";
 
 export default {
@@ -189,6 +190,8 @@ export default {
     if (this.queryParams.gameTypeId && this.isLocalGameSelected) {
       this.getAlgorithmOptions();
     }
+    // 获取玩家统计信息（示例用户ID为102）
+    this.getPlayerStatisticsData();
   },
   methods: {
     /** 查询对局记录列表 */
@@ -197,6 +200,9 @@ export default {
       listRecord(this.queryParams).then(response => {
         this.RecordList = response.rows;
         this.total = response.total;
+        this.loading = false;
+      }).catch(error => {
+        console.error('查询失败:', error);
         this.loading = false;
       });
     },
@@ -404,6 +410,22 @@ export default {
       }).catch(error => {
         console.error('获取对局详情失败:', error);
         this.$modal.msgError("获取对局详情失败");
+      });
+    },
+    // 获取玩家统计信息（示例用户ID为102）
+    getPlayerStatisticsData() {
+      // 获取当前登录用户的ID
+      const currentUserId = this.$store.state.user.id;
+      if (!currentUserId) {
+        console.warn('当前用户未登录，无法获取统计信息');
+        return;
+      }
+      
+      getPlayerStatistics(currentUserId).then(response => {
+        console.log('玩家统计信息:', response.data);
+      }).catch(error => {
+        console.error('获取玩家统计信息失败:', error);
+        this.$modal.msgError("获取玩家统计信息失败");
       });
     }
   }

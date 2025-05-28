@@ -14,6 +14,7 @@ import com.gamehive.mapper.GameTypeMapper;
 import com.gamehive.mapper.PlayerMapper;
 import com.gamehive.mapper.RecordMapper;
 import com.gamehive.pojo.Player;
+import com.gamehive.service.IPlayerStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -40,6 +41,7 @@ public class WebSocketServer {
     public static PlayerMapper playerMapper;
     public static RecordMapper recordMapper;
     public static GameTypeMapper gameTypeMapper;
+    public static IPlayerStatisticsService playerStatisticsService;
     public static RestTemplate restTemplate;//spring boot间通信
     private final static String addPlayerUrl = "http://127.0.0.1:3001/player/add/";
     private final static String removePlayerUrl = "http://127.0.0.1:3001/player/remove/";
@@ -66,6 +68,11 @@ public class WebSocketServer {
     public void setRestTemplate(RestTemplate restTemplate) {
         //在两个spring boot 间通信
         WebSocketServer.restTemplate = restTemplate;
+    }
+
+    @Autowired
+    public void setPlayerStatisticsService(IPlayerStatisticsService playerStatisticsService) {
+        WebSocketServer.playerStatisticsService = playerStatisticsService;
     }
 
     @OnOpen

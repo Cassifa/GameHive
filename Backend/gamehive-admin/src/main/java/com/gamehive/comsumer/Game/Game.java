@@ -14,6 +14,7 @@ import com.gamehive.pojo.GameType;
 import com.gamehive.pojo.Player;
 import com.gamehive.pojo.Record;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
+@Slf4j
 public class Game extends Thread {
 
     private final static String addBotUrl = "http://127.0.0.1:3002/LMMRunning/add/";
@@ -310,6 +312,26 @@ public class Game extends Thread {
         record.setFirstPlayerPieces(JSONObject.toJSONString(playerA.getSteps()));
         record.setSecondPlayerPieces(JSONObject.toJSONString(playerB.getSteps()));
         WebSocketServer.recordMapper.insertRecord(record);
+
+        // 更新玩家统计信息
+        updatePlayerStatistics(record);
+    }
+
+    /**
+     * 更新玩家统计信息
+     */
+    private void updatePlayerStatistics(Record record) {
+        try {
+            // 通过反射或静态方法调用PlayerStatisticsService
+            // 由于这里是WebSocket环境，我们直接调用工具类方法
+            if (WebSocketServer.playerStatisticsService != null) {
+                WebSocketServer.playerStatisticsService.updatePlayerStatistics(record);
+            } else {
+                log.warn("PlayerStatisticsService未注入，跳过统计更新");
+            }
+        } catch (Exception e) {
+            log.error("更新玩家统计信息失败", e);
+        }
     }
 
     //设置next

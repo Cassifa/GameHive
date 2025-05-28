@@ -21,6 +21,8 @@ import com.gamehive.service.IRecordService;
 import com.gamehive.common.utils.poi.ExcelUtil;
 import com.gamehive.common.core.page.TableDataInfo;
 import com.github.pagehelper.PageHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 对局记录Controller
@@ -31,6 +33,8 @@ import com.github.pagehelper.PageHelper;
 @RestController
 @RequestMapping("/Record/Record")
 public class RecordController extends BaseController {
+
+    private static final Logger logger = LoggerFactory.getLogger(RecordController.class);
 
     @Autowired
     private IRecordService recordService;
@@ -48,8 +52,6 @@ public class RecordController extends BaseController {
      */
     @GetMapping("/list")
     public TableDataInfo list(
-            @RequestParam(value = "pageNum", required = false) Integer pageNum,
-            @RequestParam(value = "pageSize", required = false) Integer pageSize,
             @RequestParam(value = "gameTypeId", required = false) Long gameTypeId,
             @RequestParam(value = "gameMode", required = false) Integer gameMode,
             @RequestParam(value = "algorithmId", required = false) Long algorithmId,
@@ -81,19 +83,32 @@ public class RecordController extends BaseController {
         }
         
         // 将用户ID添加到查询参数中
-        record.getParams().put("userId", userId);
+        record.getParams().put("currentUserId", userId);
 
-        // 如果pageSize不为空，使用分页查询
-        if (pageSize != null && pageSize > 0) {
-            int pageNumValue = (pageNum != null && pageNum > 0) ? pageNum : 1;
-            PageHelper.startPage(pageNumValue, pageSize);
-        }
-
+        // 获取分页参数
+        int pageNum = com.gamehive.common.utils.ServletUtils.getParameterToInt("pageNum", 1);
+        int pageSize = com.gamehive.common.utils.ServletUtils.getParameterToInt("pageSize", 10);
+        
+        // 计算offset
+        int offset = (pageNum - 1) * pageSize;
+        record.getParams().put("pageSize", pageSize);
+        record.getParams().put("offset", offset);
+        
+        // 查询数据和总数
         List<Record> list = recordService.selectRecordList(record);
+        long total = recordService.selectRecordCount(record);
+        
         if (list == null) {
             return getDataTableByException("无权限查看记录");
         }
-        return getDataTable(list);
+        
+        // 手动构建分页结果
+        TableDataInfo rspData = new TableDataInfo();
+        rspData.setCode(200);
+        rspData.setMsg("查询成功");
+        rspData.setRows(list);
+        rspData.setTotal(total);
+        return rspData;
     }
 
     /**
@@ -105,7 +120,7 @@ public class RecordController extends BaseController {
         // 获取当前登录用户ID
         Long userId = getUserId();
         if (userId != null) {
-            record.getParams().put("userId", userId);
+            record.getParams().put("currentUserId", userId);
             List<Record> list = recordService.selectRecordList(record);
             if (list != null) {
                 ExcelUtil<Record> util = new ExcelUtil<Record>(Record.class);

@@ -111,6 +111,45 @@ public class RecordServiceImpl implements IRecordService {
     }
 
     /**
+     * 查询对局记录总数
+     *
+     * @param record 对局记录
+     * @return 总数
+     */
+    @Override
+    public long selectRecordCount(Record record) {
+        // 获取当前用户
+        LoginUser loginUser = SecurityUtils.getLoginUser();
+        if (loginUser == null || loginUser.getUser() == null) {
+            return 0;
+        }
+
+        // 判断当前用户是否为管理员
+        boolean isAdmin = false;
+        Set<String> roles = permissionService.getRolePermission(loginUser.getUser());
+        if (roles.contains("admin")) {
+            isAdmin = true;
+        }
+
+        // 如果不是管理员，则只查询与当前用户相关的记录
+        if (!isAdmin) {
+            record.getParams().put("currentUserId", loginUser.getUser().getUserId());
+        }
+
+        // 处理playerName参数
+        String playerName = (String) record.getParams().get("playerName");
+        if (playerName != null && !playerName.isEmpty()) {
+            if (isAdmin) {
+                record.getParams().put("playerName", playerName);
+            } else {
+                record.getParams().put("opponentName", playerName);
+            }
+        }
+
+        return recordMapper.selectRecordCount(record);
+    }
+
+    /**
      * 新增对局记录
      *
      * @param record 对局记录

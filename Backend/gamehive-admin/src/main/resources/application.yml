@@ -96,29 +96,29 @@ token:
   # 令牌有效期（默认30分钟）
   expireTime: 130
 
-# MyBatis-Plus配置
-mybatis-plus:
-  # 搜索指定包别名
-  typeAliasesPackage: com.gamehive.pojo,com.gamehive.**.domain
-  # 配置mapper的扫描，找到所有的mapper.xml映射文件
-  mapperLocations: classpath*:mapper/**/*Mapper.xml
-  # 加载全局的配置文件
-  configLocation: classpath:mybatis/mybatis-config.xml
-  # 全局配置
-  global-config:
-    # 数据库相关配置
-    db-config:
-      # ID类型
-      id-type: AUTO
-      # 逻辑删除配置
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-  # MyBatis原生配置
-  configuration:
-    # 使用驼峰命名法转换字段
-    map-underscore-to-camel-case: true
-    # 开启二级缓存
-    cache-enabled: true
+# MyBatis-Plus配置（暂时禁用，避免与PageHelper冲突）
+# mybatis-plus:
+#   # 搜索指定包别名
+#   typeAliasesPackage: com.gamehive.pojo,com.gamehive.**.domain
+#   # 配置mapper的扫描，找到所有的mapper.xml映射文件
+#   mapperLocations: classpath*:mapper/**/*Mapper.xml
+#   # 加载全局的配置文件
+#   configLocation: classpath:mybatis/mybatis-config.xml
+#   # 全局配置
+#   global-config:
+#     # 数据库相关配置
+#     db-config:
+#       # ID类型
+#       id-type: AUTO
+#       # 逻辑删除配置
+#       logic-delete-value: 1
+#       logic-not-delete-value: 0
+#   # MyBatis原生配置
+#   configuration:
+#     # 使用驼峰命名法转换字段
+#     map-underscore-to-camel-case: true
+#     # 开启二级缓存
+#     cache-enabled: true
 
 # 继续保留原有MyBatis配置，保证兼容性
 mybatis:
@@ -134,6 +134,9 @@ pagehelper:
   helperDialect: mysql
   supportMethodsArguments: true
   params: count=countSql
+  reasonable: true
+  pageSizeZero: true
+  autoRuntimeDialect: true
 
 # Swagger配置
 swagger:

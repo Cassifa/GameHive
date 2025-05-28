@@ -110,8 +110,7 @@ CREATE TABLE `player`  (
   `user_id` bigint NOT NULL COMMENT '用户id',
   `user_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户昵称',
   `raking` int NOT NULL DEFAULT 1400 COMMENT '天梯积分',
-  `record_with_ai` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '玩家与AI对战统计信息',
-  `record_with_player` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '玩家与其它玩家对局记录',
+  `game_statistics` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '对局统计信息',
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '玩家表' ROW_FORMAT = DYNAMIC;
 
