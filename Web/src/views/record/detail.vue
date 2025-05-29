@@ -1,10 +1,5 @@
 <template>
   <div class="app-container">
-    <div class="game-detail-header">
-      <h1>对局详情</h1>
-      <el-button @click="goBack" type="primary" size="small">返回</el-button>
-    </div>
-    
     <div class="game-info" v-if="recordDetail">
       <el-row :gutter="20">
         <el-col :span="6" :xs="0" :sm="6" :md="6" :lg="6" :xl="6">
@@ -351,11 +346,6 @@ export default {
       this.gameEngine.start();
     },
 
-    /** 返回上一页 */
-    goBack() {
-      this.$router.go(-1);
-    },
-
     /** 获取对局类型文本 */
     getGameModeText(gameMode) {
       const gameModeMap = {
@@ -481,18 +471,6 @@ export default {
   padding: 20px;
 }
 
-.game-detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.game-detail-header h1 {
-  margin: 0;
-  color: #303133;
-}
-
 .info-card, .board-card, .moves-card {
   height: 100%;
 }
@@ -571,12 +549,17 @@ export default {
   font-weight: 600;
   color: #606266;
   font-size: 12px;
+  text-align: left;
+  flex-shrink: 0;
 }
 
 .player-name {
   color: #303133;
   font-weight: 500;
   font-size: 12px;
+  text-align: center;
+  flex: 1;
+  margin-left: 10px;
 }
 
 .board-header {
@@ -759,12 +742,6 @@ export default {
     padding: 10px;
   }
   
-  .game-detail-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
   .board-container {
     padding: 10px;
   }
@@ -807,7 +784,5 @@ export default {
   .board-header .step-info {
     font-size: 12px;
   }
-}
-</style> 
 }
 </style> 

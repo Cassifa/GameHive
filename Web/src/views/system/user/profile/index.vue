@@ -171,23 +171,22 @@ export default {
   computed: {
     isAdmin() {
       // 判断用户角色是否包含管理员
-      return this.roleGroup && (
-        this.roleGroup.includes('管理员') || 
-        this.roleGroup.includes('admin') || 
-        this.roleGroup.includes('超级管理员')
-      );
+      // 确保 roleGroup 是字符串或数组，然后进行判断
+      if (!this.roleGroup) return false;
+      
+      const roleStr = typeof this.roleGroup === 'string' ? this.roleGroup : 
+                     Array.isArray(this.roleGroup) ? this.roleGroup.join(',') : String(this.roleGroup);
+      
+      return roleStr.includes('管理员') || 
+             roleStr.includes('admin') || 
+             roleStr.includes('超级管理员');
     }
   },
   created() {
     this.getUser();
   },
   mounted() {
-    this.$nextTick(() => {
-      // 只有非管理员才初始化图表
-      if (!this.isAdmin) {
-        this.initCharts();
-      }
-    });
+    // mounted 中不再初始化图表，交给getUser方法处理
   },
   beforeDestroy() {
     // 销毁图表实例
@@ -204,10 +203,16 @@ export default {
         this.roleGroup = response.roleGroup;
         this.postGroup = response.postGroup;
         
-        // 只有非管理员才获取统计信息
-        if (!this.isAdmin) {
-          this.getStatistics();
-        }
+        // 在获取用户信息后，判断是否需要初始化图表
+        this.$nextTick(() => {
+          if (!this.isAdmin) {
+            // 确保DOM已渲染，然后初始化图表
+            setTimeout(() => {
+              this.initCharts();
+              this.getStatistics();
+            }, 100);
+          }
+        });
       });
     },
     
@@ -235,14 +240,25 @@ export default {
     },
     
     initCharts() {
-      // 初始化所有图表
-      this.charts.gameModeChart = echarts.init(this.$refs.gameModeChart);
-      this.charts.gameTypeChart = echarts.init(this.$refs.gameTypeChart);
-      this.charts.algorithmChart = echarts.init(this.$refs.algorithmChart);
-      this.charts.resultChart = echarts.init(this.$refs.resultChart);
+      // 检查DOM元素是否存在
+      if (!this.$refs.gameModeChart || !this.$refs.gameTypeChart || 
+          !this.$refs.algorithmChart || !this.$refs.resultChart) {
+        console.warn('图表DOM元素尚未准备好');
+        return;
+      }
       
-      // 监听窗口大小变化
-      window.addEventListener('resize', this.handleResize);
+      try {
+        // 初始化所有图表
+        this.charts.gameModeChart = echarts.init(this.$refs.gameModeChart);
+        this.charts.gameTypeChart = echarts.init(this.$refs.gameTypeChart);
+        this.charts.algorithmChart = echarts.init(this.$refs.algorithmChart);
+        this.charts.resultChart = echarts.init(this.$refs.resultChart);
+        
+        // 监听窗口大小变化
+        window.addEventListener('resize', this.handleResize);
+      } catch (error) {
+        console.error('初始化图表失败:', error);
+      }
     },
     
     handleResize() {
@@ -263,6 +279,12 @@ export default {
     },
     
     updateGameModeChart() {
+      // 检查图表实例是否存在
+      if (!this.charts.gameModeChart) {
+        console.warn('游戏模式图表实例不存在');
+        return;
+      }
+      
       const data = [];
       const detailData = {}; // 存储详细统计信息
       
@@ -475,6 +497,12 @@ export default {
     },
     
     updateGameTypeChart() {
+      // 检查图表实例是否存在
+      if (!this.charts.gameTypeChart) {
+        console.warn('游戏类型图表实例不存在');
+        return;
+      }
+      
       const categories = [];
       const winsData = [];
       const lossesData = [];
@@ -628,6 +656,12 @@ export default {
     },
     
     updateAlgorithmChart() {
+      // 检查图表实例是否存在
+      if (!this.charts.algorithmChart) {
+        console.warn('算法图表实例不存在');
+        return;
+      }
+      
       const data = [];
       
       if (this.statistics.localGameStats && this.statistics.localGameStats.gameTypeStats && Object.keys(this.statistics.localGameStats.gameTypeStats).length > 0) {
@@ -712,6 +746,12 @@ export default {
     },
     
     updateResultChart() {
+      // 检查图表实例是否存在
+      if (!this.charts.resultChart) {
+        console.warn('结果图表实例不存在');
+        return;
+      }
+      
       const data = [
         { name: '胜利', value: this.overallStats.totalWins },
         { name: '失败', value: this.overallStats.totalLosses },

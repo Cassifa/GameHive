@@ -17,17 +17,7 @@ namespace GameHive.Controller {
         }
         //在数组坐标系x,y位置下棋
         private void ViewMessagePlayChess(double x, double y, Role role) {
-            if (CurrentGameMode != Constants.GameModeEnum.GameMode.LocalGame) {
-                // 联机对战时，传入的是数组索引，需要转换为画布坐标
-                var boardInfo = boardManager.BoardInfo;
-                if (boardInfo != null && x >= 0 && x < boardInfo.Column && y >= 0 && y < boardInfo.Column) {
-                    var mappedPosition = boardInfo.ChessCenter[(int)x][(int)y];
-                    view.DrawChess(mappedPosition.Item1, mappedPosition.Item2, role);
-                }
-            } else {
-                // 本地对战时，传入的已经是画布坐标，直接使用
-                view.DrawChess(x, y, role);
-            }
+            view.DrawChess(x, y, Role.Player);
         }
         //绘制一张地图
         private void ViewMessageDrawMap(GameBoardInfo info) {

@@ -13,7 +13,7 @@ using GameHive.Model.GameInfo;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88DRL : DeepRL {
         //具体产品信息 包含难度
-        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(3);
+        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(2);
 
         public GoBang88DRL(int boardSize, DifficultyLevel level) {
             this.boardSize = boardSize;
@@ -26,16 +26,16 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             switch (level) {
                 case DifficultyLevel.LEVEL_1://直接使用网络评估值
                     useMonteCarlo = false;
-                    modelBytes = Properties.Resources.model_4000;
+                    modelBytes = Properties.Resources.model_7000;
                     break;
                 case DifficultyLevel.LEVEL_2://启用MCTS
                     useMonteCarlo = true;
                     MCTSimulations = 4000;
-                    modelBytes = Properties.Resources.model_4000;
+                    modelBytes = Properties.Resources.model_7000;
                     break;
                 default:
                     useMonteCarlo = false;
-                    modelBytes = Properties.Resources.model_4000;
+                    modelBytes = Properties.Resources.model_7000;
                     break;
             }
             if (modelBytes == null || modelBytes.Length == 0) {

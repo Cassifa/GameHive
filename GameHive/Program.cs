@@ -11,13 +11,13 @@ namespace GameHive {
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            
+
             // 自动登录
             await AutoLogin();
-            
+
             Application.Run(new DoubleBufferedForm());
         }
-        
+
         /// <summary>
         /// 自动登录功能
         /// </summary>
@@ -25,8 +25,8 @@ namespace GameHive {
             try {
                 Console.WriteLine("[AutoLogin] 开始自动登录...");
                 var client = new GameHiveClient();
-                var result = await client.LoginAsync("bb", "1");
-                
+                var result = await client.LoginAsync("lff", "1");
+
                 if (result.Code == 200) {
                     Console.WriteLine("[AutoLogin] 自动登录成功");
                 } else {
