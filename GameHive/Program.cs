@@ -12,6 +12,12 @@ namespace GameHive {
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
+            // 注册应用程序退出事件
+            Application.ApplicationExit += (sender, e) => {
+                // 强制结束所有可能的后台任务
+                Environment.Exit(0);
+            };
+
             // 自动登录
             await AutoLogin();
 

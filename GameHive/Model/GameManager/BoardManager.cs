@@ -65,6 +65,8 @@ namespace GameHive.Model.GameManager {
             return false;
         }
 
+        //用户下棋
+        public void UserPlayPiece(int lastX, int lastY) { }
 
         //单例模式
 #pragma warning disable CS8618 

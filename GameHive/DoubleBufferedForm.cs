@@ -5,6 +5,7 @@
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/24 22:47
 *************************************************************************************/
+
 namespace GameHive.MainForm {
     public partial class DoubleBufferedForm : Form {
         private Controller.Controller controller;
@@ -30,7 +31,6 @@ namespace GameHive.MainForm {
 
             //注册控制器
             controller = new Controller.Controller(this);
-
         }
 
         private void Form1_Load(object sender, EventArgs e) {

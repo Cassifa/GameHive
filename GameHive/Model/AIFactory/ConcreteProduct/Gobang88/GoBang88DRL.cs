@@ -26,16 +26,16 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             switch (level) {
                 case DifficultyLevel.LEVEL_1://直接使用网络评估值
                     useMonteCarlo = false;
-                    modelBytes = Properties.Resources.model_7000;
+                    modelBytes = Properties.Resources.model_9000;
                     break;
                 case DifficultyLevel.LEVEL_2://启用MCTS
                     useMonteCarlo = true;
                     MCTSimulations = 4000;
-                    modelBytes = Properties.Resources.model_7000;
+                    modelBytes = Properties.Resources.model_9000;
                     break;
                 default:
                     useMonteCarlo = false;
-                    modelBytes = Properties.Resources.model_7000;
+                    modelBytes = Properties.Resources.model_9000;
                     break;
             }
             if (modelBytes == null || modelBytes.Length == 0) {

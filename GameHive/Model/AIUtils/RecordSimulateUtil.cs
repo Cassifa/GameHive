@@ -82,15 +82,17 @@ namespace GameHive.Model.AIUtils {
             tuples.Add(Tuple.Create(11, 7));
             return tuples;
         }
-        
+
         //模拟杀棋对局，必定AI先手，
         public static bool SimulateKillBoard(ref int lastX, ref int lastY, ref Tuple<int, int> FinalDecide) {
             if (IsVCF) {
                 //VCF模拟棋盘管前10轮，和第11轮的玩家移动
-                if (RoundCount == 11) return false;
+                if (RoundCount == 11)
+                    return false;
                 List<Tuple<int, int>> list = VCFSimulate();
                 var PlayerMove = list[RoundCount * 2];
-                lastX = PlayerMove.Item1; lastY = PlayerMove.Item2;
+                lastX = PlayerMove.Item1;
+                lastY = PlayerMove.Item2;
                 //此前已经运行了10轮，当前为第11轮
                 if (RoundCount == 10) {
                     RoundCount++;
@@ -100,10 +102,12 @@ namespace GameHive.Model.AIUtils {
 
             } else {
                 //VCT模拟棋盘管九轮和第10轮的玩家移动
-                if (RoundCount == 10) return false;
+                if (RoundCount == 10)
+                    return false;
                 List<Tuple<int, int>> list = VCTSimulate();
                 var PlayerMove = list[RoundCount * 2];
-                lastX = PlayerMove.Item1; lastY = PlayerMove.Item2;
+                lastX = PlayerMove.Item1;
+                lastY = PlayerMove.Item2;
                 //此前已经运行了9轮，当前为第10轮
                 if (RoundCount == 9) {
                     RoundCount++;
@@ -119,17 +123,21 @@ namespace GameHive.Model.AIUtils {
         public static void SimulateKillBoardController(ref int lastX, ref int lastY) {
             if (IsVCF) {
                 //VCF模拟棋盘管前10轮，和第11轮的玩家移动
-                if (RoundCount == 11) return;
+                if (RoundCount == 11)
+                    return;
                 List<Tuple<int, int>> list = VCFSimulate();
                 var PlayerMove = list[RoundCount * 2];
-                lastX = PlayerMove.Item1; lastY = PlayerMove.Item2;
+                lastX = PlayerMove.Item1;
+                lastY = PlayerMove.Item2;
 
             } else {
                 //VCT模拟棋盘管九轮和第10轮的玩家移动
-                if (RoundCount == 10) return;
+                if (RoundCount == 10)
+                    return;
                 List<Tuple<int, int>> list = VCTSimulate();
                 var PlayerMove = list[RoundCount * 2];
-                lastX = PlayerMove.Item1; lastY = PlayerMove.Item2;
+                lastX = PlayerMove.Item1;
+                lastY = PlayerMove.Item2;
             }
         }
     }

@@ -32,8 +32,8 @@ public class PlayerController extends BaseController {
      */
     @GetMapping("/list")
     public TableDataInfo list(Player player,
-                             @RequestParam(value = "pageNum", required = false) Integer pageNum,
-                             @RequestParam(value = "pageSize", required = false) Integer pageSize) {
+                              @RequestParam(value = "pageNum", required = false) Integer pageNum,
+                              @RequestParam(value = "pageSize", required = false) Integer pageSize) {
         // 如果传递了分页参数，则进行分页查询
         if (pageNum != null && pageSize != null && pageSize > 0) {
             startPage();
@@ -50,7 +50,7 @@ public class PlayerController extends BaseController {
     public void export(HttpServletResponse response, Player player) {
         List<Player> list = playerService.selectPlayerList(player);
         ExcelUtil<Player> util = new ExcelUtil<Player>(Player.class);
-        util.exportExcel(response, list, "玩家数据");
+        util.exportExcel(response, list, "排行榜");
     }
 
     /**

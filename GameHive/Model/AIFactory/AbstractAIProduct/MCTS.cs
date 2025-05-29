@@ -41,6 +41,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         private int AIMoveSearchCount;
         //是否玩家正在思考
         private bool PlayerPlaying;
+        //搜索任务
+        private Task? searchTask;
 
         //*****游戏构造参数*****//
         //棋盘一行落子的数
@@ -143,7 +145,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             //初始化缓存表
             GameOverStatusCache = new ZobristHashingCache<Role>(TotalPiecesCnt, TotalPiecesCnt);
             //启动搜索任务
-            Task.Run(() => EvalToGo());
+            searchTask = Task.Run(() => EvalToGo());
         }
 
         //维护当前追踪的缓存哈希值
@@ -154,6 +156,22 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         //强制游戏结束 停止需要多线程的AI 更新在内部保存过状态的AI
         public override void GameForcedEnd() {
             end = true;
+            
+            // 通知等待的线程
+            lock (mutex) {
+                Monitor.PulseAll(mutex);
+            }
+            
+            // 等待搜索任务结束
+            if (searchTask != null && !searchTask.IsCompleted) {
+                try {
+                    searchTask.Wait(2000); // 等待最多2秒
+                } catch {
+                    // 忽略等待异常
+                }
+            }
+            
+            searchTask = null;
         }
 
         //运行一次蒙特卡洛过程
@@ -286,7 +304,8 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 TotalCnt /= LeftCount;
             }
             t = Math.Min(t, 5);
-            while (t--!=0) SearchCount = BaseCount * 2;
+            while (t-- != 0)
+                SearchCount = BaseCount * 2;
         }
 
         //用户下棋
