@@ -142,8 +142,8 @@ namespace GameHive.Controller {
                         Console.WriteLine($"[MainController] 落子事件: X={e.X}, Y={e.Y}, IsMyMove={e.IsMyMove}, OpponentName={e.OpponentName}");
                         // 根据IsMyMove判断落子方
                         Role moveRole = e.IsMyMove ? Role.Player : Role.AI;
-                        // 显示落子
-                        ViewMessagePlayChess(e.X, e.Y, moveRole);
+                        // 显示落子 - 使用数组坐标转换方法
+                        ViewMessagePlayChessFromArray(e.X, e.Y, moveRole);
                         ViewMessageLogMove(moveRole, e.X, e.Y);
                         // 如果不是自己的落子，则轮到自己
                         if (!e.IsMyMove) {

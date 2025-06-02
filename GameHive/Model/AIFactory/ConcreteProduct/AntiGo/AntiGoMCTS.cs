@@ -9,7 +9,7 @@ using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.GameInfo;
-namespace GameHive.Model.AIFactory.ConcreteProduct {
+namespace GameHive.Model.AIFactory.ConcreteProduct.AntiGo {
     internal class AntiGoMCTS : MCTS {
         //具体产品信息 包含难度
         public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(4);
@@ -58,7 +58,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 SuccessCount++;
                 return result;
             }
-            SuccessRate = (double)SuccessCount / (double)TotalAttempts;
+            SuccessRate = SuccessCount / (double)TotalAttempts;
             //记录缓存
             result = CheckGameOverByPiece(currentBoard, x, y);
             GameOverStatusCache.Log(result);

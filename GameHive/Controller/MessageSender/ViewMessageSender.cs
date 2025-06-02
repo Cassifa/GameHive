@@ -17,7 +17,16 @@ namespace GameHive.Controller {
         }
         //在数组坐标系x,y位置下棋
         private void ViewMessagePlayChess(double x, double y, Role role) {
-            view.DrawChess(x, y, Role.Player);
+            view.DrawChess(x, y, role);
+        }
+        
+        //在数组坐标系x,y位置下棋（需要坐标转换）
+        private void ViewMessagePlayChessFromArray(int arrayX, int arrayY, Role role) {
+            // 从数组坐标转换为画布坐标
+            var center = boardManager.BoardInfo.ChessCenter[arrayX][arrayY];
+            double canvasX = center.Item1;
+            double canvasY = center.Item2;
+            view.DrawChess(canvasX, canvasY, role);
         }
         //绘制一张地图
         private void ViewMessageDrawMap(GameBoardInfo info) {

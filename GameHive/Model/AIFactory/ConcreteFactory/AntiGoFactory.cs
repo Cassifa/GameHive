@@ -9,6 +9,7 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
+using GameHive.Model.AIFactory.ConcreteProduct.AntiGo;
 using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory {

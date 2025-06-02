@@ -9,7 +9,7 @@ using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.GameInfo;
 
-namespace GameHive.Model.AIFactory.ConcreteProduct {
+namespace GameHive.Model.AIFactory.ConcreteProduct.AntiGo {
     class AntiGoMinMax : MinMax {
         //具体产品信息 包含难度
         public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(1);
