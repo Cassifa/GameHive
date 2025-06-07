@@ -116,7 +116,7 @@ class Game:
                 if winner != -1:
                     winners_z[np.array(current_players) == winner] = 1.0
                     winners_z[np.array(current_players) != winner] = -1.0
-                # 重置MCTS根节点
+                # 重置MCTS根节点，为下一局准备
                 player.reset_player()
                 
                 if is_shown:

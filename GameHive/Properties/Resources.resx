@@ -130,7 +130,7 @@
   <data name="WhitePieces" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\WhitePieces.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="model_9000" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\DRLModels\model_9000.onnx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="model_12000" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DRLModels\model_12000.onnx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

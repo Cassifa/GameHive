@@ -49,6 +49,10 @@ class Trainer:
         self.mse_loss = nn.MSELoss()
         self.cross_entropy_loss = nn.CrossEntropyLoss()
         
+        # 训练进度跟踪
+        self.current_game_num = 0  # 当前训练局数
+        self.start_game_num = 0   # 开始训练时的局数（用于恢复训练）
+        
         # 创建模型保存目录
         os.makedirs(Config.MODEL_DIR, exist_ok=True)
         os.makedirs(Config.EVERY_1000_DIR, exist_ok=True)
@@ -156,22 +160,66 @@ class Trainer:
         action_probs = np.ones(len(board.availables)) / len(board.availables)
         return zip(board.availables, action_probs), 0
     
+    def save_complete_checkpoint(self, checkpoint_path, game_num):
+        """保存完整的训练检查点"""
+        checkpoint = {
+            'game_num': game_num,
+            'model_state_dict': self.policy_value_net.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'data_buffer': list(self.data_buffer),  # 保存数据池
+            'config': {
+                'LEARNING_RATE': Config.LEARNING_RATE,
+                'HIDDEN_FILTERS': Config.HIDDEN_FILTERS,
+                'NUM_RES_LAYERS': Config.NUM_RES_LAYERS,
+                'MCTS_SIMULATIONS': Config.MCTS_SIMULATIONS,
+                'TRAIN_BATCH_SIZE': Config.TRAIN_BATCH_SIZE
+            }
+        }
+        torch.save(checkpoint, checkpoint_path)
+        print(f"完整检查点已保存: {checkpoint_path}")
+    
+    def load_complete_checkpoint(self, checkpoint_path):
+        """加载完整的训练检查点"""
+        checkpoint = torch.load(checkpoint_path, map_location=Config.DEVICE, weights_only=False)
+        
+        # 加载模型状态
+        self.policy_value_net.load_state_dict(checkpoint['model_state_dict'])
+        
+        # 加载优化器状态
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        
+        # 加载数据池
+        if 'data_buffer' in checkpoint and len(checkpoint['data_buffer']) > 0:
+            self.data_buffer.extend(checkpoint['data_buffer'])
+            print(f"恢复数据池: {len(self.data_buffer)} 个样本")
+        
+        # 返回训练局数
+        game_num = checkpoint.get('game_num', 0)
+        print(f"完整检查点已加载，恢复到第 {game_num} 局")
+        return game_num
+
     def save_model_by_strategy(self, game_num):
         """根据策略保存模型"""
-        # 1. 每100次保存（使用SAVE_FREQ参数）
-        if (game_num + 1) % Config.SAVE_FREQ == 0:
-            model_path = os.path.join(Config.EVERY_100_DIR, f"model_{game_num+1}.pth")
-            onnx_path = os.path.join(Config.EVERY_100_DIR, f"model_{game_num+1}.onnx")
+        # 1. 按SAVE_FREQ频率保存（默认100，可命令行修改）
+        if game_num % Config.SAVE_FREQ == 0:
+            model_path = os.path.join(Config.EVERY_100_DIR, f"model_{game_num}.pth")
+            onnx_path = os.path.join(Config.EVERY_100_DIR, f"model_{game_num}.onnx")
+            checkpoint_path = os.path.join(Config.EVERY_100_DIR, f"checkpoint_{game_num}.pth")
+            
             self.policy_value_net.save_model(model_path)
             self.policy_value_net.export_onnx(onnx_path)
-            print(f"模型已保存: {model_path}")
+            self.save_complete_checkpoint(checkpoint_path, game_num)
+            print(f"每{Config.SAVE_FREQ}次模型已保存: {model_path}")
         
-        # 2. 每1000次保存
-        if (game_num + 1) % Config.SAVE_EVERY_1000 == 0:
-            model_path = os.path.join(Config.EVERY_1000_DIR, f"model_{game_num+1}.pth")
-            onnx_path = os.path.join(Config.EVERY_1000_DIR, f"model_{game_num+1}.onnx")
+        # 2. 每1000次固定保存（不受命令行影响）
+        if game_num % Config.SAVE_EVERY_1000 == 0:
+            model_path = os.path.join(Config.EVERY_1000_DIR, f"model_{game_num}.pth")
+            onnx_path = os.path.join(Config.EVERY_1000_DIR, f"model_{game_num}.onnx")
+            checkpoint_path = os.path.join(Config.EVERY_1000_DIR, f"checkpoint_{game_num}.pth")
+            
             self.policy_value_net.save_model(model_path)
             self.policy_value_net.export_onnx(onnx_path)
+            self.save_complete_checkpoint(checkpoint_path, game_num)
             print(f"每1000次模型已保存: {model_path}")
             
             # 特殊规则：清除every_100目录下的所有文件
@@ -196,12 +244,21 @@ class Trainer:
         if deleted_count > 0:
             print(f"已清除every_100目录下的 {deleted_count} 个文件")
     
+    def set_start_game_num(self, start_num):
+        """设置开始训练的局数（用于恢复训练）"""
+        self.start_game_num = start_num
+        self.current_game_num = start_num
+        print(f"从第 {start_num} 局开始继续训练")
+    
     def run(self):
         """运行训练"""
-        total_games = 0
+        total_games = self.start_game_num
+        remaining_games = Config.MAX_GAMES - self.start_game_num
+        
         try:
-            for i in range(Config.MAX_GAMES):
-                total_games = i + 1
+            for i in range(remaining_games):
+                self.current_game_num = self.start_game_num + i + 1
+                total_games = self.current_game_num
                 print(f"\n=== 第 {total_games} 局训练 ===")
                 
                 # 收集自我对弈数据
@@ -214,18 +271,18 @@ class Trainer:
                     print(f"损失: {loss:.4f}, 熵: {entropy:.4f}")
                 
                 # 使用新的保存策略
-                self.save_model_by_strategy(i)
+                self.save_model_by_strategy(total_games)
                 
-                # 定期评估模型（仅在保存模型时评估）
-                if (i + 1) % Config.SAVE_FREQ == 0 and i > 200:
+                # 定期评估模型（每SAVE_FREQ局评估一次）
+                if total_games % Config.SAVE_FREQ == 0 and total_games > 200:
                     win_ratio = self.policy_evaluate()
                     if win_ratio > 0.6:  # 如果胜率超过60%，可以考虑增加MCTS模拟次数
                         print("模型表现良好，可以考虑增加MCTS模拟次数")
                 
                 # 定期清理数据池（可选）
                 if len(self.data_buffer) > Config.TRAIN_DATA_POOL_SIZE * 0.9:
-                    print("数据池接近满载，清理旧数据")
-                    # 可以在这里实现数据池清理逻辑
+                    print("数据池接近满载，旧数据自动被新数据替换")
+                    # deque会自动清理最老的数据
         
         except KeyboardInterrupt:
             print(f"\n训练被用户中断，已完成 {total_games} 局训练")

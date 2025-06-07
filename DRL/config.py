@@ -16,12 +16,12 @@ class Config:
     L2_REGULARIZATION = 1e-4  # L2正则化系数
     
     # MCTS参数
-    MCTS_SIMULATIONS = 100  # MCTS模拟次数
+    MCTS_SIMULATIONS = 400  # MCTS模拟次数（从100增加到400）
     C_PUCT = 5  # UCB公式中的探索常数
     
     # 训练参数
     MAX_GAMES = 2000  # 最大训练局数
-    SAVE_FREQ = 100  # 模型保存频率
+    SAVE_FREQ = 100  # 模型保存频率（可通过命令行修改）
     TRAIN_BATCH_SIZE = 2048  # 训练批次大小
     TRAIN_DATA_POOL_SIZE = 36000  # 训练数据池大小
     EPOCHS_PER_UPDATE = 10  # 每次更新的训练轮数

@@ -136,8 +136,8 @@ class MCTSPlayer:
             else:
                 # 对弈时选择概率最大的动作
                 move = np.random.choice(acts, p=probs)
-                # 重置搜索树
-                self.mcts.update_with_move(-1)
+                # 保留搜索树，提高效率
+                self.mcts.update_with_move(move)
             
             if return_prob:
                 return move, move_probs

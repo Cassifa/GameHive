@@ -47,6 +47,8 @@ def parse_args():
                        help='模型保存目录 (默认: models)')
     parser.add_argument('--resume', type=str, default=None,
                        help='从指定模型继续训练')
+    parser.add_argument('--resume_checkpoint', type=str, default=None,
+                       help='从完整检查点继续训练（包含优化器状态和数据池）')
     
     return parser.parse_args()
 
@@ -95,13 +97,38 @@ def main():
         # 创建训练器
         trainer = Trainer(use_gpu=Config.USE_GPU)
         
+        # 检查是否从完整检查点恢复
+        if args.resume_checkpoint:
+            if os.path.exists(args.resume_checkpoint):
+                start_game_num = trainer.load_complete_checkpoint(args.resume_checkpoint)
+                trainer.set_start_game_num(start_game_num)
+                print(f"从完整检查点 {args.resume_checkpoint} 恢复训练")
+            else:
+                print(f"警告: 检查点文件 {args.resume_checkpoint} 不存在，从头开始训练")
+                trainer.set_start_game_num(0)
         # 如果指定了恢复模型，加载它
-        if args.resume:
+        elif args.resume:
             if os.path.exists(args.resume):
                 trainer.policy_value_net.load_model(args.resume)
                 print(f"从 {args.resume} 恢复训练")
+                print("⚠️  警告: 仅加载了模型权重，优化器状态和数据池已重置")
+                print("⚠️  这可能导致性能退化，建议使用 --resume_checkpoint 参数")
+                
+                # 从文件名中提取训练局数
+                import re
+                filename = os.path.basename(args.resume)
+                match = re.search(r'model_(\d+)', filename)
+                if match:
+                    start_game_num = int(match.group(1))
+                    trainer.set_start_game_num(start_game_num)
+                else:
+                    print("无法从文件名中解析局数，从第0局开始")
+                    trainer.set_start_game_num(0)
             else:
                 print(f"警告: 模型文件 {args.resume} 不存在，从头开始训练")
+                trainer.set_start_game_num(0)
+        else:
+            trainer.set_start_game_num(0)
         
         # 开始训练
         print("\n开始训练...")

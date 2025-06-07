@@ -126,7 +126,7 @@ class PolicyValueNet(nn.Module):
     
     def load_model(self, model_path):
         """加载模型"""
-        self.load_state_dict(torch.load(model_path, map_location=Config.DEVICE))
+        self.load_state_dict(torch.load(model_path, map_location=Config.DEVICE, weights_only=False))
         print(f"模型已从 {model_path} 加载")
     
     def export_onnx(self, onnx_path, input_shape=None):
