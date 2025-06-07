@@ -1,6 +1,26 @@
 ﻿/*************************************************************************************
  * 文 件 名:   DeepRL.cs
  * 描    述:   深度强化学习抽象产品
+ *          核心功能：神经网络策略评估 + 价值网络 + MCTS融合
+ *          支持模式：1.直接神经网络评估 2.单线程DRL-MCTS 3.多线程DRL-MCTS（继承搜索树）
+ *          提供方法：1.获取AI下一步（实现抽象方法）
+ *                  2.直接神经网络决策
+ *                  3.单线程DRL-MCTS决策（每次重建搜索树）
+ *                  4.多线程DRL-MCTS决策（持久搜索树+换根）
+ *                  5.神经网络推理和策略选择
+ *                  6.基于神经网络先验概率的MCTS扩展
+ *                  7.神经网络价值评估替代随机Rollout
+ *          多线程： 1.开启游戏，构建根节点，开启后台搜索线程
+ *                  2.后台持续进行神经网络指导的MCTS模拟
+ *                  3.获取AI下一步时换根操作，复用搜索结果
+ *                  4.支持玩家思考时AI持续计算
+ *          模型管理：1.ONNX模型加载和预热
+ *                  2.4通道输入转换（AI棋子、玩家棋子、最后落子、当前玩家）
+ *                  3.策略概率和价值评估输出
+ *                  4.模型生命周期管理和资源释放
+ *          抽象方法：
+ *                  1.GetAvailablePositions 获取所有可行落子点
+ *                  2.CheckGameOverByPiece  判断游戏结束状态
  * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
  * 创 建 者：  Cassifa
  * 创建时间：  2025/4/27 19:58
@@ -12,6 +32,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace GameHive.Model.AIFactory.AbstractAIProduct {
     internal abstract class DeepRL : AbstractAIStrategy {
+        //DRL参数
         protected InferenceSession? session;
         protected int boardSize;
         protected int PlayedPiecesCnt = 0;
@@ -20,11 +41,22 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected bool isModelWarmedUp = false; //模型是否已 warm-up
         protected byte[]? modelBytes; //模型
 
-        //MCTS相关参数
+        //DRL-MCTS相关参数
         protected int MCTSimulations = 400; //MCTS模拟次数
         protected double exploreFactor = 5.0; //DRL-UCB探索常数
 
-        //获取可行落子点
+        //多线程MCTS参数
+        private MCTSNode? RootNode;//根节点
+        private readonly Mutex mutex = new Mutex();//互斥锁
+        private volatile bool end = false;//游戏结束信号
+        protected int SearchCount = 4000;//单次游戏搜索轮数
+        private int AIMoveSearchCount;//互斥期间搜索次数-用于判断是否达到SearchCount
+        private bool PlayerPlaying;//是否玩家正在思考
+        private Task? searchTask;//搜索任务
+        protected bool MultiThreadExecutionEnabled = true;//是否启用多线程搜索
+        protected int MinSearchCount = 1000;//最小搜索次数（达到后释放锁）
+
+        //获取可行落子点-可以不返回所有空节点，看子类实现策略
         protected abstract List<Tuple<int, int>> GetAvailablePositions(List<List<Role>> currentBoard);
 
         /**********算法输入获取方法**********/
@@ -32,7 +64,9 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         public override Tuple<int, int> GetNextAIMove(List<List<Role>> currentBoard, int lastX, int lastY) {
             //根据是否使用蒙特卡洛搜索决定策略
             Tuple<int, int> move;
-            if (useMonteCarlo) {
+            if (useMonteCarlo && MultiThreadExecutionEnabled) {
+                move = GetMCTSMoveWithMultiThread(currentBoard, lastX, lastY);
+            } else if (useMonteCarlo) {
                 move = GetMCTSMoveWithNN(currentBoard, lastX, lastY);
             } else {
                 move = GetDirectModelMove(currentBoard, lastX, lastY);
@@ -41,15 +75,75 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             return move;
         }
 
-        //直接使用DRL模型获取
-        protected virtual Tuple<int, int> GetDirectModelMove(List<List<Role>> currentBoard, int lastX, int lastY) {
-            var input = ConvertBoardToInput(currentBoard, lastX, lastY);
-            var (policy, value) = RunInference(input);
-            return SelectBestMove(policy, currentBoard);
+        //使用DRL-MCTS获取 ：重用搜索树
+        protected virtual Tuple<int, int> GetMCTSMoveWithMultiThread(List<List<Role>> currentBoard, int lastX, int lastY) {
+            //争夺锁，换根
+            lock (mutex) {
+                PlayerPlaying = false;
+                //根据玩家决策换根
+                if (lastX != -1 && RootNode != null) {
+                    RootNode = RootNode.MoveRoot(lastX, lastY, (node, force) => NodeExpansionWithNNForced(node, currentBoard, force));
+                }
+                AIMoveSearchCount = 0;
+
+                //释放锁并等待搜索线程通知-收到通知后判断是否达标
+                while (AIMoveSearchCount <= SearchCount)
+                    Monitor.Wait(mutex);
+
+                //根据AI决策换根
+                if (RootNode == null) {
+                    throw new InvalidOperationException("根节点为空，无法获取AI决策");
+                }
+
+                var bestChild = RootNode.ChildrenMap.Values.OrderByDescending(child => child.VisitedTimes).FirstOrDefault();
+                if (bestChild == null) {
+                    //如果没有子节点，使用传统方法
+                    PlayerPlaying = true;
+                    return GetDirectModelMove(currentBoard, lastX, lastY);
+                }
+
+                Tuple<int, int> AIDecision = bestChild.PieceSelectedCompareToFather;
+                RootNode = RootNode.MoveRoot(AIDecision.Item1, AIDecision.Item2, (node, force) => NodeExpansionWithNNForced(node, GetBoardAfterMove(currentBoard, AIDecision), force));
+
+                //轮到玩家
+                PlayerPlaying = true;
+                return AIDecision;
+            }
         }
 
+        //获取执行移动后的棋盘状态
+        private List<List<Role>> GetBoardAfterMove(List<List<Role>> board, Tuple<int, int> move) {
+            var newBoard = CopyBoard(board);
+            newBoard[move.Item1][move.Item2] = Role.AI;
+            return newBoard;
+        }
 
-        //使用DRL-MCTS获取
+        //执行一次搜索任务 - 参考MCTS.cs的EvalToGo
+        private void EvalToGo() {
+            //一直执行直到结束
+            while (!end) {
+                lock (mutex) {
+                    //禁用多线程搜索标记或玩家正在思考时跳过
+                    if (!MultiThreadExecutionEnabled && PlayerPlaying) {
+                        continue;
+                    }
+
+                    //确保根节点存在
+                    if (RootNode == null) {
+                        continue;
+                    }
+
+                    //搜最小单元后释放一次锁
+                    for (int i = 0; i < MinSearchCount && RootNode != null; i++) {
+                        SimulationOnceWithNN(RootNode, CopyBoard(RootNode.NodeBoard));
+                    }
+                    AIMoveSearchCount += MinSearchCount;
+                    Monitor.Pulse(mutex);
+                }
+            }
+        }
+
+        //使用DRL-MCTS获取：不重用搜索树
         protected virtual Tuple<int, int> GetMCTSMoveWithNN(List<List<Role>> currentBoard, int lastX, int lastY) {
             //创建MCTS根 - 当前轮到AI下棋
             var rootNode = new MCTSNode(currentBoard, null, -1, -1, Role.AI, Role.Empty, GetAvailablePositions(currentBoard));
@@ -62,13 +156,14 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             return bestMove;
         }
 
+        //直接使用DRL模型获取
+        protected virtual Tuple<int, int> GetDirectModelMove(List<List<Role>> currentBoard, int lastX, int lastY) {
+            var input = ConvertBoardToInput(currentBoard, lastX, lastY);
+            var (policy, value) = RunInference(input);
+            return SelectBestMove(policy, currentBoard);
+        }
 
         /**********嵌入DRL的MCTS方法**********/
-        //DRL-MCTS改进：
-        //1.用神经网络价值评估替代随机 rollout - 提供更准确的叶子节点估值
-        //2.用神经网络策略概率作为UCB公式的先验概率 - 指导更智能的探索
-        //3.大幅减少模拟次数的同时获得更好效果
-
         //从MCTS结果中选择移动
         private Tuple<int, int> SelectMoveFromMCTSWithNN(MCTSNode rootNode) {
             //选择访问次数最多的移动
@@ -77,7 +172,6 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         }
 
         //基于DRL的MCTS过程
-        //关键创新：用神经网络估值替代传统的随机模拟到底
         private void SimulationOnceWithNN(MCTSNode node, List<List<Role>> board) {
             var path = new List<MCTSNode>();
             var currentNode = node;
@@ -86,12 +180,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             var currentPieceCount = PlayedPiecesCnt;
 
             //Selection-选择阶段：从根节点向下选择到叶子节点
-            //使用ADRL-先验概率UCB选择
             while (!currentNode.IsLeaf) {
                 path.Add(currentNode);
                 var selectedChild = currentNode.GetGreatestUCB(exploreFactor);
 
-                //确保 selectedChild 不为 null - 理论上不会发生，因为已经确保根节点被扩展
+                //确保 selectedChild 不为 null
                 if (selectedChild == null) {
                     Console.WriteLine("错误：GetGreatestUCB返回 null！");
                     break;
@@ -107,7 +200,6 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             path.Add(currentNode);
 
             //评估阶段：检查游戏是否结束
-            //获取当前节点的移动位置，如果是根节点则使用(-1, -1)
             var currentMove = currentNode.PieceSelectedCompareToFather ?? new Tuple<int, int>(-1, -1);
 
             //临时保存全局计数，使用模拟中的计数进行游戏结束判断
@@ -128,15 +220,13 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
 
                 //新叶子节点-扩展
                 if (currentNode.IsNewLeaf()) {
-                    //使用神经网络的策略概率指导扩展 - 这为UCB提供了智能的先验概率
                     NodeExpansionWithNN(currentNode, currentBoard, policy, currentPieceCount);
                 }
 
-                //使用神经网络的价值评估作为 leaf_value (Evaluation)
-                //networkValue > 0 表示对AI有利，< 0 表示对Player有利
+                //使用神经网络的价值评估作为 leaf_value
                 winner = (networkValue > 0) ? Role.AI : Role.Player;
             }
-            //反向传播-真实游戏结果还是神经网络估值，都通过相同的方式传播
+            //反向传播
             currentNode.BackPropagation(winner);
         }
 
@@ -149,11 +239,11 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
                 var newBoard = CopyBoard(board);
                 newBoard[move.Item1][move.Item2] = nextPlayer;
 
-                //获取该位置的先验概率 - 这是AlphaGo-Zero的核心创新
+                //获取该位置的先验概率
                 int policyIndex = move.Item1 * boardSize + move.Item2;
                 double priorProbability = (policyIndex < policy.Length) ? policy[policyIndex] : 0.0;
 
-                //使用带先验概率的构造函数创建子节点 - 完全模仿AlphaGo-Zero
+                //使用带先验概率的构造函数创建子节点
                 var childNode = new MCTSNode(newBoard, node, move.Item1, move.Item2, nextPlayer, Role.Empty,
                     GetAvailablePositions(newBoard), priorProbability);
 
@@ -163,18 +253,48 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             node.IsLeaf = false;
         }
 
+        //强制拓展节点 - 用于换根时确保节点被正确扩展
+        private void NodeExpansionWithNNForced(MCTSNode node, List<List<Role>> board, bool force = false) {
+            if (!node.IsLeaf && !force)
+                return; // 已经扩展过了，除非强制扩展
+
+            var availableMoves = GetAvailablePositions(board);
+            if (availableMoves.Count == 0) {
+                // 如果强制扩展但没有可用移动，获取所有空位置
+                if (force) {
+                    availableMoves = GetAllEmptyPositions(board);
+                }
+                if (availableMoves.Count == 0)
+                    return; // 仍然没有可用移动
+            }
+
+            //获取策略概率
+            var input = ConvertBoardToInput(board, -1, -1);
+            var (policy, _) = RunInference(input);
+
+            NodeExpansionWithNN(node, board, policy, PlayedPiecesCnt);
+        }
+
+        //获取所有空位置 - 防止换根失败
+        private List<Tuple<int, int>> GetAllEmptyPositions(List<List<Role>> board) {
+            var positions = new List<Tuple<int, int>>();
+            for (int i = 0; i < board.Count; i++) {
+                for (int j = 0; j < board[i].Count; j++) {
+                    if (board[i][j] == Role.Empty) {
+                        positions.Add(new Tuple<int, int>(i, j));
+                    }
+                }
+            }
+            return positions;
+        }
+
         //复制棋盘
         private List<List<Role>> CopyBoard(List<List<Role>> board) {
             return board.Select(row => new List<Role>(row)).ToList();
         }
 
-
         /**********模型调用工具函数**********/
         //将棋盘状态转换为模型输入格式
-        //currentBoard:当前棋盘状态
-        //lastX:上一步X坐标
-        //lastY:上一步Y坐标
-        //返回:4通道的输入张量
         protected virtual float[,,,] ConvertBoardToInput(List<List<Role>> currentBoard, int lastX = -1, int lastY = -1) {
             //创建4通道输入: [batch_size=1, channels=4, height=8, width=8]
             var input = new float[1, 4, boardSize, boardSize];
@@ -207,8 +327,6 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         }
 
         //使用模型进行推理
-        //input:输入张量
-        //返回:策略概率和价值评估
         protected virtual (float[] policy, float value) RunInference(float[,,,] input) {
             if (session == null) {
                 throw new InvalidOperationException("模型未正确加载");
@@ -264,13 +382,34 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             return bestMove;
         }
 
+        //加载ONNX模型
+        protected void LoadModel(byte[] modelBytes) {
+            if (modelBytes == null || modelBytes.Length == 0) {
+                throw new InvalidOperationException("模型资源不存在");
+            }
+            session = new InferenceSession(modelBytes);
+            isModelLoaded = true;
+            this.modelBytes = modelBytes;
+        }
+
 
         /**********模型生命周期管理**********/
-        //游戏开始时的初始化
+        //游戏开始时的初始化 - 参考MCTS.cs的GameStart
         public override void GameStart(bool IsAIFirst) {
             Console.WriteLine($"GameStart: session={session != null}, isModelLoaded={isModelLoaded}, isModelWarmedUp={isModelWarmedUp}");
 
-            //重置棋子计数
+            //停止之前的搜索
+            end = true;
+            if (searchTask != null && !searchTask.IsCompleted) {
+                try {
+                    searchTask.Wait(1000);
+                } catch {
+                    // 忽略等待异常
+                }
+            }
+
+            //重置状态
+            end = false;
             PlayedPiecesCnt = 0;
 
             //如果 session 已被释放或模型未加载，重新加载模型
@@ -283,16 +422,33 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             }
             //在游戏开始时预热模型
             WarmUpModel();
-        }
 
-        //加载ONNX模型
-        protected void LoadModel(byte[] modelBytes) {
-            if (modelBytes == null || modelBytes.Length == 0) {
-                throw new InvalidOperationException("模型资源不存在");
+            //创建根节点 - 参考MCTS.cs
+            if (useMonteCarlo && MultiThreadExecutionEnabled) {
+                List<List<Role>> board = new List<List<Role>>(boardSize);
+                for (int i = 0; i < boardSize; i++) {
+                    List<Role> row = new List<Role>(boardSize);
+                    for (int j = 0; j < boardSize; j++) {
+                        row.Add(Role.Empty);
+                    }
+                    board.Add(row);
+                }
+
+                //非先手者作为虚拟节点（根节点的父节点）所属人
+                Role WhoLeadTo;
+                if (IsAIFirst) {
+                    WhoLeadTo = Role.Player;
+                    PlayerPlaying = false;
+                } else {
+                    WhoLeadTo = Role.AI;
+                    PlayerPlaying = true;
+                }
+
+                RootNode = new MCTSNode(board, null, -1, -1, WhoLeadTo, Role.Empty, GetAvailablePositions(board));
+
+                //启动搜索任务
+                searchTask = Task.Run(() => EvalToGo());
             }
-            session = new InferenceSession(modelBytes);
-            isModelLoaded = true;
-            this.modelBytes = modelBytes;
         }
 
         //预热模型
@@ -315,9 +471,28 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             Console.WriteLine("模型预热完成");
         }
 
-        //释放资源
+        //释放资源 - 参考MCTS.cs的GameForcedEnd
         public override void GameForcedEnd() {
             Console.WriteLine("GameForcedEnd: 释放模型资源");
+            end = true;
+
+            // 通知等待的线程
+            lock (mutex) {
+                Monitor.PulseAll(mutex);
+            }
+
+            // 等待搜索任务结束
+            if (searchTask != null && !searchTask.IsCompleted) {
+                try {
+                    searchTask.Wait(2000); // 等待最多2秒
+                } catch {
+                    // 忽略等待异常
+                }
+            }
+
+            searchTask = null;
+            RootNode = null;
+
             session?.Dispose();
             session = null;
             isModelLoaded = false;
