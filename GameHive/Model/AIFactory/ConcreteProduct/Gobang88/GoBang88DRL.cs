@@ -26,20 +26,26 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
             switch (level) {
                 case DifficultyLevel.LEVEL_1://直接使用网络评估值
                     useMonteCarlo = false;
-                    MultiThreadExecutionEnabled = false;
+                    SearchTreeReuseEnabled = false;
                     modelBytes = Properties.Resources.model_12000;
                     break;
-                case DifficultyLevel.LEVEL_2://启用MCTS + 多线程搜索
+                case DifficultyLevel.LEVEL_2://启用MCTS + 搜索树重用
                     useMonteCarlo = true;
-                    MultiThreadExecutionEnabled = true;
-                    MCTSimulations = 800; // 多线程时可以设置更多模拟次数
+                    SearchTreeReuseEnabled = true;
+                    MinSearchCount = 1000;  // 每次释放锁前的最小搜索次数
+                    SearchCount = 10000;    // 每次AI决策的搜索轮数
+                    modelBytes = Properties.Resources.model_12000;
+                    break;
+                case DifficultyLevel.LEVEL_3://启用MCTS + 搜索树重用（配置与难度2相同）
+                    useMonteCarlo = true;
+                    SearchTreeReuseEnabled = true;
                     MinSearchCount = 1000;  // 每次释放锁前的最小搜索次数
                     SearchCount = 10000;    // 每次AI决策的搜索轮数
                     modelBytes = Properties.Resources.model_12000;
                     break;
                 default:
                     useMonteCarlo = false;
-                    MultiThreadExecutionEnabled = false;
+                    SearchTreeReuseEnabled = false;
                     modelBytes = Properties.Resources.model_12000;
                     break;
             }
@@ -58,7 +64,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 }
                 return Role.Empty;
             }
-            
+
             Role currentPlayer = currentBoard[x][y];
             //水平、垂直、主对角线、副对角线
             int[] dx = { 1, 0, 1, 1 };
