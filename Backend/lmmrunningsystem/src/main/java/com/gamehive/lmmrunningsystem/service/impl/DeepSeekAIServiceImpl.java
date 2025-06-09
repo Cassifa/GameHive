@@ -54,47 +54,88 @@ public class DeepSeekAIServiceImpl {
      * 集成决策记忆存储功能，将每次决策结果自动存储到对话历史中
      *
      * @param lmmRequest 大模型请求对象，包含游戏状态和配置信息
-     * @param gameId     游戏唯一标识符，用作对话记忆的会话ID
      * @return LMMDecisionResult 大模型的决策结果，包含坐标和理由
      */
-    public LMMDecisionResult getDecision(LMMRequestDTO lmmRequest, Integer gameId) {
+    public LMMDecisionResult getDecision(LMMRequestDTO lmmRequest) {
+        Integer gameId = lmmRequest.getGameId();
         String conversationId = gameId.toString();
-        String prompt = PromptTemplateBuilder.buildInitialPrompt(lmmRequest);
         LMMDecisionResult result = null;
         ValidationResultEnum validationResult = null;
         int retryCount = 0;
 
+        //是否是新对话
+        boolean isNewConversation;
+        try {
+            isNewConversation = chatMemory.get(conversationId, -1).isEmpty();
+        } catch (Exception e) {
+            isNewConversation = true;
+        }
+
+        // 构建提示词
+        String systemPrompt = null;
+        String userPrompt;
+
+        if (isNewConversation) {
+            //首次对话构造系统提示词
+            systemPrompt = PromptTemplateBuilder.buildSystemPrompt(
+                    lmmRequest.getGameType(),
+                    lmmRequest.getGameRule(),
+                    lmmRequest.getLLMFlag(),
+                    lmmRequest.getGridSize());
+        }
+        //构造用户查询信息
+        userPrompt = PromptTemplateBuilder.buildUserPrompt(
+                lmmRequest.getCurrentMap(),
+                lmmRequest.getHistorySteps());
+
         while (retryCount < maxRetryCount) {
             try {
-                result = chatClient.prompt()
-                        .advisors(advisorSpec -> advisorSpec.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId))
-                        .user(prompt)
+                // 构建prompt调用
+                var promptSpec = chatClient.prompt()
+                        .advisors(advisorSpec ->
+                                advisorSpec.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId));
+
+                // 如果是新对话，设置系统提示词
+                if (systemPrompt != null) {
+                    promptSpec = promptSpec.system(systemPrompt);
+                }
+
+                result = promptSpec
+                        .user(userPrompt)
                         .call()
                         .entity(LMMDecisionResult.class);
 
                 log.info("大模型响应(第{}次, 游戏ID: {}): {}", retryCount + 1, gameId, result);
 
-                //获取到相应
+                //获取到响应
                 if (result != null) {
-                    //验证相应
+                    //验证响应
                     validationResult = result.validate(lmmRequest);
 
                     if (validationResult == ValidationResultEnum.VALID) {
                         log.info("大模型决策成功(游戏ID: {}): x={}, y={}", gameId, result.getX(), result.getY());
                         break;
                     } else {
-                        //计入记忆
+                        //记入记忆
                         storeDecisionMemory(lmmRequest, result, validationResult, conversationId);
                         retryCount++;
                         if (retryCount < maxRetryCount) {
-                            prompt = PromptTemplateBuilder.buildRetryPrompt(lmmRequest, result);
+                            userPrompt = PromptTemplateBuilder.buildRetryPrompt(
+                                    result,
+                                    lmmRequest.getCurrentMap(),
+                                    lmmRequest.getGridSize());
+                            systemPrompt = null;
                             log.warn("第{}次重试(游戏ID: {})，原因：{}", retryCount, gameId, validationResult.getDescription());
                         }
                     }
                 } else {
                     retryCount++;
                     if (retryCount < maxRetryCount) {
-                        prompt = PromptTemplateBuilder.buildRetryPrompt(lmmRequest, null);
+                        userPrompt = PromptTemplateBuilder.buildRetryPrompt(
+                                null,
+                                lmmRequest.getCurrentMap(),
+                                lmmRequest.getGridSize());
+                        systemPrompt = null;
                         log.warn("第{}次重试(游戏ID: {})，原因：结果解析失败", retryCount, gameId);
                     }
                 }
@@ -102,7 +143,11 @@ public class DeepSeekAIServiceImpl {
                 retryCount++;
                 log.error("大模型调用失败(第{}次, 游戏ID: {}): {}", retryCount, gameId, e.getMessage(), e);
                 if (retryCount < maxRetryCount) {
-                    prompt = PromptTemplateBuilder.buildRetryPrompt(lmmRequest, null);
+                    userPrompt = PromptTemplateBuilder.buildRetryPrompt(
+                            null,
+                            lmmRequest.getCurrentMap(),
+                            lmmRequest.getGridSize());
+                    systemPrompt = null;
                 }
             }
         }
@@ -132,7 +177,10 @@ public class DeepSeekAIServiceImpl {
                                      ValidationResultEnum validationResult,
                                      String conversationId) {
         try {
-            String memoryText = PromptTemplateBuilder.buildDecisionMemory(lmmRequest, decision, validationResult);
+            String memoryText = PromptTemplateBuilder.buildDecisionMemory(
+                    lmmRequest.getCurrentMap(),
+                    decision,
+                    validationResult);
             AssistantMessage memoryMessage = new AssistantMessage(memoryText);
             chatMemory.add(conversationId, memoryMessage);
             log.debug("决策记忆已存储(游戏ID: {}): {}", conversationId, memoryText);

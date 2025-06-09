@@ -31,14 +31,18 @@ public class LMMDecisionResult {
     }
 
     public ValidationResultEnum validate(LMMRequestDTO lmmRequest) {
+        return validate(lmmRequest.getCurrentMap(), lmmRequest.getGridSize());
+    }
+
+    public ValidationResultEnum validate(String currentMap, String gridSize) {
         if (x == null || y == null) {
             return ValidationResultEnum.INVALID_FORMAT;
         }
-        int gridSize = Integer.parseInt(lmmRequest.getGridSize());
-        if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) {
+        int size = Integer.parseInt(gridSize);
+        if (x < 0 || x >= size || y < 0 || y >= size) {
             return ValidationResultEnum.OUT_OF_BOUNDS;
         }
-        String[] rows = lmmRequest.getCurrentMap().split("\n");
+        String[] rows = currentMap.split("\n");
         if (x < rows.length && y < rows[x].length()) {
             char position = rows[x].charAt(y);
             if (position != '0') {

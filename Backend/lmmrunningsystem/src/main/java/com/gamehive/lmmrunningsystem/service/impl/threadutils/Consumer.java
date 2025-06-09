@@ -60,8 +60,8 @@ public class Consumer extends Thread {
         try {
             log.info("开始处理大模型决策请求 (游戏ID: {})", lmmRequest.getGameId());
 
-            // 使用DeepSeek AI服务获取决策，传递gameId用于对话记忆
-            LMMDecisionResult decision = deepSeekAIService.getDecision(lmmRequest, lmmRequest.getGameId());
+            // 使用DeepSeek AI服务获取决策
+            LMMDecisionResult decision = deepSeekAIService.getDecision(lmmRequest);
 
             // 发送移动结果
             MultiValueMap<String, String> data = new LinkedMultiValueMap<>();

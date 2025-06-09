@@ -20,12 +20,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ChatClientConfig {
 
-    /**
-     * 创建InMemoryChatMemory Bean
-     * 用于存储游戏会话的对话历史记录
-     *
-     * @return ChatMemory 内存中的对话记忆实例
-     */
     @Bean
     @Qualifier("gameChatMemory")
     public ChatMemory gameChatMemory() {
@@ -33,9 +27,6 @@ public class ChatClientConfig {
     }
 
     /**
-     * 创建专用于游戏决策的ChatClient Bean
-     * 使用Spring AI Alibaba自动配置的ChatClient.Builder并配置对话记忆功能
-     *
      * @param chatClientBuilder Spring AI Alibaba自动配置的ChatClient.Builder
      * @param gameChatMemory    游戏对话记忆实例
      * @return ChatClient 配置好的游戏决策聊天客户端实例
@@ -45,7 +36,7 @@ public class ChatClientConfig {
     public ChatClient gameDecisionChatClient(ChatClient.Builder chatClientBuilder,
                                              @Qualifier("gameChatMemory") ChatMemory gameChatMemory) {
         return chatClientBuilder
-                .defaultSystem(PromptTemplateBuilder.buildSystemPrompt())
+                .defaultSystem(PromptTemplateBuilder.buildBaseSystemPrompt())
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(gameChatMemory).build())
                 .build();
     }

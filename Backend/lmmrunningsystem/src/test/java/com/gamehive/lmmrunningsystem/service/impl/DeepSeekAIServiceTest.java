@@ -44,7 +44,7 @@ public class DeepSeekAIServiceTest {
         );
         
         System.out.println("=== 测试井字棋开局场景 ===");
-        LMMDecisionResult result = deepSeekAIService.getDecision(request, 1001);
+        LMMDecisionResult result = deepSeekAIService.getDecision(request);
         
         assertNotNull(result, "大模型应该返回决策结果");
         assertNotNull(result.getX(), "X坐标不能为空");
@@ -81,7 +81,7 @@ public class DeepSeekAIServiceTest {
         );
         
         System.out.println("=== 测试井字棋防守场景 ===");
-        LMMDecisionResult result = deepSeekAIService.getDecision(request, 1002);
+        LMMDecisionResult result = deepSeekAIService.getDecision(request);
         
         assertNotNull(result, "大模型应该返回决策结果");
         assertTrue(result.isValid(request), "决策结果应该有效");
@@ -117,7 +117,7 @@ public class DeepSeekAIServiceTest {
         );
         
         System.out.println("=== 测试井字棋进攻场景 ===");
-        LMMDecisionResult result = deepSeekAIService.getDecision(request, 1003);
+        LMMDecisionResult result = deepSeekAIService.getDecision(request);
         
         assertNotNull(result, "大模型应该返回决策结果");
         assertTrue(result.isValid(request), "决策结果应该有效");
@@ -153,7 +153,7 @@ public class DeepSeekAIServiceTest {
         );
         
         System.out.println("=== 测试井字棋复杂中局 ===");
-        LMMDecisionResult result = deepSeekAIService.getDecision(request, 1004);
+        LMMDecisionResult result = deepSeekAIService.getDecision(request);
         
         assertNotNull(result, "大模型应该返回决策结果");
         assertTrue(result.isValid(request), "决策结果应该有效");
@@ -181,7 +181,7 @@ public class DeepSeekAIServiceTest {
         );
         
         System.out.println("=== 测试4x4四子棋场景 ===");
-        LMMDecisionResult result = deepSeekAIService.getDecision(request, 1005);
+        LMMDecisionResult result = deepSeekAIService.getDecision(request);
         
         assertNotNull(result, "大模型应该返回决策结果");
         assertTrue(result.isValid(request), "决策结果应该有效");
@@ -210,7 +210,7 @@ public class DeepSeekAIServiceTest {
         );
         
         System.out.println("=== 测试接近满盘场景 ===");
-        LMMDecisionResult result = deepSeekAIService.getDecision(request, 1006);
+        LMMDecisionResult result = deepSeekAIService.getDecision(request);
         
         assertNotNull(result, "大模型应该返回决策结果");
         assertTrue(result.isValid(request), "决策结果应该有效");
