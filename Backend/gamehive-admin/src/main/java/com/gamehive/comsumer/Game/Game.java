@@ -6,6 +6,7 @@ import com.gamehive.comsumer.constants.CellRoleEnum;
 import com.gamehive.comsumer.constants.FeedBackEventTypeEnum;
 import com.gamehive.comsumer.constants.GameStatusEnum;
 import com.gamehive.comsumer.message.FeedBackObj;
+import com.gamehive.comsumer.message.LMMRequestDTO;
 import com.gamehive.comsumer.stratey.*;
 import com.gamehive.constants.GameTypeEnum;
 import com.gamehive.constants.SpecialPlayerEnum;
@@ -15,11 +16,11 @@ import com.gamehive.pojo.Player;
 import com.gamehive.pojo.Record;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
@@ -27,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Game extends Thread {
 
     private final static String addBotUrl = "http://127.0.0.1:3002/LMMRunning/add/";
+    private final Integer gameId; // 游戏唯一标识符
     private final Integer rows, cols;
     //是否为与大模型下棋
     private final Boolean forLMM;
@@ -54,6 +56,8 @@ public class Game extends Thread {
      */
     public Game(Player a, Player b, SpecialPlayerEnum playerAType, SpecialPlayerEnum playerBType,
                 GameTypeEnum gameTypeEnum, Boolean forLMM) {
+        // 生成游戏唯一标识符
+        this.gameId = UUID.randomUUID().hashCode();
         this.forLMM = forLMM;
         this.gameType = WebSocketServer.gameTypeMapper.selectGameTypeByGameId((long) gameTypeEnum.getCode());
         //初始化判负策略
@@ -112,16 +116,18 @@ public class Game extends Thread {
      * 要求LMM输出
      */
     private void sendLMMCode(GamePlayer player) {
-        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
-        data.add("currentMap", getStringMap());
-        data.add("userId", playerA.getUserId().toString());
-        data.add("LLMFlag", player == playerA ? CellRoleEnum.PLAYER_A.getCode() : CellRoleEnum.PLAYER_B.getCode());
-        data.add("gameType", gameType.getGameName());
-        data.add("gameRole", gameType.getGameRule());
-        data.add("historySteps", buildHistorySteps());
-        data.add("gridSize", gameType.getBoardSize().toString());
-        System.out.println("尝试像LMM运行服务发送信息" + data);
-        WebSocketServer.restTemplate.postForObject(addBotUrl, data, String.class);
+        LMMRequestDTO requestDTO = new LMMRequestDTO();
+        requestDTO.setGameId(gameId);
+        requestDTO.setCurrentMap(getStringMap());
+        requestDTO.setUserId(playerA.getUserId());
+        requestDTO.setLLMFlag(player == playerA ? CellRoleEnum.PLAYER_A.getCode() : CellRoleEnum.PLAYER_B.getCode());
+        requestDTO.setGameType(gameType.getGameName());
+        requestDTO.setGameRule(gameType.getGameRule());
+        requestDTO.setHistorySteps(buildHistorySteps());
+        requestDTO.setGridSize(gameType.getBoardSize().toString());
+        
+        System.out.println("尝试向LMM运行服务发送信息: " + requestDTO);
+        WebSocketServer.restTemplate.postForObject(addBotUrl, requestDTO, String.class);
     }
 
     /**
