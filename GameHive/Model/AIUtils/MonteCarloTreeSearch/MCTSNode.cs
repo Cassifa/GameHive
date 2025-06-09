@@ -88,6 +88,22 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             }
         }
 
+        //DRL反向传播：使用神经网络value进行反向传播
+        public void BackPropagationWithValue(double networkValue) {
+            MCTSNode? currentPropagate = this;
+            while (currentPropagate != null) {
+                currentPropagate.VisitedTimes++;
+                //神经网络 value 是从当前玩家视角的评估，需要根据节点视角调整
+                //networkValue > 0表示当前玩家优势，转换为节点视角
+                if (currentPropagate.LeadToThisStatus == Role.AI) {
+                    currentPropagate.TotalValue += networkValue; // AI视角：直接使用 value
+                } else {
+                    currentPropagate.TotalValue -= networkValue; // Player视角：取反
+                }
+                currentPropagate = currentPropagate.Father;
+            }
+        }
+
         //运行反向传播MinMax 传入刚拓展过的父节点，会反向传播其子节点的胜利信息 此处未考虑平局
         public void RunBackPropagateMinMax() {
             //开启反向传播MinMax

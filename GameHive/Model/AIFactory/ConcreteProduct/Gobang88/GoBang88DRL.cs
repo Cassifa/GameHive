@@ -13,7 +13,7 @@ using GameHive.Model.GameInfo;
 namespace GameHive.Model.AIFactory.ConcreteProduct {
     internal class GoBang88DRL : DeepRL {
         //具体产品信息 包含难度
-        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(2);
+        public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(3);
 
         public GoBang88DRL(int boardSize, DifficultyLevel level) {
             this.boardSize = boardSize;
@@ -36,11 +36,13 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     SearchCount = 10000;    // 每次AI决策的搜索轮数
                     modelBytes = Properties.Resources.model_12000;
                     break;
-                case DifficultyLevel.LEVEL_3://启用MCTS + 搜索树重用（配置与难度2相同）
+                case DifficultyLevel.LEVEL_3://启用MCTS + 多线程搜索
                     useMonteCarlo = true;
-                    SearchTreeReuseEnabled = true;
-                    MinSearchCount = 1000;  // 每次释放锁前的最小搜索次数
-                    SearchCount = 10000;    // 每次AI决策的搜索轮数
+                    SearchTreeReuseEnabled = false;
+                    MultiThreadSearchEnabled = true;
+                    ThreadCount = 6;                      //搜索线程
+                    MultiThreadSearchCount = 10000;       //多线程搜索总轮数
+                    MultiThreadMinSearchCount = 1000;     //批量搜索次数，平衡效率和同步开销
                     modelBytes = Properties.Resources.model_12000;
                     break;
                 default:
