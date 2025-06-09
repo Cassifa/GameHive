@@ -6,7 +6,7 @@ spring:
     dashscope:
       chat:
         options:
-          model: deepseek-r1
+          model: deepseek-v3
   profiles:
     include: secrets
 

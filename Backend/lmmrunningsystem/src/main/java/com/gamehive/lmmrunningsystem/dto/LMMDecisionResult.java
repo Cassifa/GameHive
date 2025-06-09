@@ -17,53 +17,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LMMDecisionResult {
 
-    /**
-     * X坐标（行坐标）
-     * 表示在棋盘上的行位置，从0开始计数
-     */
+    // X坐标（行坐标）
     private Integer x;
 
-    /**
-     * Y坐标（列坐标）
-     * 表示在棋盘上的列位置，从0开始计数
-     */
+    // Y坐标（列坐标）
     private Integer y;
 
-    /**
-     * 决策理由或深度思考内容
-     * 大模型给出此次落子决策的详细分析和理由
-     */
+    // 决策理由或深度思考内容
     private String reason;
 
-    /**
-     * 验证结果是否有效（基础验证）
-     * 仅检查坐标是否为空，不涉及游戏逻辑验证
-     *
-     * @return 如果x和y都不为null则返回true，否则返回false
-     */
-    public boolean isValid() {
-        return x != null && y != null;
-    }
-
-    /**
-     * 验证结果是否有效（完整验证）
-     * 结合游戏状态进行完整的决策有效性验证
-     *
-     * @param lmmRequest 大模型请求对象，包含当前游戏状态信息
-     * @return 如果坐标有效且位置可用则返回true，否则返回false
-     */
-    public boolean isValid(LMMRequest lmmRequest) {
+    public boolean isValid(LMMRequestDTO lmmRequest) {
         return validate(lmmRequest) == ValidationResultEnum.VALID;
     }
 
-    /**
-     * 验证决策结果的详细验证方法
-     * 对决策结果进行全面验证，包括格式、边界和位置占用检查
-     *
-     * @param lmmRequest 大模型请求对象，包含棋盘状态和游戏配置信息
-     * @return ValidationResult 详细的验证结果枚举值
-     */
-    public ValidationResultEnum validate(LMMRequest lmmRequest) {
+    public ValidationResultEnum validate(LMMRequestDTO lmmRequest) {
         if (x == null || y == null) {
             return ValidationResultEnum.INVALID_FORMAT;
         }

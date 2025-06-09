@@ -2,11 +2,11 @@ package com.gamehive.lmmrunningsystem.service.impl;
 
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
 import com.gamehive.lmmrunningsystem.service.LMMRunningService;
-import com.gamehive.lmmrunningsystem.service.impl.utils.LMMPool;
+import com.gamehive.lmmrunningsystem.service.impl.threadutils.LMMPool;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import jakarta.annotation.PostConstruct;
 
 /**
  * 大模型运行服务实现类
@@ -17,6 +17,7 @@ import jakarta.annotation.PostConstruct;
  * @since 1.0.0
  */
 @Service
+@Slf4j
 public class LMMRunningServiceImpl implements LMMRunningService {
 
     /**
@@ -43,10 +44,10 @@ public class LMMRunningServiceImpl implements LMMRunningService {
      */
     @Override
     public String addLMM(LMMRequestDTO requestDTO) {
-        System.out.println("接收到游戏ID为 " + requestDTO.getGameId() + " 的LMM请求");
-        
-        // 调用LMMPool的addLMMRequest方法，传递所有参数
+        log.info("接收到游戏ID：{} 的LMM请求", requestDTO.getGameId());
+
         lmmPool.addLMMRequest(
+                requestDTO.getGameId(),
                 requestDTO.getUserId(),
                 requestDTO.getCurrentMap(),
                 requestDTO.getLLMFlag(),
@@ -55,7 +56,7 @@ public class LMMRunningServiceImpl implements LMMRunningService {
                 requestDTO.getHistorySteps(),
                 requestDTO.getGridSize()
         );
-        
+
         return "大模型请求处理成功";
     }
 }
