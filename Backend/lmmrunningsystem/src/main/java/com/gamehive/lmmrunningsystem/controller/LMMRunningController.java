@@ -34,8 +34,7 @@ public class LMMRunningController {
      */
     @PostMapping("/LMMRunning/add/")
     public String addLMM(@RequestBody LMMRequestDTO requestDTO) {
-        log.info("接收的大模型运行请求");
-        log.debug("请求参数：{}", requestDTO);
+        log.info("LMMRunningController接收大模型运行请求");
 
         // 调用服务层方法，传入DTO对象
         return LMMRunningService.addLMM(requestDTO);

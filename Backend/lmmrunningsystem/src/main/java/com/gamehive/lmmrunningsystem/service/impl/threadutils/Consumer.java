@@ -72,7 +72,7 @@ public class Consumer extends Thread {
             data.add("reason", decision.getReason());
 
             log.info("准备发送LMM移动结果到: {}", receiveBotMoveUrl);
-            log.debug("请求参数: {}", data);
+//            log.debug("请求参数: {}", data);
 
             try {
                 String response = restTemplate.postForObject(receiveBotMoveUrl, data, String.class);

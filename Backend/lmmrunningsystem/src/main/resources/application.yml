@@ -10,6 +10,10 @@ spring:
   profiles:
     include: secrets
 
+logging:
+  level:
+    org.springframework.ai.chat.client.advisor: debug
+    com.gamehive.lmmrunningsystem: debug
 # 大模型配置
 lmm:
   max-retry-count: 3  # 模型结果不符合要求时的最大重试次数

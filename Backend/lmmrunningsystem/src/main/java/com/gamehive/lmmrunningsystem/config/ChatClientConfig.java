@@ -3,6 +3,7 @@ package com.gamehive.lmmrunningsystem.config;
 import com.gamehive.lmmrunningsystem.utils.PromptTemplateBuilder;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,6 +39,7 @@ public class ChatClientConfig {
         return chatClientBuilder
                 .defaultSystem(PromptTemplateBuilder.buildBaseSystemPrompt())
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(gameChatMemory).build())
+                .defaultAdvisors(new SimpleLoggerAdvisor())
                 .build();
     }
 } 
