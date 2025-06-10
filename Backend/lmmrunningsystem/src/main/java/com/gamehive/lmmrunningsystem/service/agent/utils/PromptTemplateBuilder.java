@@ -1,4 +1,4 @@
-package com.gamehive.lmmrunningsystem.utils;
+package com.gamehive.lmmrunningsystem.service.agent.utils;
 
 import com.gamehive.lmmrunningsystem.constants.ValidationResultEnum;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
@@ -124,7 +124,6 @@ public class PromptTemplateBuilder {
 
     /**
      * 构建重试提示词
-     * 仅包含错误反馈，要求重新尝试，不重复已发送的棋盘信息
      *
      * @param previousResult 上次的决策结果
      * @param currentMap     当前棋盘状态（用于验证）
@@ -138,7 +137,6 @@ public class PromptTemplateBuilder {
 
     /**
      * 构建初始查询提示词
-     * 包含完整的系统和用户信息，用于不支持系统提示词分离的场景
      *
      * @param gameType     游戏类型名称
      * @param gameRule     游戏规则描述

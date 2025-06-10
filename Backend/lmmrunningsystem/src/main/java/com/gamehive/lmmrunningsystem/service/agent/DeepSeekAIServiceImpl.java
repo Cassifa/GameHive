@@ -1,9 +1,9 @@
-package com.gamehive.lmmrunningsystem.service.impl;
+package com.gamehive.lmmrunningsystem.service.agent;
 
 import com.gamehive.lmmrunningsystem.constants.ValidationResultEnum;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
-import com.gamehive.lmmrunningsystem.utils.PromptTemplateBuilder;
+import com.gamehive.lmmrunningsystem.service.agent.utils.PromptTemplateBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;

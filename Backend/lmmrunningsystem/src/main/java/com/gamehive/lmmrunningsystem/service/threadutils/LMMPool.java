@@ -1,7 +1,6 @@
-package com.gamehive.lmmrunningsystem.service.impl.threadutils;
+package com.gamehive.lmmrunningsystem.service.threadutils;
 
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
@@ -11,8 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 大模型线程池类
- * 实现生产者-消费者模式的线程池，用于管理大模型决策任务
- * 继承Thread类，作为消费者线程持续处理队列中的决策请求
+ * 作为消费者线程持续处理队列中的决策请求
  *
  * @author Cassifa
  * @since 1.0.0
@@ -42,14 +40,6 @@ public class LMMPool extends Thread {
         consumer.startTimeout(lmmRequest.getAllowedTimeout(), lmmRequest);
     }
 
-    /**
-     * 线程执行的主要方法
-     * 实现消费者逻辑，持续监听队列中的新任务
-     * 使用生产者-消费者模式：
-     * 1. 当队列为空时，线程阻塞等待新任务
-     * 2. 当有新任务时，取出任务并创建Consumer处理
-     * 3. 使用锁机制确保线程安全
-     */
     public void run() {
         while (true) {//模拟消息队列
             lock.lock();

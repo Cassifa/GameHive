@@ -1,6 +1,6 @@
 package com.gamehive.lmmrunningsystem.config;
 
-import com.gamehive.lmmrunningsystem.utils.PromptTemplateBuilder;
+import com.gamehive.lmmrunningsystem.service.agent.utils.PromptTemplateBuilder;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;

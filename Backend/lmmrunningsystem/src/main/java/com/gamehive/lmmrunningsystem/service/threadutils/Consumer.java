@@ -1,9 +1,9 @@
-package com.gamehive.lmmrunningsystem.service.impl.threadutils;
+package com.gamehive.lmmrunningsystem.service.threadutils;
 
 import com.gamehive.lmmrunningsystem.config.ApiConfig;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
-import com.gamehive.lmmrunningsystem.service.impl.DeepSeekAIServiceImpl;
+import com.gamehive.lmmrunningsystem.service.agent.DeepSeekAIServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

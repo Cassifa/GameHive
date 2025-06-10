@@ -2,7 +2,7 @@ package com.gamehive.lmmrunningsystem.service.impl;
 
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
 import com.gamehive.lmmrunningsystem.service.LMMRunningService;
-import com.gamehive.lmmrunningsystem.service.impl.threadutils.LMMPool;
+import com.gamehive.lmmrunningsystem.service.threadutils.LMMPool;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
