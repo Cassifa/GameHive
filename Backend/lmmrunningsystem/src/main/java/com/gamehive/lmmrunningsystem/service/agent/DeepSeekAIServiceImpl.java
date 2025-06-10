@@ -1,9 +1,11 @@
 package com.gamehive.lmmrunningsystem.service.agent;
 
+import com.gamehive.lmmrunningsystem.constants.GameTypeEnum;
 import com.gamehive.lmmrunningsystem.constants.ValidationResultEnum;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
 import com.gamehive.lmmrunningsystem.service.agent.utils.PromptTemplateBuilder;
+import com.gamehive.lmmrunningsystem.service.RAGChatClientFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
@@ -25,11 +27,14 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class DeepSeekAIServiceImpl {
 
-    // Spring AI ChatClient实例，用于与大模型通信
-    private final ChatClient chatClient;
+    // 基础ChatClient实例，用于与大模型通信
+    private final ChatClient baseChatClient;
 
     // 聊天记忆实例，用于存储对话历史
     private final ChatMemory chatMemory;
+
+    // RAG ChatClient工厂
+    private final RAGChatClientFactory ragChatClientFactory;
 
     // 最大重试次数配置
     @Value("${lmm.max-retry-count:3}")
@@ -40,11 +45,14 @@ public class DeepSeekAIServiceImpl {
      *
      * @param gameDecisionChatClient Spring AI配置的游戏决策ChatClient实例
      * @param gameChatMemory         游戏对话记忆实例
+     * @param ragChatClientFactory RAG ChatClient工厂
      */
     public DeepSeekAIServiceImpl(@Qualifier("gameDecisionChatClient") ChatClient gameDecisionChatClient,
-                                 @Qualifier("gameChatMemory") ChatMemory gameChatMemory) {
-        this.chatClient = gameDecisionChatClient;
+                                 @Qualifier("gameChatMemory") ChatMemory gameChatMemory,
+                                 RAGChatClientFactory ragChatClientFactory) {
+        this.baseChatClient = gameDecisionChatClient;
         this.chatMemory = gameChatMemory;
+        this.ragChatClientFactory = ragChatClientFactory;
     }
 
     /**
@@ -90,20 +98,22 @@ public class DeepSeekAIServiceImpl {
 
         while (retryCount < maxRetryCount) {
             try {
-                // 构建prompt调用
-                var promptSpec = chatClient.prompt()
-                        .advisors(advisorSpec ->
-                                advisorSpec.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId));
+                // 获取游戏专用的RAG ChatClient
+                GameTypeEnum gameTypeEnum = GameTypeEnum.fromChineseName(lmmRequest.getGameType());
+                ChatClient ragChatClient = ragChatClientFactory.getChatClient(gameTypeEnum);
 
-                // 如果是新对话，设置系统提示词
                 if (systemPrompt != null) {
-                    promptSpec = promptSpec.system(systemPrompt);
+                    result = ragChatClient.prompt()
+                            .system(systemPrompt)
+                            .user(userPrompt)
+                            .call()
+                            .entity(LMMDecisionResult.class);
+                } else {
+                    result = ragChatClient.prompt()
+                            .user(userPrompt)
+                            .call()
+                            .entity(LMMDecisionResult.class);
                 }
-
-                result = promptSpec
-                        .user(userPrompt)
-                        .call()
-                        .entity(LMMDecisionResult.class);
 
                 log.info("大模型响应(第{}次, 游戏ID: {}): {}", retryCount + 1, gameId, result);
 

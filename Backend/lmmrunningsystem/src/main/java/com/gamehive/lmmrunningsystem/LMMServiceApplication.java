@@ -2,6 +2,7 @@ package com.gamehive.lmmrunningsystem;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
  * @since 1.0.0
  */
 @SpringBootApplication
+@EnableConfigurationProperties
 @Slf4j
 public class LMMServiceApplication {
 

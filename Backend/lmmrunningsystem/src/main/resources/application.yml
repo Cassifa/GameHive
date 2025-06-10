@@ -7,6 +7,9 @@ spring:
       chat:
         options:
           model: deepseek-r1-distill-llama-8b
+      embedding:
+        options:
+          model: text-embedding-v2
   profiles:
     include: secrets
   mvc:
@@ -19,14 +22,45 @@ springfox:
 
 logging:
   level:
-    org.springframework.ai.chat.client.advisor: debug
+    org.springframework.ai.chat.client.advisor: trace
+    org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor: trace
+    org.springframework.ai.vectorstore: trace
+    org.springframework.ai.vectorstore.SimpleVectorStore: trace
+    com.alibaba.cloud.ai.dashscope.embedding: debug
     com.gamehive.lmmrunningsystem: debug
+    ROOT: info
 
 # 大模型配置
 lmm:
   max-retry-count: 3    # 模型结果不符合要求时的最大重试次数
-  
+
 # URL配置
 api:
   urls:
     receive-bot-move: "http://127.0.0.1:3000/api/pk/receive/LMM/move/"
+
+# 向量数据库配置
+vector:
+  store:
+    stores:
+      gobang:
+        path: "./data/vectors/gobang"
+        dimension: 1536
+        knowledge-file: "classpath:rag/GoBang_RAG_Database.txt"
+      reverse-go:
+        path: "./data/vectors/reverse-go"
+        dimension: 1536
+        knowledge-file: "classpath:rag/AntiGo_RAG_Database.txt"
+      tic-tac-toe:
+        path: "./data/vectors/tic-tac-toe"
+        dimension: 1536
+        knowledge-file: "classpath:rag/TicTacToe_RAG_Database.txt"
+      misere-tic-tac-toe:
+        path: "./data/vectors/misere-tic-tac-toe"
+        dimension: 1536
+        knowledge-file: "classpath:rag/Anti_TicTacToe_RAG_Database.txt"
+    # RAG检索配置
+    rag:
+      max-documents: 10           # 检索的最大文档数量
+      similarity-threshold: 0.1  # 相似度阈值(降低到0以确保能检索到文档)
+      enable-rerank: false       # 是否启用重排序
