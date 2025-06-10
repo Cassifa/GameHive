@@ -16,9 +16,9 @@
 		<gamehive.version>3.8.9</gamehive.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.8</java.version>
+		<java.version>19</java.version>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-		<spring-boot.version>2.5.15</spring-boot.version>
+		<spring-boot.version>2.7.18</spring-boot.version>
 		<mybatis-plus.version>3.5.5</mybatis-plus.version>
 		<druid.version>1.2.23</druid.version>
 		<bitwalker.version>1.21</bitwalker.version>
@@ -225,14 +225,21 @@
 				<version>${gamehive.version}</version>
 			</dependency>
 
-			<!-- MyBatis Plus -->
-			<dependency>
-				<groupId>com.baomidou</groupId>
-				<artifactId>mybatis-plus-boot-starter</artifactId>
-				<version>${mybatis-plus.version}</version>
-			</dependency>
+					<!-- MyBatis Plus -->
+		<dependency>
+			<groupId>com.baomidou</groupId>
+			<artifactId>mybatis-plus-boot-starter</artifactId>
+			<version>${mybatis-plus.version}</version>
+		</dependency>
 
-		</dependencies>
+		<!-- MySQL驱动包 -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.33</version>
+		</dependency>
+
+	</dependencies>
 	</dependencyManagement>
 
 	<modules>
@@ -252,7 +259,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.11.0</version>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>

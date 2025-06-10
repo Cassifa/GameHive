@@ -13,8 +13,8 @@
     <description>大模型运行服务</description>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>19</maven.compiler.source>
+        <maven.compiler.target>19</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>3.2.1</spring-boot.version>
         <spring-ai-alibaba.version>1.0.0-M5.1</spring-ai-alibaba.version>
