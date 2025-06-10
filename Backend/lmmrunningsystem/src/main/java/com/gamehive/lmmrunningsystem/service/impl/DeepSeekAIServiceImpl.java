@@ -117,7 +117,7 @@ public class DeepSeekAIServiceImpl {
                         break;
                     } else {
                         //记入记忆
-                        storeDecisionMemory(lmmRequest, result, validationResult, conversationId);
+//                        storeDecisionMemory(lmmRequest, result, validationResult, conversationId);
                         retryCount++;
                         if (retryCount < maxRetryCount) {
                             userPrompt = PromptTemplateBuilder.buildRetryPrompt(
@@ -158,7 +158,7 @@ public class DeepSeekAIServiceImpl {
             validationResult = ValidationResultEnum.VALID;
         }
 
-        storeDecisionMemory(lmmRequest, result, validationResult, conversationId);
+//        storeDecisionMemory(lmmRequest, result, validationResult, conversationId);
 
         return result;
     }

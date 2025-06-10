@@ -1,0 +1,61 @@
+{
+  "chatModel": "com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel",
+  "userText": "上次回答不符合要求。解析失败，请确保返回正确的格式。请重新分析棋盘并给出正确的决策！",
+  "systemText": "你是一个专业的棋类游戏专家级AI。请严格按照JSON格式返回决策结果。你需要根据对话历史来理解游戏进程并做出更好的决策。",
+  "chatOptions": {
+    "proxyToolCalls": false,
+    "model": "deepseek-r1-0528",
+    "temperature": 0.8,
+    "enable_search": false,
+    "incremental_output": true,
+    "multi_model": false
+  },
+  "media": [],
+  "functionNames": [],
+  "functionCallbacks": [],
+  "messages": [
+    {
+      "type": "UserMessage",
+      "content": "历史下棋记录，可以作为参考：\nstep1:玩家在(3,3)下棋\n\n当前棋盘状态：\n00000000\n00000000\n00000000\n00010000\n00000000\n00000000\n00000000\n00000000\n\n\n请分析当前局面并给出你的最佳决策。",
+      "messageType": "USER"
+    },
+    {
+      "type": "AssistantMessage",
+      "messageType": "ASSISTANT",
+      "toolCalls": [],
+      "textContent": "{\n  \"x\": 3,\n  \"y\": 4,\n  \"reason\": \"玩家在(3,3)落子形成中心优势，选择(3,4)紧贴其右侧可有效阻断黑棋横向发展活二的机会。此位置既压制对方潜在攻势，又为白棋后续在右翼构建棋型奠定基础，同时避免过早分散落子导致防守薄弱。\"\n}",
+      "metadata": {
+        "finishReason": "STOP",
+        "id": "53cb95ad-aaed-9cdf-9e77-4fdcd14e199c",
+        "role": "ASSISTANT",
+        "messageType": "ASSISTANT"
+      }
+    },
+    {
+      "type": "UserMessage",
+      "content": "历史下棋记录，可以作为参考：\nstep1:玩家在(3,3)下棋\nstep2:AI在(3,4)下棋\nstep3:玩家在(4,3)下棋\n\n当前棋盘状态：\n00000000\n00000000\n00000000\n00012000\n00010000\n00000000\n00000000\n00000000\n\n\n请分析当前局面并给出你的最佳决策。",
+      "messageType": "USER"
+    },
+    {
+      "type": "UserMessage",
+      "content": "上次回答不符合要求。解析失败，请确保返回正确的格式。请重新分析棋盘并给出正确的决策！\n",
+      "messageType": "USER"
+    }
+  ],
+  "userParams": {},
+  "systemParams": {},
+  "advisors": [
+    "org.springframework.ai.chat.client.DefaultChatClient$DefaultChatClientRequestSpec$1",
+    "org.springframework.ai.chat.client.DefaultChatClient$DefaultChatClientRequestSpec$2",
+    "org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor",
+    "SimpleLoggerAdvisor"
+  ],
+  "advisorParams": {
+    "chat_memory_conversation_id": 1175462501
+  },
+  "adviseContext": {
+    "chat_memory_conversation_id": 1175462501,
+    "formatParam": "Your response should be in JSON format.\nDo not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\nDo not include markdown code blocks in your response.\nRemove the ```json markdown from the output.\nHere is the JSON Schema instance your output must adhere to:\n```{\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\" : \"object\",\n  \"properties\" : {\n    \"reason\" : {\n      \"type\" : \"string\"\n    },\n    \"x\" : {\n      \"type\" : \"integer\"\n    },\n    \"y\" : {\n      \"type\" : \"integer\"\n    }\n  },\n  \"additionalProperties\" : false\n}```"
+  },
+  "toolContext": {}
+}

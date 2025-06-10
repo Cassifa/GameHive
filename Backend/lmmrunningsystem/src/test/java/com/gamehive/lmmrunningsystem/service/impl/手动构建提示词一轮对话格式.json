@@ -1,0 +1,88 @@
+{
+  "config": {
+    "proxyToolCalls": false,
+    "model": "deepseek-v3",
+    "temperature": 0.8,
+    "enable_search": false,
+    "incremental_output": true,
+    "multi_model": false
+  },
+  "media": [],
+  "functionNames": [],
+  "functionCallbacks": [],
+  "messages": [
+    {
+      "type": "UserMessage",
+      "content": "历史下棋记录，可以作为参考：\nstep1: 玩家在(3, 3)下棋\n\n当前棋盘状态：\n00000000\n00000000\n00000000\n00010000\n00000000\n00000000\n00000000\n00000000\n\n\n请分析当前局面并给出你的最佳决策。"
+    },
+    {
+      "type": "AssistantMessage",
+      "textContent": "```json\n{\n\"reason\": \"游戏刚开始，选择中心位置附近有利于后续攻防。在(4,4)落子可以对称回应玩家开局，同时占据有利位置。\",\n\"x\": 4,\n\"y\": 4\n}\n```",
+      "metadata": {
+        "finishReason": "STOP",
+        "id": "09037e4a-3df7-984c-8667-0740dcce6ec0"
+      }
+    },
+    {
+      "type": "AssistantMessage",
+      "textContent": "局面状态：\n00000000\n00000000\n00000000\n00010000\n00000000\n00000000\n00000000\n00000000\n\nAI决策：位置(4, 4)\n决策理由：游戏刚开始，选择中心位置附近有利于后续攻防。在(4, 4)落子可以对称回应玩家开局，同时占据有利位置。"
+    },
+    {
+      "type": "UserMessage",
+      "content": "历史下棋记录，可以作为参考：\nstep1: 玩家在(3, 3)下棋\nstep2: AI在(4, 4)下棋\nstep3: 玩家在(3, 4)下棋\n\n当前棋盘状态：\n00000000\n00000000\n00000000\n00011000\n00002000\n00000000\n00000000\n00000000\n\n\n请分析当前局面并给出你的最佳决策。"
+    },
+    {
+      "type": "AssistantMessage",
+      "textContent": "{\n\"reason\": \"玩家在(3,4)形成潜在进攻威胁，需在(3,5)阻止其横向连珠发展，同时保持我的斜向进攻可能性。\",\n\"x\": 3,\n\"y\": 5\n}",
+      "metadata": {
+        "finishReason": "STOP",
+        "id": "ad16fd79-e3b4-90a6-bc58-f20c40aec970"
+      }
+    },
+    {
+      "type": "AssistantMessage",
+      "textContent": "局面状态：\n00000000\n00000000\n00000000\n00011000\n00002000\n00000000\n00000000\n00000000\n\nAI决策：位置(3, 5)\n决策理由：玩家在(3,4)形成潜在进攻威胁，需在(3, 5)阻止其横向连珠发展，同时保持我的斜向进攻可能性。"
+    },
+    {
+      "type": "UserMessage",
+      "content": "历史下棋记录，可以作为参考：\nstep1: 玩家在(3, 3)下棋\nstep2: AI在(4, 4)下棋\nstep3: 玩家在(3, 4)下棋\nstep4: AI在(3, 5)下棋\nstep5: 玩家在(4, 3)下棋\n\n当前棋盘状态：\n00000000\n00000000\n00000000\n00011200\n00012000\n00000000\n00000000\n00000000\n\n\n请分析当前局面并给出你的最佳决策。"
+    },
+    {
+      "type": "AssistantMessage",
+      "textContent": "{\n\"reason\": \"玩家在(4,3)形成潜在斜向进攻威胁，需在(5,2)阻断其斜线发展，同时建立自己的斜向进攻路线。\",\n\"x\": 5,\n\"y\": 2\n}",
+      "metadata": {
+        "finishReason": "STOP",
+        "id": "ac613915-a6ef-9ac2-ae47-dc12b9d3f43c"
+      }
+    },
+    {
+      "type": "AssistantMessage",
+      "textContent": "局面状态：\n00000000\n00000000\n00000000\n00011200\n00012000\n00000000\n00000000\n00000000\n\nAI决策：位置(5, 2)\n决策理由：玩家在(4,3)形成潜在斜向进攻威胁，需在(5, 2)阻断其斜线发展，同时建立自己的斜向进攻路线。"
+    },
+    {
+      "type": "UserMessage",
+      "content": "历史下棋记录，可以作为参考：\nstep1: 玩家在(3, 3)下棋\nstep2: AI在(4, 4)下棋\nstep3: 玩家在(3, 4)下棋\nstep4: AI在(3, 5)下棋\nstep5: 玩家在(4, 3)下棋\nstep6: AI在(5, 2)下棋\nstep7: 玩家在(5, 3)下棋\n\n当前棋盘状态：\n00000000\n00000000\n00000000\n00011200\n00012000\n00210000\n00000000\n00000000\n\n\n请分析当前局面并给出你的最佳决策。"
+    },
+    {
+      "type": "AssistantMessage",
+      "textContent": "{\n\"reason\": \"玩家在(5,3)形成潜在斜向进攻威胁，需要在(6,4)阻断其发展，同时建立自己的斜向进攻路线。\",\n\"x\": 6,\n\"y\": 4\n}",
+      "metadata": {
+        "finishReason": "STOP",
+        "id": "090b0540-ad92-9dbb-a817-0a75feaf6080"
+      }
+    },
+    {
+      "type": "AssistantMessage",
+      "textContent": "局面状态：\n00000000\n00000000\n00000000\n00011200\n00012000\n00210000\n00000000\n00000000\n\nAI决策：位置(6, 4)\n决策理由：玩家在(5,3)形成潜在斜向进攻威胁，需要在(6, 4)阻断其发展，同时建立自己的斜向进攻路线。"
+    }
+  ],
+  "userParams": {},
+  "systemParams": {},
+  "advisorParams": {
+    "chat_memory_conversation_id": -614042898
+  },
+  "adviseContext": {
+    "chat_memory_conversation_id": -614042898,
+    "formatParam": "Your response should be in JSON format.\nDo not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\nDo not include markdown code blocks in your response.\nRemove the ```json markdown from the output.\nHere is the JSON Schema instance your output must adhere to: ```{\n\"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n\"type\": \"object\",\n\"properties\": {\n\"reason\": {\n\"type\": \"string\"\n},\n\"x\" : {\n\"type\": \"integer\"\n},\n\"y\": {\n\"type\": \"integer\"\n}\n},\n\"additionalProperties\": false\n}```"
+  }
+}
