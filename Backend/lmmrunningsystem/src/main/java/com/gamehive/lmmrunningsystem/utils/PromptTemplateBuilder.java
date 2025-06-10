@@ -44,15 +44,9 @@ public class PromptTemplateBuilder {
     private static final String HISTORY_TEMPLATE =
             "历史下棋记录，可以作为参考：\n{historySteps}\n\n";
 
-    // 当前棋盘状态模板，显示实时的棋盘布局
+    // 当前棋盘状态模板，用于展示当前局面
     private static final String BOARD_STATE_TEMPLATE =
             "当前棋盘状态：\n{currentMap}\n\n";
-
-    // 有效决策记忆模板，用于存储成功的决策结果
-    private static final String DECISION_MEMORY_TEMPLATE =
-            "局面状态：\n{currentMap}\n" +
-                    "AI决策：位置({x},{y})\n" +
-                    "决策理由：{reason}";
 
     // 无效决策记忆模板，用于存储失败的决策结果和错误信息
     private static final String INVALID_DECISION_MEMORY_TEMPLATE =
@@ -180,30 +174,21 @@ public class PromptTemplateBuilder {
     }
 
     /**
-     * 构建决策记忆存储文本
-     * 根据验证结果选择合适的模板存储决策历史
+     * 构建失败决策记忆存储文本
      *
      * @param currentMap       当前棋盘状态
-     * @param decision         决策结果
-     * @param validationResult 验证结果
-     * @return 决策记忆文本
+     * @param decision         失败的决策结果
+     * @param validationResult 验证失败结果
+     * @return 失败决策记忆文本
      */
     public static String buildDecisionMemory(String currentMap, LMMDecisionResult decision,
                                              ValidationResultEnum validationResult) {
-        if (validationResult == ValidationResultEnum.VALID) {
-            return fillTemplate(DECISION_MEMORY_TEMPLATE,
-                    "currentMap", currentMap,
-                    "x", String.valueOf(decision.getX()),
-                    "y", String.valueOf(decision.getY()),
-                    "reason", decision.getReason() != null ? decision.getReason() : "无理由");
-        } else {
-            return fillTemplate(INVALID_DECISION_MEMORY_TEMPLATE,
-                    "currentMap", currentMap,
-                    "x", String.valueOf(decision.getX()),
-                    "y", String.valueOf(decision.getY()),
-                    "reason", decision.getReason() != null ? decision.getReason() : "无理由",
-                    "validationResult", getValidationResultDescription(validationResult));
-        }
+        return fillTemplate(INVALID_DECISION_MEMORY_TEMPLATE,
+                "currentMap", currentMap,
+                "x", String.valueOf(decision.getX()),
+                "y", String.valueOf(decision.getY()),
+                "reason", decision.getReason() != null ? decision.getReason() : "无理由",
+                "validationResult", getValidationResultDescription(validationResult));
     }
 
     // 模板变量替换工具方法
@@ -243,8 +228,6 @@ public class PromptTemplateBuilder {
     // 获取验证结果描述的工具方法
     private static String getValidationResultDescription(ValidationResultEnum validationResult) {
         switch (validationResult) {
-            case VALID:
-                return "有效决策";
             case INVALID_FORMAT:
                 return "格式无效";
             case OUT_OF_BOUNDS:
@@ -252,7 +235,7 @@ public class PromptTemplateBuilder {
             case POSITION_OCCUPIED:
                 return "位置已占用";
             default:
-                return "未知状态";
+                return "未知错误";
         }
     }
 } 

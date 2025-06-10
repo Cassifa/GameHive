@@ -116,6 +116,8 @@ public class DeepSeekAIServiceImpl {
                         log.info("大模型决策成功(游戏ID: {}): x={}, y={}", gameId, result.getX(), result.getY());
                         break;
                     } else {
+                        //存储失败的决策记忆
+                        storeDecisionMemory(lmmRequest, result, validationResult, conversationId);
                         retryCount++;
                         if (retryCount < maxRetryCount) {
                             userPrompt = PromptTemplateBuilder.buildRetryPrompt(
