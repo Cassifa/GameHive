@@ -55,4 +55,9 @@ public class LMMRequestDTO {
      * 游戏棋盘格数
      */
     private String gridSize;
+
+    /**
+     * 大模型允许的最大运行时间（毫秒）
+     */
+    private Long allowedTimeout;
 }

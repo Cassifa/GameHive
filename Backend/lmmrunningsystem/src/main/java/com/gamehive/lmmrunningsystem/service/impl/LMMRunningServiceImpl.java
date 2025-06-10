@@ -46,16 +46,7 @@ public class LMMRunningServiceImpl implements LMMRunningService {
     public String addLMM(LMMRequestDTO requestDTO) {
         log.info("接收到游戏ID：{} 的LMM请求", requestDTO.getGameId());
 
-        lmmPool.addLMMRequest(
-                requestDTO.getGameId(),
-                requestDTO.getUserId(),
-                requestDTO.getCurrentMap(),
-                requestDTO.getLLMFlag(),
-                requestDTO.getGameType(),
-                requestDTO.getGameRule(),
-                requestDTO.getHistorySteps(),
-                requestDTO.getGridSize()
-        );
+        lmmPool.addLMMRequest(requestDTO);
 
         return "大模型请求处理成功";
     }

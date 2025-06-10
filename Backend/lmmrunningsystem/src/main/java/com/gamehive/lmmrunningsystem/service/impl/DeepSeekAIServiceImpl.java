@@ -116,8 +116,6 @@ public class DeepSeekAIServiceImpl {
                         log.info("大模型决策成功(游戏ID: {}): x={}, y={}", gameId, result.getX(), result.getY());
                         break;
                     } else {
-                        //记入记忆
-//                        storeDecisionMemory(lmmRequest, result, validationResult, conversationId);
                         retryCount++;
                         if (retryCount < maxRetryCount) {
                             userPrompt = PromptTemplateBuilder.buildRetryPrompt(
@@ -157,8 +155,6 @@ public class DeepSeekAIServiceImpl {
             result = getDefaultDecision(lmmRequest);
             validationResult = ValidationResultEnum.VALID;
         }
-
-//        storeDecisionMemory(lmmRequest, result, validationResult, conversationId);
 
         return result;
     }

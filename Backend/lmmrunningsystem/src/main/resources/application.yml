@@ -6,15 +6,27 @@ spring:
     dashscope:
       chat:
         options:
-          model: deepseek-r1-0528
+          model: deepseek-r1-distill-llama-8b
   profiles:
     include: secrets
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+springfox:
+  documentation:
+    enabled: false
 
 logging:
   level:
     org.springframework.ai.chat.client.advisor: debug
     com.gamehive.lmmrunningsystem: debug
+
 # 大模型配置
 lmm:
-  max-retry-count: 3  # 模型结果不符合要求时的最大重试次数
-  timeout: 200000       # 单次请求超时时间(毫秒)-200秒
+  max-retry-count: 3    # 模型结果不符合要求时的最大重试次数
+  
+# URL配置
+api:
+  urls:
+    receive-bot-move: "http://127.0.0.1:3000/api/pk/receive/LMM/move/"

@@ -17,7 +17,6 @@ import com.gamehive.pojo.Record;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +26,11 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class Game extends Thread {
 
+    // 等待时间配置
+    private final int normalWaitTime = 600; // 普通玩家等待时间60秒
+    private final int lmmWaitTime = 6000;   // 大模型等待时间600秒
     private final static String addBotUrl = "http://127.0.0.1:3002/LMMRunning/add/";
+    
     private final Integer gameId; // 游戏唯一标识符
     private final Integer rows, cols;
     //是否为与大模型下棋
@@ -125,6 +128,8 @@ public class Game extends Thread {
         requestDTO.setGameRule(gameType.getGameRule());
         requestDTO.setHistorySteps(buildHistorySteps());
         requestDTO.setGridSize(gameType.getBoardSize().toString());
+        // 设置大模型允许的超时时间（转换为毫秒）
+        requestDTO.setAllowedTimeout((long) lmmWaitTime * 100);
         
         System.out.println("尝试向LMM运行服务发送信息: " + requestDTO);
         WebSocketServer.restTemplate.postForObject(addBotUrl, requestDTO, String.class);
@@ -136,12 +141,12 @@ public class Game extends Thread {
     private boolean nextStep() {
         boolean askA = isNextA();
         //最大等待时间60秒
-        int waitTime = 600;
+        int waitTime = normalWaitTime;
         //如果LMM输入则则发送信息
         if (!askA && forLMM) {
             sendLMMCode(playerB);
             //对于大模型放宽时间限制到600秒
-            waitTime = 6000;
+            waitTime = lmmWaitTime;
         }
         for (int i = 0; i < waitTime; i++) {
             try {

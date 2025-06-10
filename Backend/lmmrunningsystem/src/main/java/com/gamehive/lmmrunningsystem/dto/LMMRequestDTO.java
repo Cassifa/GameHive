@@ -38,4 +38,7 @@ public class LMMRequestDTO {
 
     // 棋盘网格大小，如"3"表示3x3棋盘
     private String gridSize;
+
+    // 大模型允许的最大运行时间（毫秒）
+    private Long allowedTimeout;
 } 

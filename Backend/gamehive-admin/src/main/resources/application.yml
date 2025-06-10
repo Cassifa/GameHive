@@ -153,3 +153,19 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+# 禁用SpringFox避免兼容性问题
+springfox:
+  documentation:
+    enabled: false
+
+# 游戏配置
+game:
+  wait-time:
+    normal: 600         # 普通玩家等待时间(单位：100毫秒)
+    lmm: 6000          # 大模型等待时间(单位：100毫秒)
+  
+# URL配置
+api:
+  urls:
+    add-bot: "http://127.0.0.1:3002/LMMRunning/add/"

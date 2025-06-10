@@ -1,5 +1,6 @@
 package com.gamehive.lmmrunningsystem.service.impl.threadutils;
 
+import com.gamehive.lmmrunningsystem.config.ApiConfig;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
 import com.gamehive.lmmrunningsystem.service.impl.DeepSeekAIServiceImpl;
@@ -22,11 +23,11 @@ import org.springframework.web.client.RestTemplate;
 public class Consumer extends Thread {
 
     private LMMRequestDTO lmmRequest;
+    private volatile boolean isCompleted = false;
 
     private static RestTemplate restTemplate;
     private static DeepSeekAIServiceImpl deepSeekAIService;
-    private final static String receiveBotMoveUrl =
-            "http://127.0.0.1:3000/api/pk/receive/LMM/move/";
+    private static ApiConfig apiConfig;
 
     @Autowired
     public void setRestTemplate(RestTemplate restTemplate) {
@@ -36,6 +37,17 @@ public class Consumer extends Thread {
     @Autowired
     public void setDeepSeekAIService(DeepSeekAIServiceImpl deepSeekAIService) {
         Consumer.deepSeekAIService = deepSeekAIService;
+    }
+
+    @Autowired
+    public void setApiConfig(ApiConfig apiConfig) {
+        Consumer.apiConfig = apiConfig;
+    }
+
+    /**
+     * 构造函数，通过参数注入依赖
+     */
+    public Consumer() {
     }
 
     /**
@@ -49,8 +61,14 @@ public class Consumer extends Thread {
         this.start();
         try {
             this.join(timeout);//等最多timeout
+            if (!isCompleted) {
+                log.warn("大模型决策请求超时，返回随机移动 (游戏ID: {}, 超时时间: {}ms)",
+                        lmmRequest.getGameId(), timeout);
+                sendRandomMove();
+            }
         } catch (InterruptedException e) {
             log.warn("等待线程超时被中断", e);
+            sendRandomMove();
         }
         this.interrupt();//终端当前线程
     }
@@ -63,25 +81,83 @@ public class Consumer extends Thread {
             // 使用DeepSeek AI服务获取决策
             LMMDecisionResult decision = deepSeekAIService.getDecision(lmmRequest);
 
-            // 发送移动结果
-            MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
-            data.add("user_id", lmmRequest.getUserId().toString());
-            data.add("x", String.valueOf(decision.getX()));
-            data.add("y", String.valueOf(decision.getY()));
-            data.add("model_name", "deepseek");
-            data.add("reason", decision.getReason());
-
-            log.info("准备发送LMM移动结果到: {}", receiveBotMoveUrl);
-//            log.debug("请求参数: {}", data);
-
-            try {
-                String response = restTemplate.postForObject(receiveBotMoveUrl, data, String.class);
-                log.info("LMM移动请求响应: {}", response);
-            } catch (Exception e) {
-                log.error("发送LMM移动请求失败: {}", e.getMessage(), e);
+            // 检查是否已经被中断
+            if (Thread.currentThread().isInterrupted()) {
+                log.warn("决策请求被中断，不发送结果 (游戏ID: {})", lmmRequest.getGameId());
+                return;
             }
+
+            // 使用统一的发送方法
+            sendMoveResult(decision, "LMM移动");
+            isCompleted = true;
+
         } catch (Exception e) {
             log.error("Consumer执行过程中发生错误: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 发送移动结果的通用方法
+     *
+     * @param decision 决策结果
+     * @param moveType 移动类型（用于日志）
+     */
+    private void sendMoveResult(LMMDecisionResult decision, String moveType) {
+        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
+        data.add("user_id", lmmRequest.getUserId().toString());
+        data.add("x", String.valueOf(decision.getX()));
+        data.add("y", String.valueOf(decision.getY()));
+        data.add("model_name", apiConfig.getModelName());
+        data.add("reason", decision.getReason());
+
+        log.info("发送{}结果: x={}, y={}, 理由: {}", moveType, decision.getX(), decision.getY(), decision.getReason());
+
+        try {
+            String response = restTemplate.postForObject(apiConfig.getReceiveBotMoveUrl(), data, String.class);
+            log.info("{}请求响应: {}", moveType, response);
+        } catch (Exception e) {
+            log.error("发送{}请求失败: {}", moveType, e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * 发送随机移动
+     */
+    private void sendRandomMove() {
+        try {
+            LMMDecisionResult randomDecision = getRandomDecision();
+            sendMoveResult(randomDecision, "随机移动");
+        } catch (Exception e) {
+            log.error("生成随机移动失败: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 生成随机决策
+     */
+    private LMMDecisionResult getRandomDecision() {
+        String[] rows = lmmRequest.getCurrentMap().split("\n");
+        int gridSize = Integer.parseInt(lmmRequest.getGridSize());
+
+        // 收集所有空位
+        java.util.List<int[]> emptyPositions = new java.util.ArrayList<>();
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+                if (i < rows.length && j < rows[i].length() && rows[i].charAt(j) == '0') {
+                    emptyPositions.add(new int[]{i, j});
+                }
+            }
+        }
+
+        if (!emptyPositions.isEmpty()) {
+            // 随机选择一个空位
+            int randomIndex = (int) (Math.random() * emptyPositions.size());
+            int[] position = emptyPositions.get(randomIndex);
+            return new LMMDecisionResult(position[0], position[1], "超时随机移动");
+        } else {
+            // 如果没有空位，返回(0,0)
+            return new LMMDecisionResult(0, 0, "超时随机移动：无可用位置");
         }
     }
 }
