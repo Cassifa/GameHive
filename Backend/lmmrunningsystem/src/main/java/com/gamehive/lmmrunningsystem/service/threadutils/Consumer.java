@@ -4,8 +4,12 @@ import com.gamehive.lmmrunningsystem.config.ApiConfig;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
 import com.gamehive.lmmrunningsystem.service.agent.DeepSeekAIServiceImpl;
+import com.gamehive.lmmrunningsystem.service.agent.MultiAgentCoordinatorService;
+import com.gamehive.lmmrunningsystem.dto.MultiAgentResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -13,7 +17,8 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * 大模型决策消费者线程类
- * 负责处理大模型决策请求，调用AI服务获取决策结果并发送到游戏服务
+ * 负责处理大模型决策请求，优先使用多智能体系统，如果不可用则使用单一智能体
+ * 获取决策结果并发送到游戏服务，支持超时处理
  *
  * @author Cassifa
  * @since 1.0.0
@@ -26,8 +31,10 @@ public class Consumer extends Thread {
     private volatile boolean isCompleted = false;
 
     private static RestTemplate restTemplate;
-    private static DeepSeekAIServiceImpl deepSeekAIService;
+    private static DeepSeekAIServiceImpl singleAgentService;
+    private static MultiAgentCoordinatorService multiAgentCoordinator;
     private static ApiConfig apiConfig;
+    private static boolean useMultiAgent;
 
     @Autowired
     public void setRestTemplate(RestTemplate restTemplate) {
@@ -35,13 +42,23 @@ public class Consumer extends Thread {
     }
 
     @Autowired
-    public void setDeepSeekAIService(DeepSeekAIServiceImpl deepSeekAIService) {
-        Consumer.deepSeekAIService = deepSeekAIService;
+    public void setSingleAgentService(@Qualifier("originalDeepSeekAIService") DeepSeekAIServiceImpl deepSeekAIService) {
+        Consumer.singleAgentService = deepSeekAIService;
+    }
+
+    @Autowired
+    public void setMultiAgentCoordinator(MultiAgentCoordinatorService multiAgentCoordinator) {
+        Consumer.multiAgentCoordinator = multiAgentCoordinator;
     }
 
     @Autowired
     public void setApiConfig(ApiConfig apiConfig) {
         Consumer.apiConfig = apiConfig;
+    }
+
+    @Value("${lmm.use-multi-agent:false}")
+    public void setUseMultiAgent(boolean useMultiAgent) {
+        Consumer.useMultiAgent = useMultiAgent;
     }
 
     /**
@@ -78,8 +95,24 @@ public class Consumer extends Thread {
         try {
             log.info("开始处理大模型决策请求 (游戏ID: {})", lmmRequest.getGameId());
 
-            // 使用DeepSeek AI服务获取决策
-            LMMDecisionResult decision = deepSeekAIService.getDecision(lmmRequest);
+            LMMDecisionResult decision;
+            
+            // 根据配置决定使用多智能体还是单智能体
+            if (useMultiAgent) {
+                log.info("使用多智能体系统进行决策 (游戏ID: {})", lmmRequest.getGameId());
+                MultiAgentResult multiAgentResult = multiAgentCoordinator.getMultiAgentDecision(lmmRequest);
+                decision = multiAgentResult.getFinalDecision();
+                
+                // 记录多智能体投票详情
+                log.info("多智能体决策完成 (游戏ID: {}): 成功代理数={}, 失败代理数={}, 总耗时={}ms", 
+                        lmmRequest.getGameId(), 
+                        multiAgentResult.getSuccessfulAgents(), 
+                        multiAgentResult.getFailedAgents(), 
+                        multiAgentResult.getTotalExecutionTime());
+            } else {
+                log.info("使用单一智能体进行决策 (游戏ID: {})", lmmRequest.getGameId());
+                decision = singleAgentService.getDecision(lmmRequest);
+            }
 
             // 检查是否已经被中断
             if (Thread.currentThread().isInterrupted()) {
@@ -88,7 +121,8 @@ public class Consumer extends Thread {
             }
 
             // 使用统一的发送方法
-            sendMoveResult(decision, "LMM移动");
+            String moveType = useMultiAgent ? "多智能体移动" : "单智能体移动";
+            sendMoveResult(decision, moveType);
             isCompleted = true;
 
         } catch (Exception e) {
