@@ -3,8 +3,12 @@ package com.gamehive.lmmrunningsystem.service.agent;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
 import com.gamehive.lmmrunningsystem.dto.MultiAgentResult;
+import com.gamehive.lmmrunningsystem.service.agent.utils.PromptTemplateBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +33,13 @@ import java.util.concurrent.TimeUnit;
 public class MultiAgentCoordinatorService {
 
     private final AgentFactory agentFactory;
+    private final ChatMemory chatMemory;
 
     @Autowired
-    public MultiAgentCoordinatorService(AgentFactory agentFactory) {
+    public MultiAgentCoordinatorService(AgentFactory agentFactory,
+                                        @Qualifier("gameChatMemory") ChatMemory chatMemory) {
         this.agentFactory = agentFactory;
+        this.chatMemory = chatMemory;
     }
 
     /**
@@ -131,6 +138,9 @@ public class MultiAgentCoordinatorService {
                 lmmRequest.getGameId(), successfulAgents, failedAgents, totalTime,
                 finalDecision.getX(), finalDecision.getY());
 
+        // 将汇总结果存储到记忆中
+        storeMultiAgentDecisionMemory(lmmRequest, agentDecisions, voteCount, finalDecision);
+
         return new MultiAgentResult(
                 finalDecision,
                 agentDecisions,
@@ -211,10 +221,10 @@ public class MultiAgentCoordinatorService {
     private LMMDecisionResult getDefaultDecision(LMMRequestDTO lmmRequest) {
         String[] rows = lmmRequest.getCurrentMap().split("\n");
         int gridSize = Integer.parseInt(lmmRequest.getGridSize());
-        
+
         // 收集所有空位
         java.util.List<int[]> emptyPositions = new java.util.ArrayList<>();
-        
+
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
                 if (i < rows.length && j < rows[i].length() && rows[i].charAt(j) == '0') {
@@ -222,16 +232,93 @@ public class MultiAgentCoordinatorService {
                 }
             }
         }
-        
+
         if (!emptyPositions.isEmpty()) {
             // 随机选择一个空位
             java.util.Random random = new java.util.Random();
             int[] randomPosition = emptyPositions.get(random.nextInt(emptyPositions.size()));
-            return new LMMDecisionResult(randomPosition[0], randomPosition[1], 
-                "多代理默认策略：随机选择空位 (" + randomPosition[0] + "," + randomPosition[1] + ")");
+            return new LMMDecisionResult(randomPosition[0], randomPosition[1],
+                    "多代理默认策略：随机选择空位 (" + randomPosition[0] + "," + randomPosition[1] + ")");
         }
 
         return new LMMDecisionResult(0, 0, "多代理默认策略：无可用位置，选择(0,0)");
+    }
+
+    /**
+     * 存储多代理决策记忆
+     * 将所有成功响应、投票结果、模型名称和温度信息汇总并存储到记忆中
+     */
+    private void storeMultiAgentDecisionMemory(LMMRequestDTO lmmRequest,
+                                               Map<String, LMMDecisionResult> agentDecisions,
+                                               Map<String, Integer> voteCount,
+                                               LMMDecisionResult finalDecision) {
+        try {
+            // 收集成功响应的详细信息
+            List<GameAgent> availableAgents = agentFactory.getAvailableAgents();
+            Map<String, String> agentModelInfo = new HashMap<>();
+            Map<String, Double> agentTemperatureInfo = new HashMap<>();
+
+            for (GameAgent agent : availableAgents) {
+                String agentName = agent.getAgentName();
+                if (agentDecisions.containsKey(agentName)) {
+                    // 获取模型名称和温度
+                    agentModelInfo.put(agentName, getModelNameByAgentId(agent.getId()));
+                    agentTemperatureInfo.put(agentName, agent.getTemperature());
+                }
+            }
+
+            // 构建汇总记忆文本
+            String memoryText = PromptTemplateBuilder.buildMultiAgentSummaryMemory(
+                    lmmRequest.getCurrentMap(),
+                    agentDecisions,
+                    voteCount,
+                    finalDecision,
+                    agentModelInfo,
+                    agentTemperatureInfo
+            );
+
+            // 存储到每个Agent的记忆中
+            AssistantMessage memoryMessage = new AssistantMessage(memoryText);
+            int storedCount = 0;
+
+            for (GameAgent agent : availableAgents) {
+                String agentConversationId = String.valueOf(lmmRequest.getGameId() + agent.getId());
+                chatMemory.add(agentConversationId, memoryMessage);
+                storedCount++;
+                log.debug("汇总记忆已存储到Agent{}的对话中 (conversationId: {})",
+                        agent.getId(), agentConversationId);
+            }
+
+            log.info("多代理决策汇总记忆已存储到{}个Agent的对话中(游戏ID: {})",
+                    storedCount, lmmRequest.getGameId());
+            log.debug("汇总记忆内容: {}", memoryText);
+
+        } catch (Exception e) {
+            log.error("存储多代理决策记忆失败 (游戏ID: {}): {}", lmmRequest.getGameId(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 根据Agent ID获取模型名称
+     */
+    private String getModelNameByAgentId(Integer agentId) {
+        // 根据配置获取对应的模型名称
+        return switch (agentId) {
+            case 1 -> getProperty("lmm.multi-agent.agents.agent1.model");
+            case 2 -> getProperty("lmm.multi-agent.agents.agent2.model");
+            case 3 -> getProperty("lmm.multi-agent.agents.agent3.model");
+            case 4 -> getProperty("lmm.multi-agent.agents.agent4.model");
+            case 5 -> getProperty("lmm.multi-agent.agents.agent5.model");
+            default -> "deepseek-r1-distill-llama-8b";
+        };
+    }
+
+    /**
+     * 获取配置属性值的辅助方法
+     */
+    private String getProperty(String key) {
+        // 简化实现，直接返回默认值，也可以通过@Value注解或Environment获取
+        return "deepseek-r1-distill-llama-8b";
     }
 
     /**

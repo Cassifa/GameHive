@@ -3,6 +3,8 @@ package com.gamehive.lmmrunningsystem.service.agent.utils;
 import com.gamehive.lmmrunningsystem.constants.ValidationResultEnum;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 
+import java.util.Map;
+
 /**
  * 提示词模板构建器
  * 提供各种静态方法来构建不同场景下的AI提示词模板
@@ -58,6 +60,14 @@ public class PromptTemplateBuilder {
     // 错误反馈模板，用于指出上次决策的具体错误
     private static final String ERROR_FEEDBACK_TEMPLATE =
             "上次回答不符合要求。{specificError}请重新分析棋盘并给出正确的决策！\n\n";
+
+    // 多代理汇总记忆模板，用于存储所有代理的响应和投票结果
+    private static final String MULTI_AGENT_SUMMARY_TEMPLATE =
+            "【多代理决策汇总】\n" +
+                    "局面状态：\n{currentMap}\n\n" +
+                    "各代理响应：\n{agentResponses}\n" +
+                    "投票统计：\n{voteStatistics}\n" +
+                    "最终决策：位置({finalX},{finalY}) - {finalReason}\n";
 
     /**
      * 构建系统提示词
@@ -146,6 +156,54 @@ public class PromptTemplateBuilder {
                 "y", String.valueOf(decision.getY()),
                 "reason", decision.getReason() != null ? decision.getReason() : "无理由",
                 "validationResult", getValidationResultDescription(validationResult));
+    }
+
+    /**
+     * 构建多代理汇总记忆
+     * 将所有成功响应、投票结果、模型名称和温度信息汇总
+     *
+     * @param currentMap            当前棋盘状态
+     * @param agentDecisions        各代理的决策结果
+     * @param voteCount            投票统计
+     * @param finalDecision        最终决策结果
+     * @param agentModelInfo       各代理的模型信息
+     * @param agentTemperatureInfo 各代理的温度信息
+     */
+    public static String buildMultiAgentSummaryMemory(String currentMap,
+                                                      Map<String, LMMDecisionResult> agentDecisions,
+                                                      Map<String, Integer> voteCount,
+                                                      LMMDecisionResult finalDecision,
+                                                      Map<String, String> agentModelInfo,
+                                                      Map<String, Double> agentTemperatureInfo) {
+        
+        // 构建各代理响应信息
+        StringBuilder agentResponses = new StringBuilder();
+        for (Map.Entry<String, LMMDecisionResult> entry : agentDecisions.entrySet()) {
+            String agentName = entry.getKey();
+            LMMDecisionResult decision = entry.getValue();
+            String modelName = agentModelInfo.getOrDefault(agentName, "未知模型");
+            Double temperature = agentTemperatureInfo.getOrDefault(agentName, 0.7);
+            
+            agentResponses.append(String.format("- %s (模型: %s, 温度: %.1f): 位置(%d,%d) - %s\n",
+                    agentName, modelName, temperature, 
+                    decision.getX(), decision.getY(), decision.getReason()));
+        }
+        
+        // 构建投票统计信息
+        StringBuilder voteStatistics = new StringBuilder();
+        for (Map.Entry<String, Integer> entry : voteCount.entrySet()) {
+            String position = entry.getKey();
+            int votes = entry.getValue();
+            voteStatistics.append(String.format("- 位置%s: %d票\n", position, votes));
+        }
+        
+        return fillTemplate(MULTI_AGENT_SUMMARY_TEMPLATE,
+                "currentMap", currentMap,
+                "agentResponses", agentResponses.toString(),
+                "voteStatistics", voteStatistics.toString(),
+                "finalX", String.valueOf(finalDecision.getX()),
+                "finalY", String.valueOf(finalDecision.getY()),
+                "finalReason", finalDecision.getReason());
     }
 
     // 模板变量替换工具方法
