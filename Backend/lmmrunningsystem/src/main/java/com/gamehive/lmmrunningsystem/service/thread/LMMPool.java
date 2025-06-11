@@ -1,4 +1,4 @@
-package com.gamehive.lmmrunningsystem.service.threadutils;
+package com.gamehive.lmmrunningsystem.service.thread;
 
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
 import org.springframework.stereotype.Component;

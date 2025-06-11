@@ -1,9 +1,9 @@
-package com.gamehive.lmmrunningsystem.service.threadutils;
+package com.gamehive.lmmrunningsystem.service.thread;
 
 import com.gamehive.lmmrunningsystem.config.ApiConfig;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
-import com.gamehive.lmmrunningsystem.service.agent.DeepSeekAIServiceImpl;
+import com.gamehive.lmmrunningsystem.service.agent.SingleAgentService;
 import com.gamehive.lmmrunningsystem.service.agent.MultiAgentCoordinatorService;
 import com.gamehive.lmmrunningsystem.dto.MultiAgentResult;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class Consumer extends Thread {
     private volatile boolean isCompleted = false;
 
     private static RestTemplate restTemplate;
-    private static DeepSeekAIServiceImpl singleAgentService;
+    private static SingleAgentService singleAgentService;
     private static MultiAgentCoordinatorService multiAgentCoordinator;
     private static ApiConfig apiConfig;
     private static boolean useMultiAgent;
@@ -42,8 +42,8 @@ public class Consumer extends Thread {
     }
 
     @Autowired
-    public void setSingleAgentService(@Qualifier("originalDeepSeekAIService") DeepSeekAIServiceImpl deepSeekAIService) {
-        Consumer.singleAgentService = deepSeekAIService;
+    public void setSingleAgentService(@Qualifier("originalDeepSeekAIService") SingleAgentService singleAgentService) {
+        Consumer.singleAgentService = singleAgentService;
     }
 
     @Autowired

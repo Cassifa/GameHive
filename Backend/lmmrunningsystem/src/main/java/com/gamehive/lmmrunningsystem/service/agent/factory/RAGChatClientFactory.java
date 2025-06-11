@@ -1,4 +1,4 @@
-package com.gamehive.lmmrunningsystem.service.agent.rag;
+package com.gamehive.lmmrunningsystem.service.agent.factory;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.embedding.DashScopeEmbeddingModel;
@@ -42,7 +42,7 @@ public class RAGChatClientFactory {
     private final ConcurrentHashMap<String, ChatClient> chatClients = new ConcurrentHashMap<>();
     // VectorStore映射表
     private final ConcurrentHashMap<String, VectorStore> vectorStores = new ConcurrentHashMap<>();
-    
+
     private final ChatModel chatModel;
     private final VectorStoreProperties vectorStoreProperties;
     private final ChatMemory gameChatMemory; // 恢复原名，所有游戏共享，通过conversationId隔离

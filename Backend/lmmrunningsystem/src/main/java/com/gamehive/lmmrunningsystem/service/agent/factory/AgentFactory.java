@@ -1,6 +1,7 @@
-package com.gamehive.lmmrunningsystem.service.agent;
+package com.gamehive.lmmrunningsystem.service.agent.factory;
 
-import com.gamehive.lmmrunningsystem.service.agent.rag.RAGChatClientFactory;
+import com.gamehive.lmmrunningsystem.service.agent.utils.GameAgent;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,48 +33,48 @@ public class AgentFactory {
     // Agent配置
     @Value("${lmm.multi-agent.agents.agent1.enabled:true}")
     private boolean agent1Enabled;
-    
+
     @Value("${lmm.multi-agent.agents.agent2.enabled:true}")
     private boolean agent2Enabled;
-    
+
     @Value("${lmm.multi-agent.agents.agent3.enabled:true}")
     private boolean agent3Enabled;
-    
+
     @Value("${lmm.multi-agent.agents.agent4.enabled:true}")
     private boolean agent4Enabled;
-    
+
     @Value("${lmm.multi-agent.agents.agent5.enabled:true}")
     private boolean agent5Enabled;
 
     // 模型配置
     @Value("${lmm.multi-agent.agents.agent1.model:}")
     private String agent1Model;
-    
+
     @Value("${lmm.multi-agent.agents.agent2.model:}")
     private String agent2Model;
-    
+
     @Value("${lmm.multi-agent.agents.agent3.model:}")
     private String agent3Model;
-    
+
     @Value("${lmm.multi-agent.agents.agent4.model:}")
     private String agent4Model;
-    
+
     @Value("${lmm.multi-agent.agents.agent5.model:}")
     private String agent5Model;
 
     // 温度参数配置
     @Value("${lmm.multi-agent.agents.agent1.temperature:0.7}")
     private double agent1Temperature;
-    
+
     @Value("${lmm.multi-agent.agents.agent2.temperature:0.7}")
     private double agent2Temperature;
-    
+
     @Value("${lmm.multi-agent.agents.agent3.temperature:0.7}")
     private double agent3Temperature;
-    
+
     @Value("${lmm.multi-agent.agents.agent4.temperature:0.7}")
     private double agent4Temperature;
-    
+
     @Value("${lmm.multi-agent.agents.agent5.temperature:0.7}")
     private double agent5Temperature;
 
@@ -102,7 +102,7 @@ public class AgentFactory {
         createAgentIfEnabled(5, agent5Enabled, agent5Model, agent5Temperature);
 
         log.info("Agent工厂初始化完成，创建了{}个可用Agent", availableAgents.size());
-        
+
         // 记录每个Agent的信息
         for (GameAgent agent : availableAgents) {
             log.info("Agent已创建: {} (ID: {}, 温度: {})", agent.getAgentName(), agent.getId(), agent.getTemperature());
@@ -119,7 +119,7 @@ public class AgentFactory {
             } else {
                 log.info("为 Agent{} 配置模型: {}, 温度: {}", id, model, temperature);
             }
-            
+
             GameAgent agent = new GameAgent(
                     gameDecisionChatClient,
                     gameChatMemory,
@@ -127,7 +127,7 @@ public class AgentFactory {
                     id,
                     temperature
             );
-            
+
             availableAgents.add(agent);
             log.debug("成功创建Agent{} (ID: {}, 温度: {})", id, id, temperature);
         } else {
