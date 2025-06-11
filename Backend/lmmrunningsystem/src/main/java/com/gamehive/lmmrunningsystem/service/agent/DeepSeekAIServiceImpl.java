@@ -4,13 +4,14 @@ import com.gamehive.lmmrunningsystem.constants.GameTypeEnum;
 import com.gamehive.lmmrunningsystem.constants.ValidationResultEnum;
 import com.gamehive.lmmrunningsystem.dto.LMMDecisionResult;
 import com.gamehive.lmmrunningsystem.dto.LMMRequestDTO;
+import com.gamehive.lmmrunningsystem.service.agent.rag.RAGChatClientFactory;
 import com.gamehive.lmmrunningsystem.service.agent.utils.PromptTemplateBuilder;
-import com.gamehive.lmmrunningsystem.service.RAGChatClientFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,10 +28,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class DeepSeekAIServiceImpl {
 
-    // 基础ChatClient实例，用于与大模型通信
+    // 基础ChatClient
     private final ChatClient baseChatClient;
 
-    // 聊天记忆实例，用于存储对话历史
+    // 聊天记忆实例，存储对话历史
     private final ChatMemory chatMemory;
 
     // RAG ChatClient工厂
@@ -45,7 +46,7 @@ public class DeepSeekAIServiceImpl {
      *
      * @param gameDecisionChatClient Spring AI配置的游戏决策ChatClient实例
      * @param gameChatMemory         游戏对话记忆实例
-     * @param ragChatClientFactory RAG ChatClient工厂
+     * @param ragChatClientFactory   RAG ChatClient工厂
      */
     public DeepSeekAIServiceImpl(@Qualifier("gameDecisionChatClient") ChatClient gameDecisionChatClient,
                                  @Qualifier("gameChatMemory") ChatMemory gameChatMemory,
@@ -101,6 +102,9 @@ public class DeepSeekAIServiceImpl {
                 // 获取游戏专用的RAG ChatClient
                 GameTypeEnum gameTypeEnum = GameTypeEnum.fromChineseName(lmmRequest.getGameType());
                 ChatClient ragChatClient = ragChatClientFactory.getChatClient(gameTypeEnum);
+
+                //测试向量存储是否工作
+                testVectorStoreForGame(gameTypeEnum, userPrompt);
 
                 if (systemPrompt != null) {
                     result = ragChatClient.prompt()
@@ -199,7 +203,6 @@ public class DeepSeekAIServiceImpl {
 
     /**
      * 获取默认决策结果
-     * 当大模型决策失败时，使用简单策略选择第一个可用位置
      *
      * @param lmmRequest 大模型请求对象
      * @return LMMDecisionResult 默认的决策结果
@@ -217,5 +220,36 @@ public class DeepSeekAIServiceImpl {
         }
 
         return new LMMDecisionResult(0, 0, "默认策略：无可用位置，选择(0,0)");
+    }
+
+    /**
+     * 测试向量存储是否能正确检索到相关文档 - 用于RAG调试
+     */
+    private void testVectorStoreForGame(GameTypeEnum gameType, String userQuery) {
+        try {
+            VectorStore vectorStore = ragChatClientFactory.getVectorStore(gameType);
+            var searchResult = vectorStore.similaritySearch(SearchRequest.builder()
+                    .query(userQuery)
+                    .topK(5)
+                    .similarityThreshold(0.1)
+                    .build());
+
+            log.info("RAG调试 - 游戏: {}, 查询: {}, 检索到文档数: {}",
+                    gameType.getChineseName(), userQuery, searchResult.size());
+
+            if (!searchResult.isEmpty()) {
+                for (int i = 0; i < Math.min(searchResult.size(), 3); i++) {
+                    var doc = searchResult.get(i);
+                    String preview = doc.getText().length() > 100 ?
+                            doc.getText().substring(0, 100) + "..." : doc.getText();
+                    log.info("检索文档 {}: 相似度={}, 内容预览: {}",
+                            i + 1, doc.getMetadata().get("distance"), preview);
+                }
+            } else {
+                log.warn("RAG调试 - 没有检索到任何相关文档，这可能表示向量存储为空或查询不匹配");
+            }
+        } catch (Exception e) {
+            log.error("RAG调试失败: {}", e.getMessage(), e);
+        }
     }
 } 

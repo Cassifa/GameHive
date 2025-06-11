@@ -30,7 +30,7 @@ public class PromptTemplateBuilder {
             "请返回你的决策，包含以下字段：\n" +
                     "- x: 行坐标(从0开始的整数)\n" +
                     "- y: 列坐标(从0开始的整数)\n" +
-                    "- reason: 详细的决策理由（中文形式）\n\n";
+                    "- reason: 详细的决策理由(中文)，如果使用了知识库内容需要说明依据\n\n";
 
     // 注意事项模板，强调决策的重要约束条件
     private static final String ATTENTION_TEMPLATE =
@@ -91,8 +91,6 @@ public class PromptTemplateBuilder {
     /**
      * 构建基础系统提示词
      * 仅包含AI角色定义，用于配置ChatClient的默认系统提示词
-     *
-     * @return 基础系统提示词
      */
     public static String buildBaseSystemPrompt() {
         return SYSTEM_PROMPT_TEMPLATE;
@@ -104,7 +102,6 @@ public class PromptTemplateBuilder {
      *
      * @param currentMap   当前棋盘状态
      * @param historySteps 历史步骤记录
-     * @return 用户查询提示词
      */
     public static String buildUserPrompt(String currentMap, String historySteps) {
         StringBuilder userPrompt = new StringBuilder();
@@ -128,47 +125,10 @@ public class PromptTemplateBuilder {
      * @param previousResult 上次的决策结果
      * @param currentMap     当前棋盘状态（用于验证）
      * @param gridSize       棋盘网格大小（用于验证）
-     * @return 重试提示词
      */
     public static String buildRetryPrompt(LMMDecisionResult previousResult, String currentMap, String gridSize) {
         String specificError = buildErrorFeedback(previousResult, currentMap, gridSize);
         return fillTemplate(ERROR_FEEDBACK_TEMPLATE, "specificError", specificError);
-    }
-
-    /**
-     * 构建初始查询提示词
-     *
-     * @param gameType     游戏类型名称
-     * @param gameRule     游戏规则描述
-     * @param llmFlag      大模型落子标识
-     * @param gridSize     棋盘网格大小
-     * @param currentMap   当前棋盘状态
-     * @param historySteps 历史步骤记录
-     * @return 完整的初始提示词
-     */
-    public static String buildInitialPrompt(String gameType, String gameRule, String llmFlag, String gridSize,
-                                            String currentMap, String historySteps) {
-        StringBuilder prompt = new StringBuilder();
-
-        prompt.append(fillTemplate(GAME_RULES_TEMPLATE,
-                "gameType", gameType,
-                "gameRule", gameRule,
-                "llmFlag", llmFlag));
-
-        prompt.append("棋盘大小：").append(gridSize).append("x").append(gridSize).append("\n\n");
-
-        if (historySteps != null && !historySteps.trim().isEmpty()) {
-            prompt.append(fillTemplate(HISTORY_TEMPLATE,
-                    "historySteps", historySteps));
-        }
-
-        prompt.append(fillTemplate(BOARD_STATE_TEMPLATE,
-                "currentMap", currentMap));
-
-        prompt.append(OUTPUT_FORMAT_TEMPLATE);
-        prompt.append(ATTENTION_TEMPLATE);
-
-        return prompt.toString();
     }
 
     /**
@@ -177,7 +137,6 @@ public class PromptTemplateBuilder {
      * @param currentMap       当前棋盘状态
      * @param decision         失败的决策结果
      * @param validationResult 验证失败结果
-     * @return 失败决策记忆文本
      */
     public static String buildDecisionMemory(String currentMap, LMMDecisionResult decision,
                                              ValidationResultEnum validationResult) {
@@ -209,31 +168,23 @@ public class PromptTemplateBuilder {
         }
 
         ValidationResultEnum validation = previousResult.validate(currentMap, gridSize);
-        switch (validation) {
-            case POSITION_OCCUPIED:
-                return String.format("位置(%d,%d)已经有棋子了。",
-                        previousResult.getX(), previousResult.getY());
-            case OUT_OF_BOUNDS:
-                return String.format("位置(%d,%d)超出棋盘范围。",
-                        previousResult.getX(), previousResult.getY());
-            case INVALID_FORMAT:
-                return "返回格式不正确，缺少x或y坐标。";
-            default:
-                return "未知错误，请重新尝试。";
-        }
+        return switch (validation) {
+            case POSITION_OCCUPIED -> String.format("位置(%d,%d)已经有棋子了。",
+                    previousResult.getX(), previousResult.getY());
+            case OUT_OF_BOUNDS -> String.format("位置(%d,%d)超出棋盘范围。",
+                    previousResult.getX(), previousResult.getY());
+            case INVALID_FORMAT -> "返回格式不正确，缺少x或y坐标。";
+            default -> "未知错误，请重新尝试。";
+        };
     }
 
     // 获取验证结果描述的工具方法
     private static String getValidationResultDescription(ValidationResultEnum validationResult) {
-        switch (validationResult) {
-            case INVALID_FORMAT:
-                return "格式无效";
-            case OUT_OF_BOUNDS:
-                return "超出边界";
-            case POSITION_OCCUPIED:
-                return "位置已占用";
-            default:
-                return "未知错误";
-        }
+        return switch (validationResult) {
+            case INVALID_FORMAT -> "格式无效";
+            case OUT_OF_BOUNDS -> "超出边界";
+            case POSITION_OCCUPIED -> "位置已占用";
+            default -> "未知错误";
+        };
     }
 } 

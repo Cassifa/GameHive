@@ -1,4 +1,4 @@
-package com.gamehive.lmmrunningsystem.service;
+package com.gamehive.lmmrunningsystem.service.agent.rag;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.embedding.DashScopeEmbeddingModel;
@@ -12,9 +12,8 @@ import org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.reader.TextReader;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -65,14 +64,39 @@ public class RAGChatClientFactory {
     @PostConstruct
     public void initializeChatClients() {
         log.info("开始初始化RAG ChatClient工厂...");
-
-        // 为每个游戏类型创建ChatClient
         createChatClientForGame("gobang", "五子棋专用RAG ChatClient");
         createChatClientForGame("reverse-go", "不围棋专用RAG ChatClient");
         createChatClientForGame("tic-tac-toe", "井字棋专用RAG ChatClient");
         createChatClientForGame("misere-tic-tac-toe", "反井字棋专用RAG ChatClient");
-
         log.info("RAG ChatClient工厂初始化完成，共创建{}个ChatClient", chatClients.size());
+    }
+
+    /**
+     * 工厂模式方法：根据游戏类型获取对应的ChatClient
+     */
+    public ChatClient getChatClient(GameTypeEnum gameType) {
+        String gameKey = getGameKey(gameType);
+        ChatClient chatClient = chatClients.get(gameKey);
+        if (chatClient == null) {
+            throw new IllegalArgumentException("未找到对应的ChatClient: " + gameType.getChineseName());
+        }
+
+        log.info("🎯 使用RAG ChatClient: {} ({}) - 包含知识库增强功能",
+                gameType.getChineseName(), gameKey);
+
+        return chatClient;
+    }
+
+    /**
+     * 根据GameTypeEnum获取对应的VectorStore - 用于调试
+     */
+    public VectorStore getVectorStore(GameTypeEnum gameType) {
+        String gameKey = getGameKey(gameType);
+        VectorStore vectorStore = vectorStores.get(gameKey);
+        if (vectorStore == null) {
+            throw new IllegalArgumentException("未找到对应的VectorStore: " + gameType.getChineseName());
+        }
+        return vectorStore;
     }
 
     /**
@@ -88,10 +112,16 @@ public class RAGChatClientFactory {
 
             // 2. 创建向量存储
             VectorStore vectorStore = createVectorStore(gameKey, embeddingModel);
-            vectorStores.put(gameKey, vectorStore);  // 保存向量存储引用
+            vectorStores.put(gameKey, vectorStore);
 
-            // 3. 创建RAG advisor，使用配置文件中的参数
+            // 3. 测试向量存储是否正常工作
+            testVectorStore(vectorStore, gameKey);
+
+            // 4. 创建RAG advisor，使用配置文件中的参数
             VectorStoreProperties.RAGConfig ragConfig = vectorStoreProperties.getRag();
+            log.info("RAG配置 - maxDocuments: {}, similarityThreshold: {}",
+                    ragConfig.getMaxDocuments(), ragConfig.getSimilarityThreshold());
+
             QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
                     .searchRequest(SearchRequest.builder()
                             .topK(ragConfig.getMaxDocuments())
@@ -99,7 +129,7 @@ public class RAGChatClientFactory {
                             .build())
                     .build();
 
-            // 4. 创建ChatClient with RAG，模仿gameDecisionChatClient的构建方式
+            // 5. 创建ChatClient with RAG，模仿gameDecisionChatClient的构建方式
             ChatClient chatClient = ChatClient.builder(chatModel)
                     .defaultSystem("你是一个" + getGameTypeDescription(gameKey) + "游戏专家，请基于提供的知识回答问题。")
                     .defaultAdvisors(MessageChatMemoryAdvisor.builder(gameChatMemory).build())
@@ -134,10 +164,27 @@ public class RAGChatClientFactory {
 
             // 如果存储文件存在，则加载
             File storageFile = new File(storagePath);
-            if (storageFile.exists()) {
+            if (storageFile.exists() && storageFile.length() > 0) {
                 vectorStore.load(storageFile);
                 log.info("向量存储 {} 已从文件加载: {}", gameKey, storagePath);
-            } else {
+
+                //验证加载的向量存储
+                try {
+                    var testResult = vectorStore.similaritySearch(SearchRequest.builder()
+                            .query("测试")
+                            .topK(1)
+                            .similarityThreshold(0.0)
+                            .build());
+                    log.info("加载的向量存储 {} 包含文档数: {}", gameKey, testResult.size());
+                } catch (Exception e) {
+                    log.warn("测试加载的向量存储失败，将重新构建: {}", e.getMessage());
+                    // 如果加载的向量存储有问题，删除文件重新构建
+                    storageFile.delete();
+                }
+            }
+
+            // 如果文件不存在或者加载失败，重新构建向量存储
+            if (!storageFile.exists() || storageFile.length() == 0) {
                 log.info("向量存储 {} 创建新的存储文件: {}", gameKey, storagePath);
                 // 确保父目录存在
                 File parentDir = storageFile.getParentFile();
@@ -147,14 +194,16 @@ public class RAGChatClientFactory {
                         log.info("创建存储目录: {}", parentDir.getAbsolutePath());
                     }
                 }
-                
+
                 // 加载知识库文件
                 if (knowledgeFile != null && !knowledgeFile.isEmpty()) {
                     loadKnowledgeFile(vectorStore, knowledgeFile, gameKey);
-                    
+
                     // 保存向量存储到文件
                     vectorStore.save(storageFile);
                     log.info("向量存储 {} 已保存到文件: {}", gameKey, storagePath);
+                } else {
+                    log.warn("游戏 {} 没有配置知识库文件", gameKey);
                 }
             }
 
@@ -165,51 +214,47 @@ public class RAGChatClientFactory {
         }
     }
 
-    /**
-     * 加载知识库文件到向量存储
-     */
+    //加载知识库文件到向量存储
     private void loadKnowledgeFile(VectorStore vectorStore, String knowledgeFile, String gameKey) {
         try {
             log.info("开始加载知识库文件: {} for {}", knowledgeFile, gameKey);
-            
+
             // 加载资源文件
             Resource resource = resourceLoader.getResource(knowledgeFile);
             if (!resource.exists()) {
                 log.warn("知识库文件不存在: {}", knowledgeFile);
                 return;
             }
-            
+
             // 读取文件内容
             String content = new String(resource.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-            
+
             // 将大文档分割成小块（每块最大1800字符，留200字符缓冲）
             List<Document> documents = splitTextIntoChunks(content, 1800, gameKey, knowledgeFile);
-            
+
             log.info("知识库文件 {} 分割为 {} 个文档片段", knowledgeFile, documents.size());
-            
+
             // 添加到向量存储
             vectorStore.add(documents);
-            
+
             log.info("成功加载知识库文件 {} 到向量存储 {}", knowledgeFile, gameKey);
-            
+
         } catch (Exception e) {
             log.error("加载知识库文件失败: {} for {}", knowledgeFile, gameKey, e);
             throw new RuntimeException("加载知识库文件失败: " + knowledgeFile, e);
         }
     }
 
-    /**
-     * 将文本分割成小块
-     */
+    //切分文本
     private List<Document> splitTextIntoChunks(String text, int maxChunkSize, String gameKey, String source) {
         List<Document> documents = new ArrayList<>();
-        
+
         // 按段落分割（以双换行为分界）
         String[] paragraphs = text.split("\n\n");
-        
+
         StringBuilder currentChunk = new StringBuilder();
         int chunkIndex = 0;
-        
+
         for (String paragraph : paragraphs) {
             // 如果当前段落本身就超过限制，进一步分割
             if (paragraph.length() > maxChunkSize) {
@@ -218,12 +263,12 @@ public class RAGChatClientFactory {
                     documents.add(createDocumentFromChunk(currentChunk.toString(), gameKey, source, chunkIndex++));
                     currentChunk.setLength(0);
                 }
-                
+
                 // 按句子分割长段落
                 String[] sentences = paragraph.split("\\n");
                 for (String sentence : sentences) {
                     if (sentence.trim().isEmpty()) continue;
-                    
+
                     // 如果单个句子仍然太长，强制按字符数分割
                     if (sentence.length() > maxChunkSize) {
                         for (int i = 0; i < sentence.length(); i += maxChunkSize) {
@@ -261,18 +306,16 @@ public class RAGChatClientFactory {
                 currentChunk.append(paragraph);
             }
         }
-        
+
         // 保存最后一个chunk
         if (currentChunk.length() > 0) {
             documents.add(createDocumentFromChunk(currentChunk.toString(), gameKey, source, chunkIndex));
         }
-        
+
         return documents;
     }
-    
-    /**
-     * 从文本块创建Document
-     */
+
+    //根据文本创建Document
     private Document createDocumentFromChunk(String content, String gameKey, String source, int chunkIndex) {
         Document doc = new Document(content.trim());
         doc.getMetadata().put("game_type", gameKey);
@@ -280,59 +323,6 @@ public class RAGChatClientFactory {
         doc.getMetadata().put("chunk_index", chunkIndex);
         doc.getMetadata().put("chunk_size", content.length());
         return doc;
-    }
-
-    /**
-     * 工厂模式方法：根据游戏类型获取对应的ChatClient
-     */
-    public ChatClient getChatClient(GameTypeEnum gameType) {
-        String gameKey = getGameKey(gameType);
-        ChatClient chatClient = chatClients.get(gameKey);
-        if (chatClient == null) {
-            throw new IllegalArgumentException("未找到对应的ChatClient: " + gameType.getChineseName());
-        }
-        
-        log.info("🎯 使用RAG ChatClient: {} ({}) - 包含知识库增强功能", 
-                 gameType.getChineseName(), gameKey);
-        
-        return chatClient;
-    }
-
-    /**
-     * 根据游戏类型字符串获取对应的VectorStore
-     */
-    public VectorStore getVectorStore(String gameType) {
-        // 根据游戏类型字符串转换为gameKey
-        String gameKey = convertGameTypeToKey(gameType);
-        VectorStore vectorStore = vectorStores.get(gameKey);
-        if (vectorStore == null) {
-            throw new IllegalArgumentException("未找到对应的VectorStore: " + gameType);
-        }
-        return vectorStore;
-    }
-
-    /**
-     * 将游戏类型字符串转换为存储键
-     */
-    private String convertGameTypeToKey(String gameType) {
-        switch (gameType.toLowerCase()) {
-            case "gobang":
-            case "五子棋":
-            case "8*8五子棋":
-                return "gobang";
-            case "reverse-go":
-            case "anti-go":
-            case "不围棋":
-                return "reverse-go";
-            case "tic-tac-toe":
-            case "井字棋":
-                return "tic-tac-toe";
-            case "misere-tic-tac-toe":
-            case "反井字棋":
-                return "misere-tic-tac-toe";
-            default:
-                throw new IllegalArgumentException("不支持的游戏类型: " + gameType);
-        }
     }
 
     /**
@@ -370,6 +360,39 @@ public class RAGChatClientFactory {
                 return "反井字棋";
             default:
                 return "未知游戏";
+        }
+    }
+
+    /**
+     * 测试向量存储是否正常工作-工厂创建后测试
+     */
+    private void testVectorStore(VectorStore vectorStore, String gameKey) {
+        try {
+            log.info("开始测试向量存储: {}", gameKey);
+
+            // 测试查询
+            var searchResult = vectorStore.similaritySearch(SearchRequest.builder()
+                    .query("井字棋 中心")
+                    .topK(3)
+                    .similarityThreshold(0.0)
+                    .build()
+            );
+            log.info("向量存储 {} 测试查询结果数量: {}", gameKey, searchResult.size());
+
+            if (!searchResult.isEmpty()) {
+                for (int i = 0; i < Math.min(searchResult.size(), 2); i++) {
+                    var doc = searchResult.get(i);
+                    log.debug("检索到的文档 {}: 内容长度={}, 相似度={}",
+                            i + 1, doc.getText().length(), doc.getMetadata().get("distance"));
+                }
+            } else {
+                log.warn("向量存储 {} 没有检索到任何文档，这可能表示知识库为空", gameKey);
+            }
+
+            log.info("向量存储测试完成: {}", gameKey);
+        } catch (Exception e) {
+            log.error("测试向量存储失败: {}", gameKey, e);
+            throw new RuntimeException("测试向量存储失败: " + gameKey, e);
         }
     }
 }
