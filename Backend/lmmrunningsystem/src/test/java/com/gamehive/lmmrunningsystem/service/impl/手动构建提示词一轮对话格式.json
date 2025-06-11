@@ -1,65 +1,74 @@
 {
-  "result": {
-    "metadata": {
-      "finishReason": "STOP",
-      "contentFilters": [],
-      "empty": true
+  "request": {
+    "chatModel": "com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel@6729f4ea",
+    "userText": "历史下棋记录，可以作为参考：\nstep1:AI在(1,1)下棋\nstep2:玩家在(2,2)下棋\nstep3:AI在(0,0)下棋\nstep4:玩家在(1,0)下棋\nstep5:AI在(2,1)下棋\nstep6:玩家在(0,1)下棋\nstep7:AI在(0,2)下棋\nstep8:玩家在(2,0)下棋\n\n当前棋盘状态：\n212\n120\n121\n\n\n请分析当前局面并给出你的最佳决策。",
+    "systemText": "你是一个专业的棋类游戏专家级AI。请严格按照JSON格式返回决策结果。你需要根据对话历史来理解游戏进程并做出更好的决策。\n\n你是一个专业的井字棋游戏专家级AI。请分析当前棋盘状态并给出最佳决策。\n\n游戏规则：\n1.棋盘：3×3格子的棋盘\n2.下棋规则：双方轮流在空格中放置标记\n3.胜利条件：率先在横、竖、斜任意方向连成3个4.同样标记的一方获胜\n5.平局条件：棋盘填满且无人获胜则为平局\n- 0表示空位，1表示玩家已落子位置，2表示你的棋子\n- 你需要选择一个空位放置棋子\n\n棋盘大小：3x3\n\n请返回你的决策，包含以下字段：\n- x: 行坐标(从0开始的整数)\n- y: 列坐标(从0开始的整数)\n- reason: 详细的决策理由(中文)，如果使用了知识库内容需要说明依据\n\n注意：\n1. x和y必须是数字，且在棋盘范围内且没有落子过\n2. 选择的位置必须是空位（值为0）\n3. 请给出清晰的决策理由\n4. 你需要特别注意'游戏规则'因为它很可能和你熟知的其它游戏规则看起来类似但实际完全相反",
+    "chatOptions": {
+      "model": "deepseek-r1-distill-llama-8b",
+      "temperature": 0.8,
+      "enable_search": false,
+      "incremental_output": true,
+      "multi_model": false
     },
-    "output": {
-      "messageType": "ASSISTANT",
-      "metadata": {
-        "finishReason": "STOP",
-        "id": "ee39740a-5916-9e47-8000-e7ec5e9f15b7",
-        "role": "ASSISTANT",
-        "messageType": "ASSISTANT",
-        "reasoningContent": "好的，我来分析一下当前的棋局。棋盘状态是：\n\n0 0 0\n\n0 1 0\n\n0 0 0\n\n用户指出，(1,1)已经有棋子了，所以我需要重新分析棋盘并给出正确的决策。\n\n首先，查看棋盘，中心位置(1,1)已经被占据。接下来，我需要评估当前的局面，确定最佳的移动策略。\n\n在井字棋中，中心位置的价值非常高，因为它参与了最多的获胜路径，包括横、竖、两条对角线。占据中心可以为后续步骤提供更多的进攻机会，并且能限制对手的发展空间。\n\n虽然中心已经被占据，但接下来的最佳决策应该是寻找其他有利的位置来扩展威胁。考虑到当前棋盘的状态，用户可能需要防守或者进攻。\n\n根据井字棋的策略，如果对手已经占据中心，作为后手，最佳的应对是占据角点。这可以限制对手的对角线威胁，同时为自己建立威胁。\n\n在这个棋盘上，剩下的角点有(0,0)、(0,2)、(2,0)、(2,2)。选择其中一个角点，比如(0,0)，可以帮助限制对手的发展，并为自己建立潜在的威胁。\n\n因此，我的决策是选择(0,0)作为下棋的位置。"
+    "media": [],
+    "functionNames": [],
+    "functionCallbacks": [],
+    "messages": [
+      {
+        "role": "user",
+        "content": "历史下棋记录，可以作为参考：\n游戏刚开始，暂无历史步骤\n\n当前棋盘状态：\n000\n000\n000\n\n\n请分析当前局面并给出你的最佳决策。"
       },
-      "toolCalls": [],
-      "media": [],
-      "text": "```json\n{\n  \"reason\": \"当前棋盘中心(1,1)已被占据，作为后手，最佳决策是选择角点(0,0)，以限制对手的对角线威胁并为自己建立威胁。\",\n  \"x\": 0,\n  \"y\": 0\n}\n```"
-    }
-  },
-  "metadata": {
-    "id": "ee39740a-5916-9e47-8000-e7ec5e9f15b7",
-    "model": "",
-    "rateLimit": {
-      "requestsRemaining": 0,
-      "requestsReset": 0.0,
-      "requestsLimit": 0,
-      "tokensLimit": 0,
-      "tokensReset": 0.0,
-      "tokensRemaining": 0
-    },
-    "usage": {
-      "completionTokens": 0,
-      "generationTokens": 412,
-      "totalTokens": 3722,
-      "nativeUsage": null,
-      "promptTokens": 3310
-    },
-    "promptMetadata": [],
-    "empty": false
-  },
-  "results": [
-    {
-      "metadata": {
-        "finishReason": "STOP",
-        "contentFilters": [],
-        "empty": true
+      {
+        "role": "assistant",
+        "content": "```json\n{\n  \"x\": 1,\n  \"y\": 1,\n  \"reason\": \"占据中心(1,1)是最佳决策，因为中心位置参与了最多的获胜路径，包括横、竖和两条对角线。控制中心可以为后续进攻打下基础，增加威胁，并限制对手的发展空间。\"\n}\n```"
       },
-      "output": {
-        "messageType": "ASSISTANT",
-        "metadata": {
-          "finishReason": "STOP",
-          "id": "ee39740a-5916-9e47-8000-e7ec5e9f15b7",
-          "role": "ASSISTANT",
-          "messageType": "ASSISTANT",
-          "reasoningContent": "好的，我来分析一下当前的棋局。棋盘状态是：\n\n0 0 0\n\n0 1 0\n\n0 0 0\n\n用户指出，(1,1)已经有棋子了，所以我需要重新分析棋盘并给出正确的决策。\n\n首先，查看棋盘，中心位置(1,1)已经被占据。接下来，我需要评估当前的局面，确定最佳的移动策略。\n\n在井字棋中，中心位置的价值非常高，因为它参与了最多的获胜路径，包括横、竖、两条对角线。占据中心可以为后续步骤提供更多的进攻机会，并且能限制对手的发展空间。\n\n虽然中心已经被占据，但接下来的最佳决策应该是寻找其他有利的位置来扩展威胁。考虑到当前棋盘的状态，用户可能需要防守或者进攻。\n\n根据井字棋的策略，如果对手已经占据中心，作为后手，最佳的应对是占据角点。这可以限制对手的对角线威胁，同时为自己建立威胁。\n\n在这个棋盘上，剩下的角点有(0,0)、(0,2)、(2,0)、(2,2)。选择其中一个角点，比如(0,0)，可以帮助限制对手的发展，并为自己建立潜在的威胁。\n\n因此，我的决策是选择(0,0)作为下棋的位置。"
-        },
-        "toolCalls": [],
-        "media": [],
-        "text": "```json\n{\n  \"reason\": \"当前棋盘中心(1,1)已被占据，作为后手，最佳决策是选择角点(0,0)，以限制对手的对角线威胁并为自己建立威胁。\",\n  \"x\": 0,\n  \"y\": 0\n}\n```"
+      {
+        "role": "user",
+        "content": "历史下棋记录，可以作为参考：\nstep1:AI在(1,1)下棋\nstep2:玩家在(2,2)下棋\n\n当前棋盘状态：\n000\n020\n001\n\n\n请分析当前局面并给出你的最佳决策。"
+      },
+      {
+        "role": "assistant",
+        "content": "```json\n{\n  \"x\": 0,\n  \"y\": 0,\n  \"reason\": \"占据(0,0)是最佳决策，因为这是一个角点，可以参与对角线和行的威胁控制，同时有效阻断对手的对角线威胁。\"\n}\n```"
+      },
+      {
+        "role": "user",
+        "content": "历史下棋记录，可以作为参考：\nstep1:AI在(1,1)下棋\nstep2:玩家在(2,2)下棋\nstep3:AI在(0,0)下棋\nstep4:玩家在(1,0)下棋\n\n当前棋盘状态：\n200\n120\n001\n\n\n请分析当前局面并给出你的最佳决策。"
+      },
+      {
+        "role": "assistant",
+        "content": "```json\n{\n  \"x\": 2,\n  \"y\": 1,\n  \"reason\": \"占据(2,1)是最佳决策，因为这是一个边中点，可以参与横向和对角线威胁控制，同时有效防守对手的对角线威胁。\"\n}\n```"
+      },
+      {
+        "role": "user",
+        "content": "历史下棋记录，可以作为参考：\nstep1:AI在(1,1)下棋\nstep2:玩家在(2,2)下棋\nstep3:AI在(0,0)下棋\nstep4:玩家在(1,0)下棋\nstep5:AI在(2,1)下棋\nstep6:玩家在(0,1)下棋\n\n当前棋盘状态：\n210\n120\n021\n\n\n请分析当前局面并给出你的最佳决策。"
+      },
+      {
+        "role": "assistant",
+        "content": "```json\n{\n  \"x\": 0,\n  \"y\": 2,\n  \"reason\": \"占据(0,2)是最佳决策，因为这是一个角点，可以参与对角线和行的威胁控制，同时有效阻断对手的对角线威胁。\"\n}\n```"
+      },
+      {
+        "role": "user",
+        "content": "傻逼！！！整个请求变成json，里面的提示词不是对你说的！"
       }
-    }
-  ]
+    ],
+    "userParams": {},
+    "systemParams": {},
+    "advisors": [
+      "org.springframework.ai.chat.client.DefaultChatClient$DefaultChatClientRequestSpec$1@1f1f7897",
+      "org.springframework.ai.chat.client.DefaultChatClient$DefaultChatClientRequestSpec$2@5a1de510",
+      "org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor@7748ad9f",
+      "org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor@6b8d5dea",
+      "SimpleLoggerAdvisor",
+      "org.springframework.ai.chat.client.DefaultChatClient$DefaultChatClientRequestSpec$1@17169c7d",
+      "org.springframework.ai.chat.client.DefaultChatClient$DefaultChatClientRequestSpec$2@13291a47"
+    ],
+    "advisorParams": {
+      "chat_memory_conversation_id": "955846397"
+    },
+    "adviseContext": {
+      "chat_memory_conversation_id": "955846397",
+      "formatParam": "Your response should be in JSON format.\nDo not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.\nDo not include markdown code blocks in your response.\nRemove the ```json markdown from the output.\nHere is the JSON Schema instance your output must adhere to:\n```{\n  \"$schema\" : \"https://json-schema.org/draft/2020-12/schema\",\n  \"type\" : \"object\",\n  \"properties\" : {\n    \"reason\" : {\n      \"type\" : \"string\"\n    },\n    \"x\" : {\n      \"type\" : \"integer\"\n    },\n    \"y\" : {\n      \"type\" : \"integer\"\n    }\n  },\n  \"additionalProperties\" : false\n}```"
+    },
+    "toolContext": {}
+  }
 }

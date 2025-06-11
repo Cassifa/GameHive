@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
+
 /**
  * DeepSeek AI服务实现
  * 负责与DeepSeek大模型进行交互，获取游戏决策结果
@@ -110,11 +112,13 @@ public class DeepSeekAIServiceImpl {
                     result = ragChatClient.prompt()
                             .system(systemPrompt)
                             .user(userPrompt)
+                            .advisors(a -> a.param(CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId))
                             .call()
                             .entity(LMMDecisionResult.class);
                 } else {
                     result = ragChatClient.prompt()
                             .user(userPrompt)
+                            .advisors(a -> a.param(CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId))
                             .call()
                             .entity(LMMDecisionResult.class);
                 }

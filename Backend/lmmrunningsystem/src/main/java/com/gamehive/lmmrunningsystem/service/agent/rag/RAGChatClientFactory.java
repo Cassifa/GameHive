@@ -42,9 +42,10 @@ public class RAGChatClientFactory {
     private final ConcurrentHashMap<String, ChatClient> chatClients = new ConcurrentHashMap<>();
     // VectorStore映射表
     private final ConcurrentHashMap<String, VectorStore> vectorStores = new ConcurrentHashMap<>();
+    
     private final ChatModel chatModel;
     private final VectorStoreProperties vectorStoreProperties;
-    private final ChatMemory gameChatMemory;
+    private final ChatMemory gameChatMemory; // 恢复原名，所有游戏共享，通过conversationId隔离
     private final ResourceLoader resourceLoader;
 
     @Value("${spring.ai.dashscope.api-key:}")
@@ -129,7 +130,7 @@ public class RAGChatClientFactory {
                             .build())
                     .build();
 
-            // 5. 创建ChatClient with RAG，模仿gameDecisionChatClient的构建方式
+            // 5. 创建ChatClient
             ChatClient chatClient = ChatClient.builder(chatModel)
                     .defaultSystem("你是一个" + getGameTypeDescription(gameKey) + "游戏专家，请基于提供的知识回答问题。")
                     .defaultAdvisors(MessageChatMemoryAdvisor.builder(gameChatMemory).build())
