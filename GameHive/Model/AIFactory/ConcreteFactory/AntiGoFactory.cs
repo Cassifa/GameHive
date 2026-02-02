@@ -1,7 +1,7 @@
-﻿/*************************************************************************************
+/*************************************************************************************
  * 文 件 名:   ReversiFactory.cs
  * 描    述: 不围棋工厂
- * 版    本：  V2.0 .NET客户端初版
+ * 版    本：  V2.1 添加 DRL 支持
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 20:36
 *************************************************************************************/
@@ -19,11 +19,12 @@ namespace GameHive.Model.AIFactory {
             return new AntiGoMCTS(boardInfo.Column, level);
         }
 
-        /*——————————不可用———————————*/
         public override DeepRL GetDeepRLProduct(DifficultyLevel level) {
-            throw new NotImplementedException();
+            SetConcreteProductInfo(AntiGoDRL.concreteProductInfo);
+            return new AntiGoDRL(boardInfo.Column, level);
         }
 
+        /*——————————不可用———————————*/
         public override Negamax GetNegamaxProduct(DifficultyLevel level) {
             throw new NotImplementedException();
         }
@@ -35,6 +36,7 @@ namespace GameHive.Model.AIFactory {
         private static AntiGoFactory _instance;
         private AntiGoFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
+                AIAlgorithmType.DeepRL,
                 AIAlgorithmType.MCTS,
             };
             boardInfo = new GameBoardInfo(7, true, aiTypes);

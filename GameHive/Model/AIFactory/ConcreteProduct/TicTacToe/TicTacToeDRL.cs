@@ -1,7 +1,7 @@
 /*************************************************************************************
  * 文 件 名:   TicTacToeDRL.cs
  * 描    述: 
- * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
+ * 版    本：  V3.0 重构DRL模块
  * 创 建 者：  Cassifa
  * 创建时间：  2026/2/2 11:10
 *************************************************************************************/
@@ -33,7 +33,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     break;
                 case DifficultyLevel.LEVEL_3: // 高强度 MCTS 搜索
                     useMonteCarlo = true;
-                    SearchCount = 1600;
+                    SearchCount = 500;
                     break;
                 default:
                     useMonteCarlo = false;
