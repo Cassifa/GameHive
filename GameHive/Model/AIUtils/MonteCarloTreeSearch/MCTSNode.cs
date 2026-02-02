@@ -1,4 +1,4 @@
-﻿/*************************************************************************************
+/*************************************************************************************
  * 文 件 名:   MCTSNode.cs
  * 描    述: 蒙特卡洛节点类
  *          负责：四过程中的反向传播
@@ -202,10 +202,45 @@ namespace GameHive.Model.AIUtils.MonteCarloTreeSearch {
             foreach (var entry in ChildrenMap) {
                 MCTSNode node = entry.Value;
                 double t = node.GetUCB(factor);
-                //>=涵盖了maxValue==double.NegativeInfinity情况，使得搜到无解局面时得以反向传播
                 if (t >= maxValue) {
                     if (t == double.PositiveInfinity)
                         return node;
+                    maxValue = t;
+                    chosenSon = node;
+                }
+            }
+            return chosenSon;
+        }
+
+        //DRL专用UCB公式：正确处理未访问节点的先验概率
+        //Python: U = factor * P * sqrt(N_parent) / (1 + N_child)
+        //未访问节点：Q=0, U = factor * P * sqrt(N_parent)
+        public double GetDRLUCB(double factor) {
+            if (Winner != Role.Empty)
+                return Winner == LeadToThisStatus ? double.PositiveInfinity : double.NegativeInfinity;
+            
+            int N = Father?.VisitedTimes ?? 1;
+            
+            if (VisitedTimes == 0) {
+                // 未访问节点：只有探索项，高先验概率的动作优先
+                return factor * PriorProbability * Math.Sqrt(N);
+            }
+            
+            double Q = TotalValue / (double)VisitedTimes;
+            double U = factor * PriorProbability * Math.Sqrt(N) / (1 + VisitedTimes);
+            return Q + U;
+        }
+
+        //DRL专用：获取DRL-UCB最大的子节点
+        public MCTSNode? GetGreatestDRLUCB(double factor) {
+            MCTSNode? chosenSon = null;
+            double maxValue = double.NegativeInfinity;
+            foreach (var entry in ChildrenMap) {
+                MCTSNode node = entry.Value;
+                double t = node.GetDRLUCB(factor);
+                if (t == double.PositiveInfinity)
+                    return node;
+                if (t > maxValue) {
                     maxValue = t;
                     chosenSon = node;
                 }

@@ -1,26 +1,26 @@
 /*************************************************************************************
- * 文 件 名:   GoBang88DRL.cs
- * 描    述: 深度强化学习8*8五子棋产品实例 (简化版)
- * 版    本：  V4.0 移除多线程和搜索树重用配置
+ * 文 件 名:   TicTacToeDRL.cs
+ * 描    述: 
+ * 版    本：  V3.0 引入DRL、MinMax-MCTS混合算法
  * 创 建 者：  Cassifa
- * 创建时间：  2024/11/26 18:36
- *************************************************************************************/
+ * 创建时间：  2026/2/2 11:01
+*************************************************************************************/
 using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Constants.RoleTypeEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.GameInfo;
 
 namespace GameHive.Model.AIFactory.ConcreteProduct {
-    internal class GoBang88DRL : DeepRL {
+    internal class TicTacToeDRL : DeepRL {
         //具体产品信息 包含难度
         public static ConcreteProductInfo concreteProductInfo = new ConcreteProductInfo(3);
 
-        public GoBang88DRL(int boardSize, DifficultyLevel level) {
-            this.boardSize = boardSize;
+        public TicTacToeDRL(int boardSize, DifficultyLevel level) {
+            this.boardSize = boardSize;  // 3x3
             concreteProductInfo.TotalPiecesCnt = boardSize;
             exploreFactor = 5.0;
 
-            byte[] modelBytes = Properties.Resources.gobang_10000;
+            byte[] modelBytes = Properties.Resources.tictactoe_2000;
 
             switch (level) {
                 case DifficultyLevel.LEVEL_1: // 纯神经网络评估
@@ -29,11 +29,11 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     break;
                 case DifficultyLevel.LEVEL_2: // 基础 MCTS 搜索
                     useMonteCarlo = true;
-                    SearchCount = 20000;
+                    SearchCount = 100;
                     break;
                 case DifficultyLevel.LEVEL_3: // 高强度 MCTS 搜索
                     useMonteCarlo = true;
-                    SearchCount = 40000;
+                    SearchCount = 1600;
                     break;
                 default:
                     useMonteCarlo = false;
@@ -57,7 +57,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 for (int j = 0; j < boardSize; j++)
                     if (currentBoard[i][j] != Role.Empty)
                         pieceCount++;
-            
+
             if (x == -1) {
                 if (pieceCount >= boardSize * boardSize) {
                     return Role.Draw;
@@ -65,27 +65,29 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 return Role.Empty;
             }
 
-            Role currentPlayer = currentBoard[x][y];
-            int[] dx = { 1, 0, 1, 1 };
-            int[] dy = { 0, 1, 1, -1 };
-            for (int direction = 0; direction < 4; direction++) {
-                int count = 1;
-                for (int step = 1; step <= 4; step++) {
-                    int nx = x + dx[direction] * step;
-                    int ny = y + dy[direction] * step;
-                    if (nx < 0 || ny < 0 || nx >= boardSize || ny >= boardSize || currentBoard[nx][ny] != currentPlayer)
-                        break;
-                    count++;
-                }
-                for (int step = 1; step <= 4; step++) {
-                    int nx = x - dx[direction] * step;
-                    int ny = y - dy[direction] * step;
-                    if (nx < 0 || ny < 0 || nx >= boardSize || ny >= boardSize || currentBoard[nx][ny] != currentPlayer)
-                        break;
-                    count++;
-                }
-                if (count >= 5)
-                    return currentPlayer;
+            // 检查行
+            if (currentBoard[x][0] != Role.Empty &&
+                currentBoard[x][0] == currentBoard[x][1] &&
+                currentBoard[x][1] == currentBoard[x][2]) {
+                return currentBoard[x][0];
+            }
+            // 检查列
+            if (currentBoard[0][y] != Role.Empty &&
+                currentBoard[0][y] == currentBoard[1][y] &&
+                currentBoard[1][y] == currentBoard[2][y]) {
+                return currentBoard[0][y];
+            }
+            // 检查主对角线
+            if (x == y && currentBoard[0][0] != Role.Empty &&
+                currentBoard[0][0] == currentBoard[1][1] &&
+                currentBoard[1][1] == currentBoard[2][2]) {
+                return currentBoard[0][0];
+            }
+            // 检查副对角线
+            if (x + y == boardSize - 1 && currentBoard[0][2] != Role.Empty &&
+                currentBoard[0][2] == currentBoard[1][1] &&
+                currentBoard[1][1] == currentBoard[2][0]) {
+                return currentBoard[0][2];
             }
             // 检查平局
             if (pieceCount >= boardSize * boardSize)

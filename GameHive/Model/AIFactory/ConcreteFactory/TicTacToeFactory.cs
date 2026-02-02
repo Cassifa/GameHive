@@ -1,4 +1,4 @@
-﻿/*************************************************************************************
+/*************************************************************************************
  * 文 件 名:   TicTacToeFactory.cs
  * 描    述: 井字棋工厂
  * 版    本：  V2.0 .NET客户端初版
@@ -28,15 +28,16 @@ namespace GameHive.Model.AIFactory {
             return new TicTacToeNegamax(boardInfo.Column, level);
         }
 
-        /*——————————不可用———————————*/
         public override DeepRL GetDeepRLProduct(DifficultyLevel level) {
-            throw new NotImplementedException();
+            SetConcreteProductInfo(TicTacToeDRL.concreteProductInfo);
+            return new TicTacToeDRL(boardInfo.Column, level);
         }
 
         //单例模式
         private static TicTacToeFactory _instance;
         private TicTacToeFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
+                AIAlgorithmType.DeepRL,
                 AIAlgorithmType.Minimax,
                 AIAlgorithmType.MCTS,
                 AIAlgorithmType.Negamax,
