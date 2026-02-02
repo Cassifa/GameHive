@@ -1,7 +1,7 @@
 /*************************************************************************************
  * 文 件 名:   GoBang88DRL.cs
- * 描    述: 深度强化学习8*8五子棋产品实例 (简化版)
- * 版    本：  V4.0 移除多线程和搜索树重用配置
+ * 描    述: 深度强化学习8*8五子棋产品实例
+ * 版    本：  V4.1 添加搜索树重用支持
  * 创 建 者：  Cassifa
  * 创建时间：  2024/11/26 18:36
  *************************************************************************************/
@@ -26,18 +26,22 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 case DifficultyLevel.LEVEL_1: // 纯神经网络评估
                     useMonteCarlo = false;
                     SearchCount = 0;
+                    reuseSearchTree = false;
                     break;
                 case DifficultyLevel.LEVEL_2: // 基础 MCTS 搜索
                     useMonteCarlo = true;
                     SearchCount = 20000;
+                    reuseSearchTree = true;
                     break;
                 case DifficultyLevel.LEVEL_3: // 高强度 MCTS 搜索
                     useMonteCarlo = true;
                     SearchCount = 40000;
+                    reuseSearchTree = true;
                     break;
                 default:
                     useMonteCarlo = false;
                     SearchCount = 0;
+                    reuseSearchTree = false;
                     break;
             }
 

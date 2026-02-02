@@ -2,8 +2,8 @@
  * 文 件 名:   DeepRL.cs
  * 描    述:   深度强化学习抽象产品 (简化版)
  *          核心功能：神经网络策略评估 + 价值网络 + MCTS融合
- *          支持模式：1.直接神经网络评估 2.基础 DRL-MCTS
- * 版    本：  V4.3 修复棋盘行翻转问题
+ *          支持模式：1.直接神经网络评估 2.基础 DRL-MCTS 3.MCTS+搜索树重用
+ * 版    本：  V4.4 添加搜索树重用功能
  * 创 建 者：  Cassifa
  * 创建时间：  2025/4/27 19:58
  *************************************************************************************/
@@ -26,6 +26,10 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         protected byte[]? modelBytes;
         protected double exploreFactor = 5.0;
         protected int SearchCount = 1600;
+        
+        // 搜索树重用相关
+        protected bool reuseSearchTree = false;  // 是否重用搜索树
+        private MCTSNode? persistentRoot = null; // 持久化的搜索树根节点
 
         private readonly object inferenceLock = new object();
 
@@ -51,10 +55,21 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             return SelectBestMove(policy, currentBoard);
         }
 
-        //模式2：基础 MCTS 搜索
+        //模式2：基础 MCTS 搜索（支持搜索树重用）
         protected virtual Tuple<int, int> GetMCTSMove(List<List<Role>> currentBoard, int lastX, int lastY) {
-            // 根节点：当前轮到 AI 下棋，LeadToThisStatus = Player 表示 Player 刚下完
-            MCTSNode rootNode = new MCTSNode(currentBoard, null, lastX, lastY, Role.Player, Role.Empty, GetAvailablePositions(currentBoard));
+            MCTSNode rootNode;
+            
+            if (reuseSearchTree && persistentRoot != null) {
+                // 重用搜索树：尝试找到对应玩家落子的子节点
+                rootNode = MoveToChild(persistentRoot, lastX, lastY);
+                if (rootNode == null) {
+                    // 如果找不到对应子节点，创建新的根节点
+                    rootNode = new MCTSNode(currentBoard, null, lastX, lastY, Role.Player, Role.Empty, GetAvailablePositions(currentBoard));
+                }
+            } else {
+                // 不重用搜索树：每次创建新的根节点
+                rootNode = new MCTSNode(currentBoard, null, lastX, lastY, Role.Player, Role.Empty, GetAvailablePositions(currentBoard));
+            }
             
             // 执行固定次数的模拟（Python 风格：不预先扩展 root）
             for (int i = 0; i < SearchCount; i++) {
@@ -64,10 +79,30 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             // 选择访问次数最多的子节点
             var bestChild = rootNode.ChildrenMap.Values.OrderByDescending(child => child.VisitedTimes).FirstOrDefault();
             if (bestChild == null) {
+                persistentRoot = null;
                 return GetDirectModelMove(currentBoard, lastX, lastY);
             }
 
-            return bestChild.PieceSelectedCompareToFather;
+            var bestMove = bestChild.PieceSelectedCompareToFather;
+            
+            // 更新持久化根节点（AI 下棋后，子节点成为新的根）
+            if (reuseSearchTree) {
+                persistentRoot = MoveToChild(rootNode, bestMove.Item1, bestMove.Item2);
+            }
+
+            return bestMove;
+        }
+        
+        // 将搜索树根节点移动到指定子节点（用于搜索树重用）
+        private MCTSNode? MoveToChild(MCTSNode node, int x, int y) {
+            if (x == -1 || y == -1) return null;
+            
+            int key = x * 100 + y;
+            if (node.ChildrenMap.TryGetValue(key, out MCTSNode? child)) {
+                // 断开与父节点的连接，使其成为新的根
+                return child;
+            }
+            return null;
         }
 
         // 扩展节点
@@ -263,6 +298,7 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
         /**********模型生命周期管理**********/
         public override void GameStart(bool IsAIFirst) {
             PlayedPiecesCnt = 0;
+            persistentRoot = null;  // 重置搜索树
             if (session == null || !isModelLoaded) {
                 if (modelBytes != null) LoadModel(modelBytes);
             }
@@ -274,10 +310,15 @@ namespace GameHive.Model.AIFactory.AbstractAIProduct {
             session = null;
             isModelLoaded = false;
             isModelWarmedUp = false;
+            persistentRoot = null;  // 清理搜索树
         }
 
         public override void UserPlayPiece(int lastX, int lastY) {
             PlayedPiecesCnt++;
+            // 搜索树重用：玩家下棋后，更新根节点到对应的子节点
+            if (reuseSearchTree && persistentRoot != null) {
+                persistentRoot = MoveToChild(persistentRoot, lastX, lastY);
+            }
         }
     }
 }
