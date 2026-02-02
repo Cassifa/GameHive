@@ -27,14 +27,14 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                 case DifficultyLevel.LEVEL_1://直接使用网络评估值
                     useMonteCarlo = false;
                     SearchTreeReuseEnabled = false;
-                    modelBytes = Properties.Resources.model_12000;
+                    modelBytes = Properties.Resources.gobang_10000;
                     break;
                 case DifficultyLevel.LEVEL_2://启用MCTS + 搜索树重用
                     useMonteCarlo = true;
                     SearchTreeReuseEnabled = true;
                     MinSearchCount = 1000;  // 每次释放锁前的最小搜索次数
                     SearchCount = 10000;    // 每次AI决策的搜索轮数
-                    modelBytes = Properties.Resources.model_12000;
+                    modelBytes = Properties.Resources.gobang_10000;
                     break;
                 case DifficultyLevel.LEVEL_3://启用MCTS + 多线程搜索
                     useMonteCarlo = true;
@@ -43,12 +43,12 @@ namespace GameHive.Model.AIFactory.ConcreteProduct {
                     ThreadCount = 6;                      //搜索线程
                     MultiThreadSearchCount = 10000;       //多线程搜索总轮数
                     MultiThreadMinSearchCount = 1000;     //批量搜索次数，平衡效率和同步开销
-                    modelBytes = Properties.Resources.model_12000;
+                    modelBytes = Properties.Resources.gobang_10000;
                     break;
                 default:
                     useMonteCarlo = false;
                     SearchTreeReuseEnabled = false;
-                    modelBytes = Properties.Resources.model_12000;
+                    modelBytes = Properties.Resources.gobang_10000;
                     break;
             }
             if (modelBytes == null || modelBytes.Length == 0) {

@@ -103,9 +103,9 @@ namespace GameHive.Properties {
         /// <summary>
         ///   查找 System.Byte[] 类型的本地化资源。
         /// </summary>
-        internal static byte[] model_12000 {
+        internal static byte[] gobang_10000 {
             get {
-                object obj = ResourceManager.GetObject("model_12000", resourceCulture);
+                object obj = ResourceManager.GetObject("gobang_10000", resourceCulture);
                 return ((byte[])(obj));
             }
         }
