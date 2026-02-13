@@ -29,7 +29,6 @@
 		<oshi.version>6.6.5</oshi.version>
 		<commons.io.version>2.13.0</commons.io.version>
 		<poi.version>4.1.2</poi.version>
-		<velocity.version>2.3</velocity.version>
 		<jwt.version>0.9.1</jwt.version>
 		<!-- override dependency version -->
 		<tomcat.version>9.0.96</tomcat.version>
@@ -156,14 +155,7 @@
 				<version>${poi.version}</version>
 			</dependency>
 
-			<!-- velocity代码生成使用模板 -->
-			<dependency>
-				<groupId>org.apache.velocity</groupId>
-				<artifactId>velocity-engine-core</artifactId>
-				<version>${velocity.version}</version>
-			</dependency>
-
-			<!-- 阿里JSON解析器 -->
+		<!-- 阿里JSON解析器 -->
 			<dependency>
 				<groupId>com.alibaba.fastjson2</groupId>
 				<artifactId>fastjson2</artifactId>
@@ -184,21 +176,7 @@
 				<version>${kaptcha.version}</version>
 			</dependency>
 
-			<!-- 定时任务-->
-			<dependency>
-				<groupId>com.gamehive</groupId>
-				<artifactId>gamehive-quartz</artifactId>
-				<version>${gamehive.version}</version>
-			</dependency>
-
-			<!-- 代码生成-->
-			<dependency>
-				<groupId>com.gamehive</groupId>
-				<artifactId>gamehive-generator</artifactId>
-				<version>${gamehive.version}</version>
-			</dependency>
-
-			<!-- 核心模块-->
+		<!-- 核心模块-->
 			<dependency>
 				<groupId>com.gamehive</groupId>
 				<artifactId>gamehive-framework</artifactId>
@@ -246,8 +224,6 @@
 		<module>gamehive-admin</module>
 		<module>gamehive-framework</module>
 		<module>gamehive-system</module>
-		<module>gamehive-quartz</module>
-		<module>gamehive-generator</module>
 		<module>gamehive-common</module>
 		<module>matchingsystem</module>
 		<module>lmmrunningsystem</module>

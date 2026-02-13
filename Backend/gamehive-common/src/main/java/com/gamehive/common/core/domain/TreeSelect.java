@@ -4,10 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.gamehive.common.constant.UserConstants;
-import com.gamehive.common.core.domain.entity.SysDept;
 import com.gamehive.common.core.domain.entity.SysMenu;
-import com.gamehive.common.utils.StringUtils;
 
 /**
  * Treeselect树结构实体类
@@ -34,14 +31,6 @@ public class TreeSelect implements Serializable
     public TreeSelect()
     {
 
-    }
-
-    public TreeSelect(SysDept dept)
-    {
-        this.id = dept.getDeptId();
-        this.label = dept.getDeptName();
-        this.disabled = StringUtils.equals(UserConstants.DEPT_DISABLE, dept.getStatus());
-        this.children = dept.getChildren().stream().map(TreeSelect::new).collect(Collectors.toList());
     }
 
     public TreeSelect(SysMenu menu)

@@ -60,17 +60,6 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
-        <!-- 定时任务-->
-        <dependency>
-            <groupId>com.gamehive</groupId>
-            <artifactId>gamehive-quartz</artifactId>
-        </dependency>
-
-        <!-- 代码生成-->
-        <dependency>
-            <groupId>com.gamehive</groupId>
-            <artifactId>gamehive-generator</artifactId>
-        </dependency>
 
     </dependencies>
 

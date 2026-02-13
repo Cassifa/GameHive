@@ -3,7 +3,6 @@ package com.gamehive.controller.web.system;
 import com.gamehive.common.annotation.Log;
 import com.gamehive.common.core.controller.BaseController;
 import com.gamehive.common.core.domain.AjaxResult;
-import com.gamehive.common.core.domain.entity.SysDept;
 import com.gamehive.common.core.domain.entity.SysRole;
 import com.gamehive.common.core.domain.entity.SysUser;
 import com.gamehive.common.core.page.TableDataInfo;
@@ -11,7 +10,6 @@ import com.gamehive.common.enums.BusinessType;
 import com.gamehive.common.utils.SecurityUtils;
 import com.gamehive.common.utils.StringUtils;
 import com.gamehive.common.utils.poi.ExcelUtil;
-import com.gamehive.system.service.ISysDeptService;
 import com.gamehive.system.service.ISysPostService;
 import com.gamehive.system.service.ISysRoleService;
 import com.gamehive.system.service.ISysUserService;
@@ -39,9 +37,6 @@ public class SysUserController extends BaseController {
 
     @Autowired
     private ISysRoleService roleService;
-
-    @Autowired
-    private ISysDeptService deptService;
 
     @Autowired
     private ISysPostService postService;
@@ -110,7 +105,6 @@ public class SysUserController extends BaseController {
     @Log(title = "用户管理", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@Validated @RequestBody SysUser user) {
-        deptService.checkDeptDataScope(user.getDeptId());
         roleService.checkRoleDataScope(user.getRoleIds());
         if (!userService.checkUserNameUnique(user)) {
             return error("新增用户'" + user.getUserName() + "'失败，登录账号已存在");
@@ -133,7 +127,6 @@ public class SysUserController extends BaseController {
     public AjaxResult edit(@Validated @RequestBody SysUser user) {
         userService.checkUserAllowed(user);
         userService.checkUserDataScope(user.getUserId());
-        deptService.checkDeptDataScope(user.getDeptId());
         roleService.checkRoleDataScope(user.getRoleIds());
         if (!userService.checkUserNameUnique(user)) {
             return error("修改用户'" + user.getUserName() + "'失败，登录账号已存在");
@@ -213,12 +206,4 @@ public class SysUserController extends BaseController {
         return success();
     }
 
-    /**
-     * 获取部门树列表
-     */
-    @PreAuthorize("@ss.hasPermi('system:user:list')")
-    @GetMapping("/deptTree")
-    public AjaxResult deptTree(SysDept dept) {
-        return success(deptService.selectDeptTreeList(dept));
-    }
 }

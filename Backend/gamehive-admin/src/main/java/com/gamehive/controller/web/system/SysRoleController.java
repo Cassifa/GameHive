@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gamehive.common.annotation.Log;
 import com.gamehive.common.core.controller.BaseController;
 import com.gamehive.common.core.domain.AjaxResult;
-import com.gamehive.common.core.domain.entity.SysDept;
 import com.gamehive.common.core.domain.entity.SysRole;
 import com.gamehive.common.core.domain.entity.SysUser;
 import com.gamehive.common.core.domain.model.LoginUser;
@@ -28,7 +27,6 @@ import com.gamehive.common.utils.poi.ExcelUtil;
 import com.gamehive.framework.web.service.SysPermissionService;
 import com.gamehive.framework.web.service.TokenService;
 import com.gamehive.system.domain.SysUserRole;
-import com.gamehive.system.service.ISysDeptService;
 import com.gamehive.system.service.ISysRoleService;
 import com.gamehive.system.service.ISysUserService;
 
@@ -51,9 +49,6 @@ public class SysRoleController extends BaseController {
 
     @Autowired
     private ISysUserService userService;
-
-    @Autowired
-    private ISysDeptService deptService;
 
     @PreAuthorize("@ss.hasPermi('system:role:list')")
     @GetMapping("/list")
@@ -225,15 +220,4 @@ public class SysRoleController extends BaseController {
         return toAjax(roleService.insertAuthUsers(roleId, userIds));
     }
 
-    /**
-     * 获取对应角色部门树列表
-     */
-    @PreAuthorize("@ss.hasPermi('system:role:query')")
-    @GetMapping(value = "/deptTree/{roleId}")
-    public AjaxResult deptTree(@PathVariable("roleId") Long roleId) {
-        AjaxResult ajax = AjaxResult.success();
-        ajax.put("checkedKeys", deptService.selectDeptListByRoleId(roleId));
-        ajax.put("depts", deptService.selectDeptTreeList(new SysDept()));
-        return ajax;
-    }
 }

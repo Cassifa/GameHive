@@ -18,7 +18,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 import com.alibaba.fastjson2.JSON;
 import com.gamehive.common.annotation.Log;
-import com.gamehive.common.core.domain.entity.SysUser;
 import com.gamehive.common.core.domain.model.LoginUser;
 import com.gamehive.common.enums.BusinessStatus;
 import com.gamehive.common.enums.HttpMethod;
@@ -97,11 +96,6 @@ public class LogAspect
             if (loginUser != null)
             {
                 operLog.setOperName(loginUser.getUsername());
-                SysUser currentUser = loginUser.getUser();
-                if (StringUtils.isNotNull(currentUser) && StringUtils.isNotNull(currentUser.getDept()))
-                {
-                    operLog.setDeptName(currentUser.getDept().getDeptName());
-                }
             }
 
             if (e != null)
