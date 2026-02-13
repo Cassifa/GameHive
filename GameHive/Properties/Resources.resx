@@ -139,4 +139,13 @@
   <data name="antigo_10000" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\DRLModels\antigo_10000.onnx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="antigo_40000" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DRLModels\antigo_40000.onnx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="antigo_41000" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DRLModels\antigo_41000.onnx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="gobang15_13000" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DRLModels\gobang15_13000.onnx;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

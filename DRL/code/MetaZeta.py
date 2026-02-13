@@ -28,7 +28,8 @@ class MetaZeta(threading.Thread):
         self.stop_training = False
 
         self.window = tk.Tk()
-        self.window.title('Meta Zeta - PyTorch Remake')
+        self.window.title('AlphaGoZero Mini')
+
         self.window.geometry('900x650')
         self.window.configure(bg='#f0f0f0')
         
@@ -65,60 +66,59 @@ class MetaZeta(threading.Thread):
         right_panel = tk.Frame(main_container, bg='#f0f0f0', width=300)
         right_panel.pack(side=RIGHT, fill=Y, padx=(20, 0), anchor='n')
 
-        # 1. 游戏设置
+        # 5. 操作按钮 (先 Pack 到底部，确保可见)
+        btn_frame = tk.Frame(right_panel, bg='#f0f0f0')
+        btn_frame.pack(side=BOTTOM, fill=X, pady=20)
+        
+        self.is_training_active = False
+        self.is_game_active = False
+
+        self.btGame = ttk.Button(btn_frame, text='开始游戏', command=self.toggle_game_btn)
+        self.btGame.pack(fill=X, pady=5)
+        
+        self.btTrain = ttk.Button(btn_frame, text='开始训练', command=self.toggle_training_btn)
+        self.btTrain.pack(fill=X, pady=5)
+
+        self.btReset = ttk.Button(btn_frame, text='重置棋盘', command=self.resetCanvas)
+        self.btReset.pack(fill=X, pady=5)
+
+        # 1. 游戏设置 (Pack 到顶部)
         game_group = ttk.LabelFrame(right_panel, text="游戏设置")
-        game_group.pack(fill=X, pady=(0, 15), ipady=5)
+        game_group.pack(side=TOP, fill=X, pady=(0, 10), ipady=5)
         
         self.game_type = tk.StringVar(value="gobang")
-        ttk.Radiobutton(game_group, text='五子棋 (8x8)', variable=self.game_type, value='gobang', command=self.reset_game_env).pack(anchor='w', padx=10, pady=2)
-        ttk.Radiobutton(game_group, text='不围棋 (7x7)', variable=self.game_type, value='antigo', command=self.reset_game_env).pack(anchor='w', padx=10, pady=2)
-        ttk.Radiobutton(game_group, text='井字棋 (3x3)', variable=self.game_type, value='tictactoe', command=self.reset_game_env).pack(anchor='w', padx=10, pady=2)
-
-        # 2. 对战模式
-        mode_group = ttk.LabelFrame(right_panel, text="对战模式")
-        mode_group.pack(fill=X, pady=(0, 15), ipady=5)
+        ttk.Radiobutton(game_group, text='五子棋 (8x8)', variable=self.game_type, value='gobang', command=self.reset_game_env).pack(anchor='w', padx=10, pady=1)
+        ttk.Radiobutton(game_group, text='五子棋 (15x15)', variable=self.game_type, value='gobang15', command=self.reset_game_env).pack(anchor='w', padx=10, pady=1)
+        ttk.Radiobutton(game_group, text='不围棋 (7x7)', variable=self.game_type, value='antigo', command=self.reset_game_env).pack(anchor='w', padx=10, pady=1)
+        ttk.Radiobutton(game_group, text='井字棋 (3x3)', variable=self.game_type, value='tictactoe', command=self.reset_game_env).pack(anchor='w', padx=10, pady=1)
         
-        self.iv_default = IntVar(value=2)
-        ttk.Radiobutton(mode_group, text='AI 自我训练', value=1, variable=self.iv_default).pack(anchor='w', padx=10, pady=2)
-        ttk.Radiobutton(mode_group, text='与 AI 对战', value=2, variable=self.iv_default).pack(anchor='w', padx=10, pady=2)
-
         # 3. AI 设置
         ai_group = ttk.LabelFrame(right_panel, text="AI 配置")
-        ai_group.pack(fill=X, pady=(0, 15), ipady=5)
+        ai_group.pack(side=TOP, fill=X, pady=(0, 5), ipady=2)
         
         ai_frame = tk.Frame(ai_group, bg='#f0f0f0')
-        ai_frame.pack(fill=X, padx=10, pady=2)
+        ai_frame.pack(fill=X, padx=10, pady=1)
         ttk.Label(ai_frame, text="决策:").pack(side=LEFT)
         self.ai_decision_mode = tk.StringVar(value="mcts")
         ttk.Radiobutton(ai_frame, text='MCTS', variable=self.ai_decision_mode, value='mcts').pack(side=LEFT, padx=5)
         ttk.Radiobutton(ai_frame, text='纯策略网', variable=self.ai_decision_mode, value='pure_nn').pack(side=LEFT)
-
+        
         train_frame = tk.Frame(ai_group, bg='#f0f0f0')
-        train_frame.pack(fill=X, padx=10, pady=5)
+        train_frame.pack(fill=X, padx=10, pady=2)
         ttk.Label(train_frame, text="训练轮数:").pack(side=LEFT)
         self.train_rounds = tk.IntVar(value=2000)
         ttk.Entry(train_frame, textvariable=self.train_rounds, width=8).pack(side=LEFT, padx=5)
         
         self.device_str = "CUDA" if torch.cuda.is_available() else "CPU"
-        ttk.Label(ai_group, text=f"当前设备: {self.device_str}", foreground='blue').pack(anchor='w', padx=10, pady=(0, 5))
-
+        ttk.Label(ai_group, text=f"当前设备: {self.device_str}", foreground='blue').pack(anchor='w', padx=10, pady=(0, 2))
+        
         # 4. 玩家设置
         player_group = ttk.LabelFrame(right_panel, text="玩家执子")
-        player_group.pack(fill=X, pady=(0, 15), ipady=5)
+        player_group.pack(side=TOP, fill=X, pady=(0, 5), ipady=2)
         
-        self.human_color = tk.IntVar(value=2) # 默认后手 (白棋)
-        ttk.Radiobutton(player_group, text='黑棋 (先手)', variable=self.human_color, value=1).pack(anchor='w', padx=10, pady=2)
-        ttk.Radiobutton(player_group, text='白棋 (后手)', variable=self.human_color, value=2).pack(anchor='w', padx=10, pady=2)
-
-        # 5. 操作按钮
-        btn_frame = tk.Frame(right_panel, bg='#f0f0f0')
-        btn_frame.pack(fill=X, pady=10)
-        
-        self.btStart = ttk.Button(btn_frame, text='开始 / 训练', command=lambda: self.threadTrain(self.train_or_play))
-        self.btStart.pack(fill=X, pady=5)
-        
-        self.btReset = ttk.Button(btn_frame, text='重置棋盘', command=self.resetCanvas)
-        self.btReset.pack(fill=X, pady=5)
+        self.human_color = tk.IntVar(value=1) # 默认先手 (黑棋)
+        ttk.Radiobutton(player_group, text='黑棋 (先手)', variable=self.human_color, value=1).pack(anchor='w', padx=10, pady=1)
+        ttk.Radiobutton(player_group, text='白棋 (后手)', variable=self.human_color, value=2).pack(anchor='w', padx=10, pady=1)
 
 
         # 初始化游戏环境
@@ -136,6 +136,8 @@ class MetaZeta(threading.Thread):
         
         if game_type == 'gobang':
             board = GobangBoard(width=8, height=8, n_in_row=5)
+        elif game_type == 'gobang15':
+            board = GobangBoard(width=15, height=15, n_in_row=5)
         elif game_type == 'antigo':
             board = AntigoBoard(width=7, height=7)
         elif game_type == 'tictactoe':
@@ -218,44 +220,126 @@ class MetaZeta(threading.Thread):
         self.scrollText.insert(END, string + '\n')
         self.scrollText.see(END)
 
-    def resetCanvas(self):
+    def resetCanvas(self, stop_only=False, reset_buttons=True):
         """重置画布并中断训练"""
         self.stop_training = True
         
+        # 如果只是为了停止，不需要重绘和保存模型逻辑（或者根据需求调整）
+        # 这里保留原有逻辑，但在 Start 时调用会先触发一次保存（如果是从训练状态切换过来），这其实是好事。
+        
         if hasattr(self, 'flag_is_train') and self.flag_is_train:
             try:
+                # 只有当确实在训练且被中断时才保存
+                # 简单判断：如果 stop_only=False (即点击重置按钮或开始新游戏时)，保存当前进度
                 if not os.path.exists("models"):
                     os.makedirs("models")
-                save_path = f'models/{self.game_type.get()}-interrupted.pth'
-                self.NN.save_model(save_path)
-                self.drawScrollText(f"训练中断，模型已保存至: {save_path}")
+                
+                # 避免在刚启动还没训练时就保存空模型
+                if self.NN is not None and len(self.NN.trainDataPool) > 0:
+                     save_path = f'models/{self.game_type.get()}-interrupted.pth'
+                     self.NN.save_model(save_path)
+                     self.drawScrollText(f"训练中断，模型已保存至: {save_path}")
             except Exception as e:
                 print(f"保存模型失败: {e}")
 
         self.canvas.delete("all")
         self.scrollText.delete(1.0, END)
         self.DrawCanvas()
+        
+        if reset_buttons:
+            # 恢复按钮状态 (如果是因为点击重置而停止)
+            self.is_training_active = False
+            self.is_game_active = False
+            try:
+                self.btTrain.configure(text='开始训练')
+                self.btGame.configure(text='开始游戏')
+            except:
+                pass
 
-    def train_or_play(self):
-        """开始按钮的回调函数"""
-        try:
-            mode = self.iv_default.get()
+    def export_onnx(self):
+        # ... (if any other method exists, place it before that, or at end of class)
+        pass
+
+    def toggle_game_btn(self):
+        """开始/停止 游戏按钮逻辑"""
+        if self.is_game_active:
+            # 停止游戏
+            self.stopTraining() # 复用停止逻辑
+            self.btGame.configure(text='开始游戏')
+            self.is_game_active = False
+        else:
+            # 开始游戏
+            if self.is_training_active:
+                messagebox.showwarning("提示", "请先停止训练！")
+                return
+            
+            # 强制重置棋盘（保留按钮状态，不重置按钮）
+            self.resetCanvas(stop_only=False, reset_buttons=False)
+            self.stop_training = False # resetCanvas 可能会将其置为 True，这里要重新打开
+            
+            self.is_game_active = True
+            self.btGame.configure(text='停止游戏')
+            
+            self.flag_is_train = False
+            self.game.flag_is_train = False
+            
+            self.threadTrain(self.run_play_with_human_wrapper)
+
+    def toggle_training_btn(self):
+        """开始/停止 训练按钮逻辑"""
+        if self.is_training_active:
+            # 停止训练
+            self.stopTraining()
+            self.btTrain.configure(text='开始训练')
+            self.is_training_active = False
+        else:
+            # 开始训练
+            if self.is_game_active:
+                messagebox.showwarning("提示", "请先停止当前游戏！")
+                return
+            
+            # 强制重置棋盘（保留按钮状态，不重置按钮）
+            self.resetCanvas(stop_only=False, reset_buttons=False)
             self.stop_training = False
             
-            if mode == 1: # AI Self Train
-                self.flag_is_train = True
-                self.game.flag_is_train = True
-                self.run_training()
-            else: # Play with Human
-                self.flag_is_train = False
-                self.game.flag_is_train = False
-                self.run_play_with_human()
-        except Exception as e:
-            import traceback
-            err_msg = traceback.format_exc()
-            print(err_msg)
-            self.drawScrollText(f"发生错误:\n{e}")
-            messagebox.showerror("运行错误", str(e))
+            self.is_training_active = True
+            self.btTrain.configure(text='停止训练')
+            
+            self.flag_is_train = True
+            self.game.flag_is_train = True
+            
+            self.threadTrain(self.run_training_wrapper)
+
+    def run_training_wrapper(self):
+        try:
+            self.run_training()
+        finally:
+            # 训练结束（无论是正常结束还是异常），恢复按钮状态
+            # 注意：在非 UI 线程操作 UI 控件可能会有问题，但在 Tkinter 中某些操作是允许的，或者使用 after
+            # 为了安全，这里不直接改 UI，或者假设 stopTraining 已经被调用
+            # 实际上如果用户点击停止，UI已经变了。如果是自动结束，这里应该变 UI。
+            # 我们简单处理：不做自动恢复，或者仅处理 stop_training 标志
+            self.is_training_active = False
+            try:
+                self.btTrain.configure(text='开始训练')
+            except:
+                pass
+
+    def run_play_with_human_wrapper(self):
+        try:
+            self.run_play_with_human()
+        finally:
+            self.is_game_active = False
+            try:
+                self.btGame.configure(text='开始游戏')
+            except:
+                pass
+
+    def stopTraining(self):
+        """停止当前训练"""
+        self.stop_training = True
+        self.drawScrollText("已发送停止信号，请等待当前对局结束...")
+
 
     def run_training(self):
         """执行训练循环"""
@@ -430,7 +514,7 @@ class MetaZeta(threading.Thread):
             self.drawScrollText("请先进行训练并导出ONNX模型，或者手动放置模型文件。")
             return
 
-        self.game.playWithHuman(player, human_player_id=self.human_color.get())
+        self.game.playWithHuman(player, human_player_id=self.human_color.get(), check_stop=lambda: self.stop_training)
 
     def on_closing(self):
         self.stop_training = True

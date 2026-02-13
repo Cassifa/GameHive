@@ -1,4 +1,4 @@
-<h1 align="center">AlphaGo-Zero-Mini</h1>
+<h1 align="center">AlphaGoZero Mini</h1>
 
 ---
 
@@ -34,10 +34,26 @@ python3 code/train.py --game_type gobang --max_games 10000 --continue_train
 python3 code/train.py --game_type antigo --max_games 10000
 ```
 - **参数说明**：
-  - `--game_type`: `gobang` / `antigo` / `tictactoe`
-  - `--max_games`: 总训练轮数
+  - `--game_type`: `gobang` / `antigo` / `tictactoe` （必填）
+  - `--max_games`: 总训练轮数 （必填）
   - `--batch_size`: 训练批次大小 (默认 512)
-  - `--mcts_simulations`: 每次落子前的搜索次数 (默认 400)
+  - `--mcts_simulations`: 每次落子前的搜索次数 (默认 1000)
+  - `--continue_train` 启用继续训练标记，加上后会自动在finall目录中寻找目标游戏训练轮次最大的模型，在此基础上继续训练
+
+- 推荐mcts_simulations配置
+
+  | 游戏                  | 训练模拟次数 | 对战模拟次数 | 说明                             |
+  | :-------------------- | :----------- | :----------- | :------------------------------- |
+  | 井字棋 3x3            | 100~200      | 400          | 已解游戏，多了纯粹浪费           |
+  | 不围棋 7x7            | 400~600      | 1000~1500    | "气"的逻辑需要一定深度           |
+  | 五子棋 8x8            | 400~600      | 1000~1500    | 空间小，400 够用                 |
+  | 五子棋 15x15 (有剪枝) | 800~1000     | 2000         | 剪枝后候选点多一些，需要更多模拟 |
+
+  ### 你现在的参数评估
+
+- **日志说明**：
+  - **每 10 轮**：显示最近 10 轮的平均 Loss。
+  - **每 100 轮**（换行时）：显示最近 100 轮的平均 Loss。
 
 ---
 

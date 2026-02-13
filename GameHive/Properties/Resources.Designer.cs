@@ -129,5 +129,35 @@ namespace GameHive.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   查找 System.Byte[] 类型的本地化资源。
+        /// </summary>
+        internal static byte[] antigo_40000 {
+            get {
+                object obj = ResourceManager.GetObject("antigo_40000", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Byte[] 类型的本地化资源。
+        /// </summary>
+        internal static byte[] antigo_41000 {
+            get {
+                object obj = ResourceManager.GetObject("antigo_41000", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查找 System.Byte[] 类型的本地化资源。
+        /// </summary>
+        internal static byte[] gobang15_13000 {
+            get {
+                object obj = ResourceManager.GetObject("gobang15_13000", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

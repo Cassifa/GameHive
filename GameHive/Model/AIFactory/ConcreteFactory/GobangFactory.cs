@@ -1,4 +1,4 @@
-﻿/*************************************************************************************
+/*************************************************************************************
  * 文 件 名:   GobangFactory.cs
  * 描    述: 五子棋工厂
  * 版    本：  V2.0 .NET客户端初版
@@ -9,6 +9,7 @@ using GameHive.Constants.AIAlgorithmTypeEnum;
 using GameHive.Constants.DifficultyLevelEnum;
 using GameHive.Model.AIFactory.AbstractAIProduct;
 using GameHive.Model.AIFactory.ConcreteProduct;
+using GameHive.Model.AIFactory.ConcreteProduct.Gobang;
 using GameHive.Model.AIUtils.AlphaBetaPruning;
 using GameHive.Model.GameInfo;
 
@@ -20,9 +21,9 @@ namespace GameHive.Model.AIFactory {
             return new GoBangMinMax(boardInfo.Column, level, RewardTableUtil.GetGOBangRewardTable(), RewardTableUtil.GetGOBangKillingTable());
         }
 
-        /*——————————不可用———————————*/
         public override DeepRL GetDeepRLProduct(DifficultyLevel level) {
-            throw new NotImplementedException();
+            SetConcreteProductInfo(GoBangDRL.concreteProductInfo);
+            return new GoBangDRL(boardInfo.Column, level);
         }
 
         public override MCTS GetMCTSProduct(DifficultyLevel level) {
@@ -36,6 +37,7 @@ namespace GameHive.Model.AIFactory {
         private static GobangFactory _instance;
         private GobangFactory() {
             List<AIAlgorithmType> aiTypes = new List<AIAlgorithmType> {
+                AIAlgorithmType.DeepRL,
                 AIAlgorithmType.Minimax
             };
             boardInfo = new GameBoardInfo(15, false, aiTypes);

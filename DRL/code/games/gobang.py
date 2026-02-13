@@ -70,18 +70,49 @@ class GobangBoard(BoardBase):
 
     def do_move(self, move):
         super().do_move(move)
+        # 大棋盘启发式剪枝：只保留有子区域附近的空位，减少 MCTS 无效分支
+        if self.width >= 10 and len(self.states) > 0:
+            self._prune_availables(distance=3)
+
+    def _prune_availables(self, distance=3):
+        """
+        启发式剪枝：将 availables 限制为已有棋子周围 distance 格内的空位。
+        每次落子后从全部空位重新计算，确保不会遗漏随对局发展新进入范围的位置。
+        """
+        if not self.states:
+            return
+
+        width, height = self.width, self.height
+
+        # 从棋盘总位置减去已落子位置，得到全部空位
+        occupied = set(self.states.keys())
+        full_empty = set(range(width * height)) - occupied
+
+        # 收集所有棋子周围 distance 格内的空位
+        nearby = set()
+        for m in occupied:
+            r, c = m // width, m % width
+            for i in range(max(0, r - distance), min(height, r + distance + 1)):
+                for j in range(max(0, c - distance), min(width, c + distance + 1)):
+                    pos = i * width + j
+                    if pos in full_empty:
+                        nearby.add(pos)
+
+        self.availables = sorted(nearby)
 
     def has_a_winner(self):
         """
-        判断是否比出输赢
+        检查是否有玩家达成 n_in_row 连珠获胜。
+        遍历所有已落子位置，检查横、竖、两条对角线四个方向。
         """
         width = self.width
         height = self.height
         states = self.states
         n = self.n_in_row
 
-        moved = list(set(range(width * height)) - set(self.availables))
-        if len(moved) < self.n_in_row *2-1:
+        moved = list(self.states.keys())
+
+        if len(moved) < self.n_in_row * 2 - 1:
             return False, -1
 
         for m in moved:
@@ -109,13 +140,14 @@ class GobangBoard(BoardBase):
 
     def gameIsOver(self):
         """
-        判断游戏是否结束
+        判断游戏是否结束。
+        胜负由 has_a_winner 决定；平局通过已落子数是否填满棋盘来判断。
         """
         win, winner = self.has_a_winner()
         if win:
             return True, winner
-        elif not len(self.availables):
-            return True, -1
+        if len(self.states) >= self.width * self.height:
+            return True, -1  # 棋盘满了，平局
         return False, -1
 
     def getCurrentPlayer(self):

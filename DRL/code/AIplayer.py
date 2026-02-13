@@ -8,9 +8,10 @@ class MCTSPlayer():
     """
 
     def __init__(self, policy_NN):
-        self.simulations = 400  # 每次行动的模拟次数 (搜索深度)
+        self.simulations_play = 2000   # 对战模式模拟次数
+        self.simulations_train = 1000  # 训练模式模拟次数
         self.factor = 5  # c_puct 探索因子
-        self.MCTS = MCTS(policy_NN, self.factor, self.simulations)
+        self.MCTS = MCTS(policy_NN, self.factor, self.simulations_play)
 
     def resetMCTS(self):
         """重置搜索树 (通常在游戏结束时调用)"""
@@ -22,29 +23,29 @@ class MCTSPlayer():
         :param board: 当前棋盘
         :param flag_is_train: 是否是训练模式
         """
+        # 根据模式动态调整模拟次数
+        self.MCTS.simulations = self.simulations_train if flag_is_train else self.simulations_play
+
         emptySpacesBoard = board.availables
         move_probs = np.zeros(board.width * board.height)
 
         if len(emptySpacesBoard) > 0:
-            # 1. 运行 MCTS 获取落子概率分布 π
+            # 运行 MCTS 获取落子概率分布 π
             acts, probs = self.MCTS.getMoveProbs(board, flag_is_train)
             move_probs[list(acts)] = probs
 
             if flag_is_train:
-                # 2a. 训练模式：增加随机性
-                # 添加 Dirichlet 噪声，鼓励探索，防止过早陷入局部最优
+                # 训练模式：添加 Dirichlet 噪声，鼓励探索
                 move = np.random.choice(
                     acts,
                     p=0.75 * probs + 0.25 * np.random.dirichlet(0.3 * np.ones(len(probs)))
                 )
-                # 更新 MCTS 根节点，复用搜索树
+                # 复用搜索树
                 self.MCTS.updateMCTS(move)
-
             else:
-                # 2b. 对战模式：更贪婪
-                # 直接选择概率最高的点 (或按概率采样)
-                move = np.random.choice(acts, p=probs)
-                # 重置 MCTS (通常对战时每一步都重新搜索更稳健，或者也可以复用)
+                # 对战模式：Argmax，选择概率最高的点（绝对贪婪）
+                move = acts[np.argmax(probs)]
+                # 每步重新搜索
                 self.MCTS.updateMCTS(-1)
 
             return move, move_probs

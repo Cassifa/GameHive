@@ -24,22 +24,25 @@ namespace GameHive.Model.AIFactory.ConcreteProduct.AntiGo {
 
             switch (level) {
                 case DifficultyLevel.LEVEL_1: // 纯神经网络评估
-                    modelBytes = Properties.Resources.antigo_10000;
+                    modelBytes = Properties.Resources.antigo_41000;
                     useMonteCarlo = false;
                     SearchCount = 0;
+                    reuseSearchTree = false;
                     break;
                 case DifficultyLevel.LEVEL_2: // 基础 MCTS 搜索
-                    modelBytes = Properties.Resources.antigo_10000;
+                    modelBytes = Properties.Resources.antigo_40000;
                     useMonteCarlo = true;
-                    SearchCount = 20000;
+                    SearchCount = 30000;
+                    reuseSearchTree = false;
                     break;
                 case DifficultyLevel.LEVEL_3: // 高强度 MCTS 搜索
-                    modelBytes = Properties.Resources.antigo_10000;
+                    modelBytes = Properties.Resources.antigo_41000;
                     useMonteCarlo = true;
-                    SearchCount = 40000;
+                    SearchCount = 30000;
+                    reuseSearchTree = false;
                     break;
                 case DifficultyLevel.LEVEL_4: // 超高强度 MCTS 搜索
-                    modelBytes = Properties.Resources.antigo_10000;
+                    modelBytes = Properties.Resources.antigo_41000;
                     useMonteCarlo = true;
                     SearchCount = 40000;
                     reuseSearchTree = true;
@@ -47,6 +50,7 @@ namespace GameHive.Model.AIFactory.ConcreteProduct.AntiGo {
                 default:
                     useMonteCarlo = false;
                     SearchCount = 0;
+                    reuseSearchTree = false;
                     break;
             }
 

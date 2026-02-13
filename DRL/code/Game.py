@@ -43,7 +43,14 @@ class Game():
         # 如果当前轮到玩家 2 (白)，说明上一手是玩家 1 (黑) 下的。
         # 所以这里的 player 参数应该传入“刚刚下这步棋的玩家”
         last_player = 1 if board.current_player == 2 else 2
-        self.drawPieces(player=last_player, rc_pos=(x, y), Index=len(board.states))
+        
+        # 动态调整棋子大小
+        if self.boardWidth > 10:
+             radius = 10
+        else:
+             radius = 15
+             
+        self.drawPieces(player=last_player, rc_pos=(x, y), Index=len(board.states), RADIUS=radius)
 
         if KEY:
             # 构造日志信息
@@ -72,24 +79,7 @@ class Game():
         x, y = self.convert_rc_to_xy(rc_pos)
         
         # 修正颜色逻辑：Player 1 (先手) 黑棋，Player 2 (后手) 白棋
-        # 注意：这里传入的 player 是 *刚刚落子* 的玩家，也就是 board.current_player 的 *上一个* 状态
-        # 但由于 board.current_player 在 do_move 后已经切换了，所以这里传入的其实是 *当前等待落子* 的玩家？
-        # 不，调用处是 Show(board)，此时 board.current_player 已经是 *下一个* 玩家了。
-        # 实际上，Show 函数里画的是 board.last_move，也就是 *上一个* 玩家下的棋。
-        # 上一个玩家 = current_player 的对手。
-        # 如果 current_player 是 1 (黑)，那上一步是 2 (白) 下的。
-        # 如果 current_player 是 2 (白)，那上一步是 1 (黑) 下的。
-        
-        # 让我们重新理一下逻辑：
-        # Game.py 的 Show 函数传入的是 board.current_player。
-        # 在 do_move 之后调用 Show。
-        # do_move 之后，current_player 已经切换为 *下一手* 的玩家。
-        # 所以 Show 函数里传入的 player 是 *下一手* 的玩家。
-        # 但是我们画的是 last_move，也就是 *上一手* 的棋子。
-        # 所以棋子的颜色应该是 player 的 *对手* 的颜色。
-        
-        # 如果传入 player=1 (当前轮到黑棋)，说明上一手是白棋(2)下的 -> 画白棋
-        # 如果传入 player=2 (当前轮到白棋)，说明上一手是黑棋(1)下的 -> 画黑棋
+        # ... (注释省略) ...
         
         colorText = 'white' if player == 1 else 'black'
         colorPiece = 'black' if player == 1 else 'white'
@@ -99,7 +89,8 @@ class Game():
         # 绘制红色方框标记最新落子
         if draw_rect == True:
             if self.rect == None:
-                OFFSET = 20
+                # 动态调整选框大小：比棋子半径大 4 像素
+                OFFSET = RADIUS + 4 
                 self.rect = self.Canvas.create_rectangle(x - OFFSET, y - OFFSET, x + OFFSET, y + OFFSET,
                                                          outline="#c1005d")
                 self.rect_xy_pos = (x, y)
@@ -219,35 +210,57 @@ class Game():
         r, c = self.convert_xy_to_rc((x, y))
         self.move_human = r * self.boardWidth + c
 
-    def playWithHuman(self, player, human_player_id=2):
+    def playWithHuman(self, player, human_player_id=2, check_stop=None):
         """ 
         [人机对战循环]
         Human vs AI
         :param player: AI 玩家对象
         :param human_player_id: 人类玩家执子 (1=黑棋/先手, 2=白棋/后手)
+        :param check_stop: 停止检查回调
         """
         self.Canvas.bind("<Button-1>", self.humanMove)
         self.board.initBoard(0) # 0 表示玩家1 (黑棋) 先手
 
         KEY = 0
         while True:
+            # 检查停止信号
+            if check_stop and check_stop():
+                print("Game stopped by user.")
+                break
+
             current_p = self.board.current_player
             
             if current_p != human_player_id:
                 # AI 行动
+                # 注意：AI 计算可能耗时，建议在 AI 内部也支持中断，或者只能等待计算完成
+                # 这里简单处理：AI思考时界面可能会暂时卡顿无法立即响应停止
                 move, move_probs = player.getAction(self.board, self.flag_is_train)
                 self.board.do_move(move)
                 KEY = 1
             else:
                 # 人类行动
-                if self.flag_human_click:
-                    if self.move_human in self.board.availables:
-                        self.flag_human_click = False
-                        self.board.do_move(self.move_human)
-                        KEY = 1
-                    else:
-                        self.flag_human_click = False
-                        print("无效区域")
+                # 循环等待人类点击，期间也要响应停止信号
+                # 修改为非阻塞检查或者在点击回调中设置标志
+                # 简单做法：利用 update() 刷新界面，检测 flag_human_click
+                
+                # 这里其实是一个死循环等待，如果不加 sleep 或者 update，会卡死 GUI
+                # 但因为是在子线程运行，所以 GUI 不会卡死。
+                # 只是我们要能跳出这个等待。
+                
+                import time
+                while not self.flag_human_click:
+                    if check_stop and check_stop():
+                        return # 直接退出
+                    time.sleep(0.1)
+                
+                # 有点击了
+                if self.move_human in self.board.availables:
+                    self.flag_human_click = False
+                    self.board.do_move(self.move_human)
+                    KEY = 1
+                else:
+                    self.flag_human_click = False
+                    print("无效区域")
 
             if self.flag_is_shown and KEY == 1:
                 self.Show(self.board)

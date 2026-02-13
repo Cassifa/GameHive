@@ -147,12 +147,12 @@ def clean_every_100_dir(game_model_dir, current_1000_round):
 
 def main():
     parser = argparse.ArgumentParser(description="AlphaZero 五子棋/井字棋 训练脚本")
-    parser.add_argument("--game_type", type=str, required=True, choices=['gobang', 'tictactoe', 'antigo'], help="游戏类型: gobang 或 tictactoe 或 antigo")
+    parser.add_argument("--game_type", type=str, required=True, choices=['gobang', 'tictactoe', 'antigo', 'gobang15'], help="游戏类型: gobang 或 gobang15 或 tictactoe 或 antigo")
     parser.add_argument("--continue_train", action="store_true", help="是否从最新的检查点继续训练")
     parser.add_argument("--max_games", type=int, default=4000, help="总自我对弈训练局数")
     parser.add_argument("--batch_size", type=int, default=512, help="训练时的 Batch Size")
     parser.add_argument("--learning_rate", type=float, default=2e-3, help="学习率")
-    parser.add_argument("--mcts_simulations", type=int, default=400, help="每步棋的 MCTS 模拟次数")
+    parser.add_argument("--mcts_simulations", type=int, default=1000, help="训练时每步棋的 MCTS 模拟次数 (默认 1000)")
     
     args = parser.parse_args()
     
@@ -165,6 +165,8 @@ def main():
     # 2. 初始化棋盘
     if args.game_type == 'gobang':
         board = GobangBoard(width=8, height=8, n_in_row=5)
+    elif args.game_type == 'gobang15':
+        board = GobangBoard(width=15, height=15, n_in_row=5)
     elif args.game_type == 'antigo':
         # 不围棋默认 7x7，可根据需求调整
         board = AntigoBoard(width=7, height=7)
@@ -202,7 +204,7 @@ def main():
 
     # 4. 初始化 MCTS 玩家
     mcts_player = MCTSPlayer(policy_value_net.policy_NN)
-    mcts_player.simulations = args.mcts_simulations
+    mcts_player.simulations_train = args.mcts_simulations
     
     # 5. 初始化游戏控制
     # 使用 Mock 类，因为不需要 GUI 界面
@@ -212,6 +214,9 @@ def main():
     print(f"开始训练 {args.game_type}...")
     print(f"进度: 从第 {start_game_idx + 1} 轮 到 {args.max_games} 轮")
     
+    loss_list_10 = []   # 存储最近10轮
+    loss_list_100 = []  # 存储最近100轮
+
     try:
         for i in range(start_game_idx, args.max_games):
             current_round = i + 1
@@ -225,6 +230,11 @@ def main():
             # 只有当数据池中数据量达到 Batch Size 时才开始训练
             if len(policy_value_net.trainDataPool) > policy_value_net.trainBatchSize:
                 loss = policy_value_net.update() 
+                loss_list_10.append(loss)
+                loss_list_100.append(loss)
+                
+                if len(loss_list_10) > 10: loss_list_10.pop(0)
+                if len(loss_list_100) > 100: loss_list_100.pop(0)
             
             # 日志输出
             if current_round % 10 == 0:
@@ -238,7 +248,14 @@ def main():
                 batch_size = policy_value_net.trainBatchSize
                 
                 if data_count > batch_size:
-                    loss_info = f"Loss: {loss:.4f}"
+                    # 计算 Loss
+                    # 每100轮显示最近100轮平均值，其他每10轮显示最近10轮平均值
+                    if current_round % 100 == 0:
+                        avg_loss = sum(loss_list_100) / len(loss_list_100) if loss_list_100 else 0.0
+                        loss_info = f"Loss (Avg 100): {avg_loss:.4f}"
+                    else:
+                        avg_loss = sum(loss_list_10) / len(loss_list_10) if loss_list_10 else 0.0
+                        loss_info = f"Loss (Avg 10): {avg_loss:.4f}"
                 else:
                     loss_info = f"Collecting Data ({data_count}/{batch_size})"
 
