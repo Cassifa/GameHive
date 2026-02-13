@@ -1,0 +1,92 @@
+server:
+  port: 3003
+
+spring:
+  ai:
+    dashscope:
+      chat:
+        options:
+          model: deepseek-r1-distill-llama-8b
+          temperature: 0.7
+      embedding:
+        options:
+          model: text-embedding-v2
+  profiles:
+    include: secrets
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+springfox:
+  documentation:
+    enabled: false
+
+logging:
+  level:
+    org.springframework.ai.chat.client.advisor: trace
+    org.springframework.ai.chat.client.advisor.QuestionAnswerAdvisor: trace
+    org.springframework.ai.vectorstore: trace
+    org.springframework.ai.vectorstore.SimpleVectorStore: trace
+    com.alibaba.cloud.ai.dashscope.embedding: debug
+    com.gamehive.multiagent: debug
+    ROOT: info
+
+# 大模型配置
+lmm:
+  max-retry-count: 3 #最大重试次数
+  use-multi-agent: true  # 是否使用多智能体系统：true=多智能体，false=单智能体
+  # 多代理系统配置
+  multi-agent:
+    enabled: true
+    agents:
+      agent1:
+        model: deepseek-r1-distill-llama-8b
+        temperature: 0.8
+        enabled: true
+      agent2:
+        model: deepseek-r1-distill-llama-8b
+        temperature: 0.9
+        enabled: true
+      agent3:
+        model: deepseek-r1-distill-llama-8b
+        temperature: 0.7
+        enabled: true
+      agent4:
+        model: deepseek-r1-distill-llama-8b
+        temperature: 0.6
+        enabled: true
+      agent5:
+        model: deepseek-r1-distill-llama-8b
+        temperature: 0.4
+        enabled: true
+
+# URL配置
+api:
+  urls:
+    receive-bot-move: "http://127.0.0.1:3000/api/pk/receive/LMM/move/"
+
+# 向量数据库配置
+vector:
+  store:
+    stores:
+      gobang:
+        path: "./data/vectors/gobang"
+        dimension: 1536
+        knowledge-file: "classpath:rag/GoBang_RAG_Database.txt"
+      reverse-go:
+        path: "./data/vectors/reverse-go"
+        dimension: 1536
+        knowledge-file: "classpath:rag/AntiGo_RAG_Database.txt"
+      tic-tac-toe:
+        path: "./data/vectors/tic-tac-toe"
+        dimension: 1536
+        knowledge-file: "classpath:rag/TicTacToe_RAG_Database.txt"
+      misere-tic-tac-toe:
+        path: "./data/vectors/misere-tic-tac-toe"
+        dimension: 1536
+        knowledge-file: "classpath:rag/Anti_TicTacToe_RAG_Database.txt"
+    # RAG检索配置
+    rag:
+      max-documents: 10           # 检索的最大文档数量
+      similarity-threshold: 0.1  # 相似度阈值(降低到0以确保能检索到文档)
+      enable-rerank: false       # 是否启用重排序

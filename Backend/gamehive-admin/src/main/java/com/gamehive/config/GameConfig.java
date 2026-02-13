@@ -20,6 +20,6 @@ public class GameConfig {
     @Value("${game.wait-time.lmm:6000}")
     private int lmmWaitTime;
 
-    @Value("${api.urls.add-bot:http://127.0.0.1:3002/LMMRunning/add/}")
+    @Value("${api.urls.add-bot:http://127.0.0.1:3003/LMMRunning/add/}")
     private String addBotUrl;
 } 

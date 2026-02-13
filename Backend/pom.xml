@@ -227,6 +227,7 @@
 		<module>gamehive-common</module>
 		<module>matchingsystem</module>
 		<module>lmmrunningsystem</module>
+		<module>multi-agent</module>
 	</modules>
 	<packaging>pom</packaging>
 

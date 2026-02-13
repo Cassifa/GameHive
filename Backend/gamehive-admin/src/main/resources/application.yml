@@ -168,4 +168,4 @@ game:
 # URL配置
 api:
   urls:
-    add-bot: "http://127.0.0.1:3002/LMMRunning/add/"
+    add-bot: "http://127.0.0.1:3003/LMMRunning/add/"

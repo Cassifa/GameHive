@@ -29,7 +29,7 @@ public class Game extends Thread {
     // 等待时间配置
     private final int normalWaitTime = 600; // 普通玩家等待时间60秒
     private final int lmmWaitTime = 6000;   // 大模型等待时间600秒
-    private final static String addBotUrl = "http://127.0.0.1:3002/LMMRunning/add/";
+    private final static String addBotUrl = "http://127.0.0.1:3003/LMMRunning/add/";
     
     private final Integer gameId; // 游戏唯一标识符
     private final Integer rows, cols;
